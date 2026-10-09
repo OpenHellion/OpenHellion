@@ -52,8 +52,6 @@ namespace ZeroGravity.LevelDesign
 
 		private GetInvitedPlayersDelegate onPlayersLodedDelegate;
 
-		private static World _world;
-
 		public int InSceneID
 		{
 			get => _inSceneID;
@@ -74,8 +72,6 @@ namespace ZeroGravity.LevelDesign
 
 		private void Awake()
 		{
-			_world ??= GameObject.Find("/World").GetComponent<World>();
-
 			if (StatusMesh != null)
 			{
 				DecalProjector decal = StatusMesh.GetComponentInChildren<DecalProjector>();
@@ -142,7 +138,7 @@ namespace ZeroGravity.LevelDesign
 			if (MyPlayer.Instance.LockedToTrigger != null &&
 			    MyPlayer.Instance.LockedToTrigger.TriggerType == SceneTriggerType.CryoPodPanel)
 			{
-				_world.InWorldPanels.Cryo.UpdateUI();
+				ParentVessel.World.InWorldPanels.Cryo.UpdateUI();
 			}
 		}
 

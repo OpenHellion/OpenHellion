@@ -6,7 +6,7 @@ namespace ZeroGravity.Objects
 {
 	public abstract class SpaceObject : MonoBehaviour
 	{
-		protected static World World;
+		[NonSerialized] public World World;
 
 		[NonSerialized] public GameObject TransferableObjectsRoot;
 
@@ -39,11 +39,6 @@ namespace ZeroGravity.Objects
 		protected virtual bool ShouldSetLocalTransform => World == null || World.AnchorGuid != Guid;
 
 		protected virtual bool ShouldUpdateTransform => true;
-
-		private void Awake()
-		{
-			World = World != null ? World : GameObject.Find("/World").GetComponent<World>();
-		}
 
 		public virtual void DestroyGeometry()
 		{

@@ -954,7 +954,7 @@ namespace OpenHellion
 
 		// TODO maybe this can use SceneLoader.LoadScenesWithIDs (see old PlayerSpawnResponse for inspiration)?
 		// Order of spawning is very important here. Do not move unless you know what you are doing.
-		public async UniTask MassSpawn(long[] guids, bool isMainObject = false)
+		public async UniTask MassSpawn(long[] guids, long mainObjectGuid = 0)
 		{
 			ObjectsInfoRequest request = new()
 			{
@@ -973,9 +973,10 @@ namespace OpenHellion
 				{
 					try
 					{
-						await Ship.Create(shipData.Guid, shipData.Position.ToVector3(), shipData.Rotation.ToQuaternion(), shipData.VesselRegistration, shipData.VesselName,
+						await Ship.Create(this, shipData.Guid, shipData.Position.ToVector3(), shipData.Rotation.ToQuaternion(), shipData.VesselRegistration, shipData.VesselName,
 							shipData.Tag,shipData.SceneId, shipData.CollidersCenterOffset, shipData.IsDebrisFragment, shipData.RadarSignature, shipData.IsDistressSignalActive,
-							shipData.IsAlwaysVisible, shipData.DockingControlsDisabled, shipData.SecurityPanelsLocked, shipData.VesselObjects, shipData.DockedVessels, isMainObject);
+							shipData.IsAlwaysVisible, shipData.DockingControlsDisabled, shipData.SecurityPanelsLocked, shipData.VesselObjects, shipData.DockedVessels,
+							shipData.Guid == mainObjectGuid || (shipData.DockedVessels != null && shipData.DockedVessels.Any(m => m.Guid == mainObjectGuid)));
 					}
 					catch (Exception ex)
 					{
@@ -990,9 +991,9 @@ namespace OpenHellion
 				{
 					try
 					{
-						await Asteroid.Create(asteroidData.Guid, asteroidData.Position.ToVector3(), asteroidData.Rotation.ToQuaternion(), asteroidData.VesselRegistration,
+						await Asteroid.Create(this, asteroidData.Guid, asteroidData.Position.ToVector3(), asteroidData.Rotation.ToQuaternion(), asteroidData.VesselRegistration,
 							asteroidData.VesselName, asteroidData.Tag, asteroidData.SceneId, asteroidData.IsDebrisFragment, asteroidData.IsAlwaysVisible, asteroidData.Radius,
-							asteroidData.MiningPoints, isMainObject);
+							asteroidData.MiningPoints, asteroidData.Guid == mainObjectGuid);
 					}
 					catch (Exception ex)
 					{
@@ -1007,8 +1008,8 @@ namespace OpenHellion
 				{
 					try
 					{
-						Pivot.Create(pivotData.Guid, pivotData.PivotType, pivotData.Position.ToVector3(),
-							pivotData.Rotation.ToQuaternion(), isMainObject: isMainObject);
+						Pivot.Create(this, pivotData.Guid, pivotData.PivotType, pivotData.Position.ToVector3(),
+							pivotData.Rotation.ToQuaternion(), isMainObject: pivotData.Guid == mainObjectGuid);
 					}
 					catch (Exception ex)
 					{
@@ -1023,7 +1024,7 @@ namespace OpenHellion
 				{
 					try
 					{
-						OtherPlayer.Create(playerData.Guid, playerData.Position.ToVector3(), playerData.Rotation.ToQuaternion(), playerData.ParentId, playerData.Gender,
+						OtherPlayer.Create(this, playerData.Guid, playerData.Position.ToVector3(), playerData.Rotation.ToQuaternion(), playerData.ParentId, playerData.Gender,
 							playerData.HeadType, playerData.HairType, playerData.Name, playerData.PlayerId, playerData.SpawnPointId,
 							playerData.AnimationStatsMask, playerData.LockedToTriggerID, playerData.DynamicObjects);
 					}
@@ -1040,7 +1041,7 @@ namespace OpenHellion
 				{
 					try
 					{
-						Corpse.Create(corpseData.Guid, corpseData.Position.ToVector3(), corpseData.Rotation.ToQuaternion(),
+						Corpse.Create(this, corpseData.Guid, corpseData.Position.ToVector3(), corpseData.Rotation.ToQuaternion(),
 							corpseData.ParentGUID, corpseData.Gender, corpseData.DynamicObjects);
 					}
 					catch (Exception ex)
@@ -1056,7 +1057,7 @@ namespace OpenHellion
 				{
 					if (GetDynamicObject(objectDetails.GUID) == null)
 					{
-						DynamicObject.CreateDynamicObject(objectDetails);
+						DynamicObject.CreateDynamicObject(this, objectDetails);
 					}
 				}
 			}
@@ -1108,7 +1109,8 @@ namespace OpenHellion
 			_lastLatencyMessageTime = Time.realtimeSinceStartup;
 
 			ServerConnectionInfo server = Globals.LastConnectedServer.Value;
-			int latency = await NetworkController.LatencyTest(server.IpAddress, server.StatusPort);
+			int latency = await NetworkController.LatencyTest(server.IpAddress, server.StatusPort)
+				.AttachExternalCancellation(destroyCancellationToken);
 
 			// A status port that does not answer is not the same as losing the game connection, which the
 			// transport reports on its own, so an unanswered probe only means we have no reading.
@@ -1198,8 +1200,6 @@ namespace OpenHellion
 					{
 						spaceObjectVessel.IsDistressSignalActive = item.IsDistressSignalActive.Value;
 					}
-
-					spaceObjectVessel.ExposureDamage = item.ExposureDamage;
 				}
 			}
 		}
@@ -1303,7 +1303,7 @@ namespace OpenHellion
 					MyPlayer.Instance.HomeStationGUID = spawnResponse.HomeGuid.Value;
 				}
 
-				await MassSpawn(spawnResponse.AllNearbySpaceObjects, true);
+				await MassSpawn(spawnResponse.AllNearbySpaceObjects, spawnResponse.ParentGuid);
 
 				if (TryGetSpaceObject(spawnResponse.ParentGuid, out SpaceObject parent))
 				{

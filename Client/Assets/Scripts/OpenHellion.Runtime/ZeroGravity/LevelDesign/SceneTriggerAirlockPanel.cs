@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using OpenHellion;
 using UnityEngine;
 using UnityEngine.Serialization;
 using ZeroGravity.Data;
@@ -15,8 +14,6 @@ namespace ZeroGravity.LevelDesign
 		[SerializeField] private bool _isExteriorTrigger;
 
 		private AirLockControls myAirLockControls;
-
-		private static World _world;
 
 		public override SceneTriggerType TriggerType => SceneTriggerType.AirlockPanel;
 
@@ -47,12 +44,10 @@ namespace ZeroGravity.LevelDesign
 			}
 		}
 
-		public AirlockUI AirlockUI => _world.InWorldPanels.Airlock;
+		public AirlockUI AirlockUI => World.InWorldPanels.Airlock;
 
 		private void Awake()
 		{
-			_world ??= GameObject.Find("/World").GetComponent<World>();
-
 			if (CheckAuthorizationType == AuthorizationType.None)
 			{
 				CheckAuthorizationType = AuthorizationType.AuthorizedOrNoSecurity;

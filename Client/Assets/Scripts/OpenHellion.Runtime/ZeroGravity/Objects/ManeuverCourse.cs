@@ -104,16 +104,11 @@ namespace ZeroGravity.Objects
 
 		public FeasibilityErrorType FeasibilityError { get; private set; }
 
-		private static World _world;
+		private World _world;
 
 		public ManeuverCourse()
 		{
 			GUID = _nextCourseGuid++;
-		}
-
-		private void Awake()
-		{
-			_world ??= GameObject.Find("/World").GetComponent<World>();
 		}
 
 		private void Update()
@@ -121,8 +116,9 @@ namespace ZeroGravity.Objects
 			UpdateManeuver();
 		}
 
-		public void Initialize()
+		public void Initialize(World world)
 		{
+			_world = world;
 			StartOrbit.InitFromPeriapisAndApoapsis(MyShipOrbit.Parent, MyShipOrbit.PeriapsisDistance,
 				MyShipOrbit.ApoapsisDistance, MyShipOrbit.Inclination, MyShipOrbit.ArgumentOfPeriapsis,
 				MyShipOrbit.LongitudeOfAscendingNode, MyShipOrbit.TrueAnomalyAtZeroTime() * (180.0 / Mathf.PI), 0.0);

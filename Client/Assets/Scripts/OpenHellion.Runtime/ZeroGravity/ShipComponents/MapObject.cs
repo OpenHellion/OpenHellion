@@ -59,7 +59,7 @@ namespace ZeroGravity.ShipComponents
 
 		protected float CreationTime;
 
-		protected static World World;
+		protected World World;
 
 		public Map Map => World.Map;
 

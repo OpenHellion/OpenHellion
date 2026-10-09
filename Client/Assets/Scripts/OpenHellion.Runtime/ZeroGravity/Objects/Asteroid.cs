@@ -33,11 +33,11 @@ namespace ZeroGravity.Objects
 		/// <summary>
 		/// Creates and loads an asteroid asyncronously.
 		/// </summary>
-		public static async UniTask<Asteroid> Create(long guid, Vector3 position, Quaternion rotation, string vesselRegistration,
+		public static async UniTask<Asteroid> Create(World world, long guid, Vector3 position, Quaternion rotation, string vesselRegistration,
 			string vesselName, string tag, GameScenes.SceneId sceneId, bool isDebrisFragment, bool isAlwaysVisible, double radius,
 			AsteroidMiningPointDetails[] miningPoints, bool isMainObject)
 		{
-			Asteroid asteroid = InitialiseArtificialBody(guid, SpaceObjectType.Asteroid, position, rotation) as Asteroid;
+			Asteroid asteroid = InitialiseArtificialBody(world, guid, SpaceObjectType.Asteroid, position, rotation) as Asteroid;
 			asteroid.VesselRegistration = vesselRegistration;
 			asteroid.VesselName = vesselName;
 			asteroid.Tag = tag;

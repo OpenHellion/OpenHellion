@@ -108,11 +108,11 @@ namespace ZeroGravity.Objects
 
 		public bool IsThrusting => _inputThrust.IsNotEpsilonZero() || _inputRotation.IsNotEpsilonZero();
 
-		public static async UniTask<Ship> Create(long guid, Vector3 position, Quaternion rotation, string vesselRegistration, string vesselName, string tag, GameScenes.SceneId sceneId,
+		public static async UniTask<Ship> Create(World world, long guid, Vector3 position, Quaternion rotation, string vesselRegistration, string vesselName, string tag, GameScenes.SceneId sceneId,
 			float[] collidersCenterOffset, bool isDebrisFragment, double radarSignature, bool isDistressSignalActive, bool isAlwaysVisible,
 			bool dockingControlsDisabled, bool securityPanelLocked, VesselObjects vesselObjects, DockedVesselData[] dockedVessels, bool isMainObject)
 		{
-			Ship ship = InitialiseArtificialBody(guid, SpaceObjectType.Ship, position, rotation) as Ship;
+			Ship ship = InitialiseArtificialBody(world, guid, SpaceObjectType.Ship, position, rotation) as Ship;
 			ship.VesselRegistration = vesselRegistration;
 			ship.VesselName = vesselName;
 			ship.Tag = tag;
@@ -1190,7 +1190,7 @@ namespace ZeroGravity.Objects
 		/// </summary>
 		private async UniTask SpawnDockedVessel(DockedVesselData dockedVessel, bool optimise)
 		{
-			Ship childShip = InitialiseArtificialBody(dockedVessel.Guid, SpaceObjectType.Ship,
+			Ship childShip = InitialiseArtificialBody(World, dockedVessel.Guid, SpaceObjectType.Ship,
 				transform.localPosition, transform.localRotation) as Ship;
 			childShip.VesselRegistration = dockedVessel.VesselRegistration;
 			childShip.VesselName = dockedVessel.VesselName;

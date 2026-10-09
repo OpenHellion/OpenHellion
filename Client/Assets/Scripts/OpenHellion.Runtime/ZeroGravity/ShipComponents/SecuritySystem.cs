@@ -26,14 +26,10 @@ namespace ZeroGravity.ShipComponents
 
 		private Ship _parentShip;
 
-		private static World _world;
-
 		public Ship ParentShip => _parentShip;
 
 		public void Awake()
 		{
-			_world ??= GameObject.Find("/World").GetComponent<World>();
-
 			if (_parentShip == null)
 			{
 				_parentShip = GetComponentInParent<GeometryRoot>().MainObject as Ship;
@@ -225,7 +221,7 @@ namespace ZeroGravity.ShipComponents
 			if (MyPlayer.Instance.LockedToTrigger != null &&
 			    MyPlayer.Instance.LockedToTrigger.TriggerType == SceneTriggerType.SecurityScreen)
 			{
-				_world.InWorldPanels.Security.UpdateUI();
+				_parentShip.World.InWorldPanels.Security.UpdateUI();
 			}
 		}
 
@@ -234,7 +230,7 @@ namespace ZeroGravity.ShipComponents
 			if (MyPlayer.Instance.LockedToTrigger != null &&
 			    MyPlayer.Instance.LockedToTrigger.TriggerType == SceneTriggerType.SecurityScreen)
 			{
-				_world.InWorldPanels.Security.RefreshSelfDestructTimer();
+				_parentShip.World.InWorldPanels.Security.RefreshSelfDestructTimer();
 			}
 		}
 	}

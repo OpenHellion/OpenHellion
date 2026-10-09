@@ -158,7 +158,7 @@ namespace ZeroGravity.Objects
 			int tier)
 		{
 			Dictionary<ResourceType, float> craftingResources =
-				Item.GetCraftingResources(itemType, subType, partType, tier);
+				Item.GetCraftingResources(World, itemType, subType, partType, tier);
 			foreach (KeyValuePair<ResourceType, float> kv in craftingResources)
 			{
 				CargoResourceData cargoResourceData = GetCompartment().Resources
@@ -205,7 +205,7 @@ namespace ZeroGravity.Objects
 				foreach (int item in list2)
 				{
 					Dictionary<ResourceType, float> craftingResources =
-						Item.GetCraftingResources(type, subType, partType, item);
+						Item.GetCraftingResources(World, type, subType, partType, item);
 					ItemCompoundType itemCompoundType = new ItemCompoundType();
 					itemCompoundType.Type = type;
 					itemCompoundType.SubType = subType;

@@ -126,18 +126,11 @@ namespace ZeroGravity.ShipComponents
 
 		public Text TargetModuleName;
 
-		private static World _world;
-
 		public SceneDockingPort DockingPort =>
 			(_dockingPorts.Count - 1 >= _myCurrentPort) ? _dockingPorts[_myCurrentPort] : null;
 
 		public bool IsDockingEnabled =>
 			_parentShip != null && !_parentShip.DockingControlsDisabled && _myDockingPortsUI.Count > 0;
-
-		private void Awake()
-		{
-			_world ??= GameObject.Find("/World").GetComponent<World>();
-		}
 
 		private void Start()
 		{
@@ -578,7 +571,7 @@ namespace ZeroGravity.ShipComponents
 				_parentShip.GeometryRoot.GetComponentsInChildren<SceneDockingPort>(includeInactive: true);
 			foreach (SceneDockingPort dockingPort in componentsInChildren)
 			{
-				_world.CubemapRenderer.RemoveDockingPort(dockingPort);
+				_parentShip.World.CubemapRenderer.RemoveDockingPort(dockingPort);
 			}
 
 			gameObject.SetActive(value: false);
@@ -628,7 +621,7 @@ namespace ZeroGravity.ShipComponents
 		private void ReloadRadarElements()
 		{
 			List<Ship> list = new List<Ship>(AvailableTargetShips);
-			foreach (ArtificialBody ab in _world.AllArtificialBodies.Where((ArtificialBody m) =>
+			foreach (ArtificialBody ab in _parentShip.World.AllArtificialBodies.Where((ArtificialBody m) =>
 				         m is SpaceObjectVessel && (m as SpaceObjectVessel).MainVessel != _parentShip.MainVessel))
 			{
 				float num = (_parentShip.transform.position - ab.transform.position).magnitude;
@@ -832,12 +825,12 @@ namespace ZeroGravity.ShipComponents
 
 		private void OnEnable()
 		{
-			_world.InGameGUI.HelmetHud.gameObject.Activate(value: false);
+			_parentShip.World.InGameGUI.HelmetHud.gameObject.Activate(value: false);
 		}
 
 		private void OnDisable()
 		{
-			_world.InGameGUI.HelmetHud.gameObject.Activate(value: true);
+			_parentShip.World.InGameGUI.HelmetHud.gameObject.Activate(value: true);
 		}
 	}
 }

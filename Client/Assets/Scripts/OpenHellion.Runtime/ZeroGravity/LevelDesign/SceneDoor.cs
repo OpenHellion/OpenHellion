@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenHellion;
 using OpenHellion.IO;
 using UnityEngine;
 using ZeroGravity.Effects;
@@ -79,8 +78,6 @@ namespace ZeroGravity.LevelDesign
 
 		private bool _hasOverriddenSafety;
 
-		private static World _world;
-
 		public int InSceneID
 		{
 			get => _inSceneID;
@@ -94,11 +91,6 @@ namespace ZeroGravity.LevelDesign
 		public bool IsLocked => _isLocked;
 
 		public bool IsOpen => _isOpen;
-
-		private void Awake()
-		{
-			_world ??= GameObject.Find("/World").GetComponent<World>();
-		}
 
 		private void Start()
 		{
@@ -142,7 +134,7 @@ namespace ZeroGravity.LevelDesign
 			_airSpeed = details.AirSpeed;
 			if (details.Room1ID != null)
 			{
-				SpaceObjectVessel vessel = _world.GetVessel(details.Room1ID.VesselGUID);
+				SpaceObjectVessel vessel = ParentVessel.World.GetVessel(details.Room1ID.VesselGUID);
 				if (vessel != null)
 				{
 					vessel.RoomTriggers.TryGetValue(details.Room1ID.InSceneID, out Room1);
@@ -155,7 +147,7 @@ namespace ZeroGravity.LevelDesign
 
 			if (details.Room2ID != null)
 			{
-				SpaceObjectVessel vessel2 = _world.GetVessel(details.Room2ID.VesselGUID);
+				SpaceObjectVessel vessel2 = ParentVessel.World.GetVessel(details.Room2ID.VesselGUID);
 				if (vessel2 != null)
 				{
 					vessel2.RoomTriggers.TryGetValue(details.Room2ID.InSceneID, out Room2);
@@ -239,11 +231,11 @@ namespace ZeroGravity.LevelDesign
 			{
 				if (num3 > num4)
 				{
-					DoorParticles1.ToggleParticle(true);
+					DoorParticles1.Play();
 				}
 				else if (num3 < num4)
 				{
-					DoorParticles2.ToggleParticle(true);
+					DoorParticles2.Play();
 				}
 			}
 
@@ -256,7 +248,7 @@ namespace ZeroGravity.LevelDesign
 
 		private void AffectOutsideCorpses(float fIntensity)
 		{
-			foreach (Corpse item in _world.AllCorpses.Where((Corpse m) => m.Parent is Pivot))
+			foreach (Corpse item in ParentVessel.World.AllCorpses.Where((Corpse m) => m.Parent is Pivot))
 			{
 				if (!item.IsKinematic)
 				{
@@ -312,7 +304,7 @@ namespace ZeroGravity.LevelDesign
 
 		private void AffectOutsideDynamicObjects(float fIntensity)
 		{
-			foreach (DynamicObject item in _world.AllDynamicObjects.Where((DynamicObject m) =>
+			foreach (DynamicObject item in ParentVessel.World.AllDynamicObjects.Where((DynamicObject m) =>
 				         m.Parent is Pivot))
 			{
 				if (!item.IsKinematic)

@@ -39,7 +39,6 @@ namespace ZeroGravity.Objects
 				{
 					if (value != null)
 					{
-						value.ExecuteBehaviourScripts();
 						(this as MyPlayer).Pressure = value.AirPressure;
 					}
 					else

@@ -54,7 +54,6 @@ namespace ZeroGravity.CharacterMovement
 			{
 				return;
 			}
-			bool flag = _transferableObj.CurrentRoomTrigger == null || _roomTriggersDict.Count == 0;
 			SceneTriggerRoom roomTrigger = GetRoomTrigger(coli);
 			if (TransferableObject is DynamicObject && roomTrigger == MyPlayer.Instance.MyRoomTrigger)
 			{
@@ -62,13 +61,16 @@ namespace ZeroGravity.CharacterMovement
 			}
 			if (roomTrigger != null)
 			{
-				if (_roomTriggersDict.Count == 0)
+				bool isFirstRoom = _roomTriggersDict.Count == 0;
+				if (!_roomTriggersDict.ContainsKey(roomTrigger))
 				{
-					if (flag)
-					{
-						_transferableObj.EnterVesselRoomTrigger = roomTrigger;
-						_transferableObj.EnterVessel(roomTrigger.ParentVessel);
-					}
+					_roomTriggersDict.Add(roomTrigger, new HashSet<Collider>());
+				}
+				_roomTriggersDict[roomTrigger].Add(coli);
+				if (isFirstRoom)
+				{
+					_transferableObj.EnterVesselRoomTrigger = roomTrigger;
+					_transferableObj.EnterVessel(roomTrigger.ParentVessel);
 					SceneTriggerRoom currentRoomTrigger = _transferableObj.CurrentRoomTrigger;
 					_transferableObj.CurrentRoomTrigger = roomTrigger;
 					_transferableObj.RoomChanged(currentRoomTrigger);
@@ -85,11 +87,6 @@ namespace ZeroGravity.CharacterMovement
 				{
 					_transferableObj.EnterVesselRoomTrigger = null;
 				}
-				if (!_roomTriggersDict.ContainsKey(roomTrigger))
-				{
-					_roomTriggersDict.Add(roomTrigger, new HashSet<Collider>());
-				}
-				_roomTriggersDict[roomTrigger].Add(coli);
 			}
 			else if (_transferableObj is MyPlayer myPlayer)
 			{
@@ -256,14 +253,18 @@ namespace ZeroGravity.CharacterMovement
 				return;
 			}
 
-			Collider[] hitColliders = new Collider[10];
-			Physics.OverlapSphereNonAlloc(transform.position, _sphereCollider.radius, hitColliders);
-
-			Collider firstCollider = hitColliders.FirstOrDefault((Collider m) => m != null && GetRoomTrigger(m) != null);
+			Collider firstCollider = Physics.OverlapSphere(transform.position, _sphereCollider.radius)
+				.FirstOrDefault((Collider m) => GetRoomTrigger(m) != null);
 			if (firstCollider == null)
 			{
 				if (TransferableObject.CurrentRoomTrigger != null || _transferableObj.Parent is not Pivot)
 				{
+					if (TransferableObject.CurrentRoomTrigger != null)
+					{
+						SceneTriggerRoom previousRoomTrigger = TransferableObject.CurrentRoomTrigger;
+						TransferableObject.CurrentRoomTrigger = null;
+						TransferableObject.RoomChanged(previousRoomTrigger);
+					}
 					TransferableObject.ExitVessel(forceExit: true);
 					ResetTriggers();
 				}

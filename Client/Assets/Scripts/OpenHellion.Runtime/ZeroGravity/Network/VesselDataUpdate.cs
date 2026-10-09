@@ -16,7 +16,5 @@ namespace ZeroGravity.Network
 		public bool? IsDistressSignalActive;
 
 		public bool? IsAlwaysVisible;
-
-		public float ExposureDamage;
 	}
 }

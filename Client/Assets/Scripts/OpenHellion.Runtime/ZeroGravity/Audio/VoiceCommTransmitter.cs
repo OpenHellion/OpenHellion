@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
-using OpenHellion;
 using POpusCodec;
 using POpusCodec.Enums;
 using Steamworks;
@@ -35,13 +34,6 @@ namespace ZeroGravity.Audio
 
 		[SerializeField, FormerlySerializedAs("maxRadioDistance")]
 		private float _maxRadioDistance = 1000f;
-
-		private static World _world;
-
-		private void Awake()
-		{
-			_world ??= GameObject.Find("/World").GetComponent<World>();
-		}
 
 		private void Start()
 		{
@@ -200,7 +192,7 @@ namespace ZeroGravity.Audio
 		{
 			float num = radius * radius;
 			HashSet<OtherPlayer> hashSet = new HashSet<OtherPlayer>();
-			foreach (OtherPlayer value in _world.AllPlayers)
+			foreach (OtherPlayer value in MyPlayer.Instance.World.AllPlayers)
 			{
 				if ((value.transform.position - position).sqrMagnitude < num)
 				{

@@ -428,8 +428,6 @@ public class AnimatorHelper : MonoBehaviour
 
 	private Player _player;
 
-	private static World _world;
-
 	private MyPlayer.PlayerStance _currentPlayerStance = MyPlayer.PlayerStance.Passive;
 
 	public AnimationData animationData = new AnimationData();
@@ -643,7 +641,6 @@ public class AnimatorHelper : MonoBehaviour
 
 	private void Awake()
 	{
-		_world = _world != null ? _world : GameObject.Find("/World").GetComponent<World>();
 		CreateRig();
 		_animOverride = new AnimatorOverrideController
 		{
@@ -1336,15 +1333,15 @@ public class AnimatorHelper : MonoBehaviour
 			}
 		}
 
-		if (velocityForward.HasValue && _player is MyPlayer && _world != null && _world.InGameGUI.HelmetOverlayModel != null)
+		if (velocityForward.HasValue && _player is MyPlayer && _player.World != null && _player.World.InGameGUI.HelmetOverlayModel != null)
 		{
 			if (!_animatorIsZeroG)
 			{
-				_world.InGameGUI.HelmetOverlayModel.SetMovement(velocityForward.Value, velocityRight.Value);
+				_player.World.InGameGUI.HelmetOverlayModel.SetMovement(velocityForward.Value, velocityRight.Value);
 			}
 			else
 			{
-				_world.InGameGUI.HelmetOverlayModel.SetMovement(0f, 0f);
+				_player.World.InGameGUI.HelmetOverlayModel.SetMovement(0f, 0f);
 			}
 		}
 

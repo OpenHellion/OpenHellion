@@ -2358,7 +2358,6 @@ namespace ZeroGravity.Objects
 		/// </summary>
 		public static async UniTask SpawnMyPlayer(World world, LogInResponse res)
 		{
-			World = world;
 			GameObject characterObject = Instantiate(Resources.Load("Models/Units/Characters/FirstPersonCharacter")) as GameObject;
 			characterObject.SetActive(false);
 
@@ -2383,6 +2382,7 @@ namespace ZeroGravity.Objects
 
 			InventoryCharacterPreview.Instance.ChangeGender(res.Data.Gender);
 			MyPlayer myPlayer = characterObject.GetComponent<MyPlayer>();
+			myPlayer.World = world;
 			characterObject.name = "MyCharacter";
 
 			GameObject headObject =
@@ -2397,7 +2397,7 @@ namespace ZeroGravity.Objects
 			myPlayer.animHelper = animatorHelper;
 			myPlayer.FpsController.CameraController.animatorHelper = animatorHelper;
 			myPlayer.Inventory = new Inventory(myPlayer, animatorHelper);
-			myPlayer._inventoryUI = World.InGameGUI.InventoryUI;
+			myPlayer._inventoryUI = world.InGameGUI.InventoryUI;
 
 			myPlayer.HeadSkin = headObject.GetComponent<SkinnedMeshRenderer>();
 			myPlayer.FpsController.HeadCameraParent = genderItem.HeadCameraParent;
@@ -2418,14 +2418,14 @@ namespace ZeroGravity.Objects
 			myPlayer.Guid = res.GUID;
 			myPlayer.PlayerName = res.Data.Name;
 			myPlayer.PlayerId = Profile.PlayerId;
-			myPlayer.SunCameraRoot = World.SunCameraRootTransform;
-			myPlayer._sunCamera = World.SunCameraTransform;
-			myPlayer.PlanetsCameraRoot = World.PlanetsCameraRootTransform;
-			myPlayer._planetsCamera = World.PlanetsCameraTransform;
-			myPlayer._shipExteriorSunLight = World.ShipSunLightTransform.GetComponent<Light>();
+			myPlayer.SunCameraRoot = world.SunCameraRootTransform;
+			myPlayer._sunCamera = world.SunCameraTransform;
+			myPlayer.PlanetsCameraRoot = world.PlanetsCameraRootTransform;
+			myPlayer._planetsCamera = world.PlanetsCameraTransform;
+			myPlayer._shipExteriorSunLight = world.ShipSunLightTransform.GetComponent<Light>();
 			myPlayer.rigidBody.isKinematic = true;
 			AkSoundEngine.SetRTPCValue(SoundManager.InGameVolume, 0f);
-			World.InGameGUI.Console.CheckIfGodAndUpdate();
+			world.InGameGUI.Console.CheckIfGodAndUpdate();
 
 			Debug.Log("Successfully spawned player.");
 		}
@@ -3254,6 +3254,11 @@ namespace ZeroGravity.Objects
 			base.RoomChanged(prevRoomTrigger);
 
 			SendPlayerRoomMessage();
+
+			if (CurrentRoomTrigger != null)
+			{
+				CurrentRoomTrigger.ExecuteBehaviourScripts();
+			}
 		}
 
 		public void Suicide()

@@ -157,7 +157,7 @@ namespace ZeroGravity.UI
 					                                      AuthorizedPersonRank.CommandingOfficer);
 					ChangeEmblemButton.gameObject.SetActive(
 						SecuritySystem.GetPlayerRank(MyPlayer.Instance) == AuthorizedPersonRank.CommandingOfficer &&
-						SecuritySystem.ParentShip.Emblems != null);
+						SecuritySystem.ParentShip.Emblems.Count > 0);
 					ShipCrewButton.gameObject.SetActive(SecuritySystem.GetPlayerRank(MyPlayer.Instance) !=
 					                                    AuthorizedPersonRank.None);
 				}
@@ -553,6 +553,12 @@ namespace ZeroGravity.UI
 				DestroyImmediate(emblemObjectUI.gameObject);
 			}
 
+			if (SecuritySystem.ParentShip.Emblems.Count == 0)
+			{
+				return;
+			}
+
+			string currentEmblemId = SecuritySystem.ParentShip.Emblems[0].EmblemId;
 			GameObject gameObject = Instantiate(EmblemObject, EmblemParent);
 			gameObject.transform.localScale = Vector3.one;
 			EmblemObjectUI component = gameObject.GetComponent<EmblemObjectUI>();
@@ -560,8 +566,7 @@ namespace ZeroGravity.UI
 			component.EmblemId = string.Empty;
 			component.Texture = null;
 			component.Image.texture = DefaultEmblemTexture;
-			component.IsSelected.SetActive(component.EmblemId ==
-			                               SecuritySystem.ParentShip.Emblems.FirstOrDefault().EmblemId);
+			component.IsSelected.SetActive(component.EmblemId == currentEmblemId);
 			foreach (Texture2D value in SceneVesselEmblem.Textures.Values)
 			{
 				GameObject gameObject2 = Instantiate(EmblemObject, EmblemParent);
@@ -571,8 +576,7 @@ namespace ZeroGravity.UI
 				component2.EmblemId = value.name;
 				component2.Texture = value;
 				component2.Image.texture = component2.Texture;
-				component2.IsSelected.SetActive(component2.EmblemId ==
-				                                SecuritySystem.ParentShip.Emblems.FirstOrDefault().EmblemId);
+				component2.IsSelected.SetActive(component2.EmblemId == currentEmblemId);
 			}
 		}
 

@@ -44,7 +44,7 @@ namespace ZeroGravity.Objects
 		public bool IsStabilized => StabilizeToTargetObj != null;
 
 		// Called by the Ship, Asteroid, and Pivot classes by their Create methods.
-		protected static ArtificialBody InitialiseArtificialBody(long guid, SpaceObjectType type, Vector3 position, Quaternion rotation)
+		protected static ArtificialBody InitialiseArtificialBody(World world, long guid, SpaceObjectType type, Vector3 position, Quaternion rotation)
 		{
 			GameObject gameObject = new GameObject(type + "_" + guid);
 			ArtificialBody artificialBody;
@@ -74,6 +74,7 @@ namespace ZeroGravity.Objects
 				artificialBody.gameObject.SetActive(false);
 			}
 
+			artificialBody.World = world;
 			artificialBody.Guid = guid;
 			artificialBody.Radius = 30.0;
 			artificialBody.TransferableObjectsRoot = new GameObject("TransferableObjectsRoot");
@@ -99,11 +100,11 @@ namespace ZeroGravity.Objects
 				artificialBody.TransferableObjectsRoot.transform.Reset();
 			}
 
-			artificialBody.transform.parent = World.SpaceObjectsRoot.transform;
+			artificialBody.transform.parent = world.SpaceObjectsRoot.transform;
 			artificialBody.transform.localPosition = Vector3.zero;
 			artificialBody.SetTargetPositionAndRotation(position, rotation, true);
 
-			World.AddArtificialBody(artificialBody);
+			world.AddArtificialBody(artificialBody);
 			return artificialBody;
 		}
 
@@ -219,11 +220,6 @@ namespace ZeroGravity.Objects
 			if (World.PilotedVesselGuid == Guid)
 			{
 				transform.localRotation = transform.localRotation.RotatedBy(AngularVelocity, deltaTime);
-				if (MyPlayer.Instance != null)
-				{
-					MyPlayer.Instance.UpdateCameraPositions();
-				}
-
 				return true;
 			}
 
@@ -236,11 +232,6 @@ namespace ZeroGravity.Objects
 			transform.localRotation = Quaternion.Slerp(
 				transform.localRotation.RotatedBy(AngularVelocity, deltaTime),
 				TargetRotation.Value, Blend(deltaTime));
-
-			if (!ShouldSetLocalTransform && MyPlayer.Instance != null)
-			{
-				MyPlayer.Instance.UpdateCameraPositions();
-			}
 
 			return true;
 		}

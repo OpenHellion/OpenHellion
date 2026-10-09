@@ -116,8 +116,6 @@ namespace ZeroGravity.UI
 
 		private Camera _uiCamera;
 
-		private static World _world;
-
 		public Helmet CurrentHelmet => MyPlayer.Instance != null ? MyPlayer.Instance.CurrentHelmet : null;
 
 		private float CurrentPressure
@@ -145,8 +143,8 @@ namespace ZeroGravity.UI
 				if (MyPlayer.Instance.CurrentOutfit != null)
 				{
 					if (MyPlayer.Instance.CurrentOutfit.Armor >
-						_world.GetPlayerExposureDamage(
-							_world.LocalToWorldPosition(MyPlayer.Instance.transform.position).Magnitude))
+						MyPlayer.Instance.World.GetPlayerExposureDamage(
+							MyPlayer.Instance.World.LocalToWorldPosition(MyPlayer.Instance.transform.position).Magnitude))
 					{
 						return true;
 					}
@@ -164,7 +162,6 @@ namespace ZeroGravity.UI
 
 		private void Awake()
 		{
-			_world = _world != null ? _world : GameObject.Find("/World").GetComponent<World>();
 			Canvas canvas = TargetInfo.GetComponentInParent<Canvas>(includeInactive: true).rootCanvas;
 			_uiCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
 		}

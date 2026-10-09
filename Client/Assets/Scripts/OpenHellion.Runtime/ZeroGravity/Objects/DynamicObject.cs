@@ -1,6 +1,7 @@
 using OpenHellion.Net.Message;
 using System;
 using System.Collections.Generic;
+using OpenHellion;
 using OpenHellion.Net;
 using UnityEngine;
 using ZeroGravity.CharacterMovement;
@@ -436,15 +437,15 @@ namespace ZeroGravity.Objects
 			}
 		}
 
-		public static DynamicObject CreateDynamicObject(DynamicObjectDetails details)
+		public static DynamicObject CreateDynamicObject(World world, DynamicObjectDetails details)
 		{
 			if (!StaticData.DynamicObjectsDataList.TryGetValue(details.ItemID, out DynamicObjectData data))
 			{
 				return null;
 			}
 
-			SpaceObject parent = World.GetObject(details.AttachData.ParentGUID, details.AttachData.ParentType);
-			DynamicObject dynamicObject = World.GetObject(details.GUID, SpaceObjectType.DynamicObject) as DynamicObject;
+			SpaceObject parent = world.GetObject(details.AttachData.ParentGUID, details.AttachData.ParentType);
+			DynamicObject dynamicObject = world.GetObject(details.GUID, SpaceObjectType.DynamicObject) as DynamicObject;
 			bool reused = dynamicObject != null;
 			try
 			{
@@ -460,6 +461,7 @@ namespace ZeroGravity.Objects
 						new Vector3(20000f, 20000f, 20000f), Quaternion.identity) as GameObject;
 					gameObject.SetActive(value: false);
 					dynamicObject = gameObject.GetComponent<DynamicObject>();
+					dynamicObject.World = world;
 					dynamicObject.tag = "Untagged";
 					dynamicObject.Guid = details.GUID;
 					dynamicObject.name = "DynamicObject_" + details.GUID;
@@ -488,7 +490,7 @@ namespace ZeroGravity.Objects
 					dynamicObject.RigidBody.angularVelocity = dynamicObject.transform.parent.TransformDirection(details.AngularVelocity.ToVector3());
 				}
 
-				World.AddDynamicObject(details.GUID, dynamicObject);
+				world.AddDynamicObject(details.GUID, dynamicObject);
 
 				return dynamicObject;
 			}

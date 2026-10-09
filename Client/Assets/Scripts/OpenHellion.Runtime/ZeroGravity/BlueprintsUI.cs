@@ -97,7 +97,7 @@ namespace ZeroGravity
 		{
 			BlueprintsHolder.DestroyAll<BlueprintItemUI>();
 			foreach (DynamicObjectData item in StaticData.DynamicObjectsDataList.Values.Where((DynamicObjectData m) =>
-				         Item.GetCraftingResources(m.CompoundType) != null && m.DefaultAuxData.Category == cat))
+				         Item.GetCraftingResources(MyPlayer.Instance.World, m.CompoundType) != null && m.DefaultAuxData.Category == cat))
 			{
 				ItemCompoundType compoundType = item.CompoundType;
 				GameObject gameObject = Instantiate(BlueprintUI, BlueprintsHolder);
@@ -131,7 +131,7 @@ namespace ZeroGravity
 		public void CountResearched()
 		{
 			float num = StaticData.DynamicObjectsDataList.Values
-				.Where((DynamicObjectData m) => Item.GetCraftingResources(m.CompoundType) != null).Sum(
+				.Where((DynamicObjectData m) => Item.GetCraftingResources(MyPlayer.Instance.World, m.CompoundType) != null).Sum(
 					(DynamicObjectData m) => (m.DefaultAuxData.TierMultipliers.Length < 2)
 						? 1
 						: m.DefaultAuxData.TierMultipliers.Length);

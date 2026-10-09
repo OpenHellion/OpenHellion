@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenHellion;
 using UnityEngine;
 using UnityEngine.UI;
 using ZeroGravity.Data;
@@ -74,8 +73,6 @@ namespace ZeroGravity.UI
 
 		public GameObject DistressCallActive;
 
-		private static World _world;
-
 		public Ship ParentShip
 		{
 			get
@@ -91,11 +88,6 @@ namespace ZeroGravity.UI
 
 		public float Degradation =>
 			(float)(ParentShip.ExposureDamage * SpaceObjectVessel.VesselDecayRateMultiplier);
-
-		private void Awake()
-		{
-			_world = _world != null ? _world : GameObject.Find("/World").GetComponent<World>();
-		}
 
 		private void Start()
 		{
@@ -226,7 +218,7 @@ namespace ZeroGravity.UI
 					ManeuverActive.SetActive(value: true);
 					ManeuverEta.text = Localization.ETA + " " +
 					                   FormatHelper.PeriodFormat(ParentShip.EndWarpTime -
-					                                             _world.SolarSystem.CurrentTime);
+					                                             Room.ParentVessel.World.SolarSystem.CurrentTime);
 				}
 				else
 				{

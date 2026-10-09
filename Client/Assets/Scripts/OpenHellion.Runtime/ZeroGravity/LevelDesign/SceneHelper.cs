@@ -139,12 +139,6 @@ namespace ZeroGravity.LevelDesign
 			return Mathf.Abs(num);
 		}
 
-		private static AirDoorParticleToggler CreateDoorAirParticles(SceneDoor door, SceneTriggerRoom room,
-			GameObject prefabObject)
-		{
-			return null;
-		}
-
 		public static List<DoorData> GetDoorsData(GameObject rootObject,
 			string doorAirParticlesPrefabPath = "Assets/Prefabs/FX/Particles/AirDoorParticles.prefab",
 			bool isAutoSaveAll = false)

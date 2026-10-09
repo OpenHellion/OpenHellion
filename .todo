@@ -11,6 +11,8 @@ Spawn:
 [x] Fix orbits in visible system always being at the origin of the map, which can be moved
 [x] Fix old orbits not despawning
 [x] Fix outfit sent twice on join
+[x] Fix bug where deleting character from server screen would crash server
+[x] Rejoining a server in the same session on the client always breaks the second time
 [ ] Adding item to inventory using console doesn't update the client
 [ ] Fix empty dynamic objects at scene root
 
@@ -43,11 +45,15 @@ Movement:
 [x] Fix ejection bug from ship when piloting by making position in MovementMessage parent-relative instead of anchor relative.
 [x] Fix snap when flying back into range of a vessel
 [ ] Send faraway "known" vessels to client, but only on map and radar position (subscibe objects and known vessels rewrite)
+[x] Fix gravity changing direction randomly on the client
 [ ] Fix changing parent deals damage (think it is fixed)
 [ ] Fix items, corpses and other players sliding when the anchor changes (fixed for items)
 [ ] Moving from 0g to 1g fast might cause you to go trough the wall and fall forever, crashing the game
 [ ] Landing and staying on asteroid is impossible (may be because object spins)
 [ ] Fix ship driving without power and engine
+[ ] Fix radar selection raycast not succeeding
+[ ] Fix turrets
+[ ] Fix force opening docked door only opening near door
 
 Debugging/diagnostics:
 [x] Fix console (add errors and make player admin)

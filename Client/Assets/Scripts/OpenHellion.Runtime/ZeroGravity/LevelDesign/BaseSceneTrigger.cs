@@ -54,7 +54,7 @@ namespace ZeroGravity.LevelDesign
 
 		protected bool IsAuthorized => ParentShip.IsPlayerAuthorized(MyPlayer.Instance);
 
-		protected static World World;
+		protected World World => GetComponentInParent<GeometryRoot>().MainObject.World;
 
 		public virtual bool CheckAuthorization()
 		{
@@ -103,11 +103,6 @@ namespace ZeroGravity.LevelDesign
 
 		public virtual void CancelInteract(MyPlayer player)
 		{
-		}
-
-		private void Awake()
-		{
-			World ??= GameObject.Find("/World").GetComponent<World>();
 		}
 
 		protected virtual void Start()

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using OpenHellion;
 using UnityEngine;
 using UnityEngine.Serialization;
 using ZeroGravity.Network;
@@ -58,17 +57,10 @@ namespace ZeroGravity.LevelDesign
 
 		public bool LeverPulse;
 
-		private static World _world;
-
 		public int InSceneID
 		{
 			get => _inSceneID;
 			set => _inSceneID = value;
-		}
-
-		private void Awake()
-		{
-			_world ??= GameObject.Find("/World").GetComponent<World>();
 		}
 
 		private void Start()
@@ -118,7 +110,7 @@ namespace ZeroGravity.LevelDesign
 			if (details.DockingStatus)
 			{
 				IsSlave = true;
-				Ship ship = _world.GetVessel(details.DockedToID.VesselGUID) as Ship;
+				Ship ship = ParentShip.World.GetVessel(details.DockedToID.VesselGUID) as Ship;
 				if (ship == null)
 				{
 					if (!isInitialize)
@@ -166,7 +158,7 @@ namespace ZeroGravity.LevelDesign
 				    MyPlayer.Instance.LockedToTrigger != null && MyPlayer.Instance.LockedToTrigger.TriggerType ==
 				    SceneTriggerType.DockingPanel)
 				{
-					_world.InWorldPanels.Docking.UpdateDockingPorts();
+					ParentShip.World.InWorldPanels.Docking.UpdateDockingPorts();
 				}
 			}
 			else

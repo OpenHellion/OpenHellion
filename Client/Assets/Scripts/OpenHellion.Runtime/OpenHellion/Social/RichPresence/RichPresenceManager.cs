@@ -196,12 +196,14 @@ namespace OpenHellion.Social.RichPresence
 		/// </summary>
 		public static bool GetAchievement(AchievementID id)
 		{
+			return true;
+			/* Achievements are not implemented.
 			if (HasSteam)
 			{
 				return _steam.GetAchievement(id);
 			}
 
-			return false;
+			return false;*/
 		}
 
 		/// <summary>

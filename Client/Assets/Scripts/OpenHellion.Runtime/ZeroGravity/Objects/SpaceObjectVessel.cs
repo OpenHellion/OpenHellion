@@ -212,7 +212,8 @@ namespace ZeroGravity.Objects
 
 		public bool IsOutpostOrStation => AllDockedVessels.Count > 0;
 
-		public float ExposureDamage { get; internal set; }
+		public float ExposureDamage =>
+			World.GetVesselExposureDamage(World.LocalToWorldPosition(MainVessel.transform.position).Magnitude);
 
 		private double _radarSignatureInternal;
 

@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 using ZeroGravity.CharacterMovement;
 using ZeroGravity.LevelDesign;
 using ZeroGravity.Network;
+using OpenHellion;
 using OpenHellion.Net;
 
 namespace ZeroGravity.Objects
@@ -91,7 +92,7 @@ namespace ZeroGravity.Objects
 			}
 		}
 
-		public static OtherPlayer Create(long guid, Vector3 position, Quaternion rotation, long parentId, Gender gender, byte headType, byte hairType,
+		public static OtherPlayer Create(World world, long guid, Vector3 position, Quaternion rotation, long parentId, Gender gender, byte headType, byte hairType,
 			string name, string playerId, int spawnPointID, int animationStatsMask, VesselObjectID lockedToTriggerID, DynamicObjectDetails[] dynamicObjects = null)
 		{
 			if (guid == MyPlayer.Instance.Guid)
@@ -100,7 +101,7 @@ namespace ZeroGravity.Objects
 				return null;
 			}
 
-			if (World.GetPlayer(guid) != null)
+			if (world.GetPlayer(guid) != null)
 			{
 				return null;
 			}
@@ -112,7 +113,7 @@ namespace ZeroGravity.Objects
 			}
 			else
 			{
-				World.TryGetSpaceObject(parentId, out parent);
+				world.TryGetSpaceObject(parentId, out parent);
 			}
 
 			GameObject gameObject =
@@ -120,6 +121,7 @@ namespace ZeroGravity.Objects
 					new Vector3(20000f, 20000f, 20000f), Quaternion.identity) as GameObject;
 			gameObject.SetActive(value: false);
 			OtherPlayer otherPlayer = gameObject.AddComponent<OtherPlayer>();
+			otherPlayer.World = world;
 			otherPlayer.tpsController = otherPlayer.GetComponent<OtherCharacterController>();
 			GenderSettings component = gameObject.GetComponent<GenderSettings>();
 			GenderSettings.GenderItem genderItem = null;
@@ -187,7 +189,7 @@ namespace ZeroGravity.Objects
 				targetingPoint.MainObject = otherPlayer;
 			}
 
-			World.AddPlayer(otherPlayer.Guid, otherPlayer);
+			world.AddPlayer(otherPlayer.Guid, otherPlayer);
 			SceneSpawnPoint sceneSpawnPoint = spawnPointID > 0 && parent.Type == SpaceObjectType.Ship
 				? (parent as Ship).GetStructureObject<SceneSpawnPoint>(spawnPointID)
 				: null;
@@ -232,12 +234,12 @@ namespace ZeroGravity.Objects
 				}, isInstant: false, null, checkCurrentState: false);
 			}
 
-			if (World.CharacterInteractionStatesQueue.ContainsKey(otherPlayer.Guid))
+			if (world.CharacterInteractionStatesQueue.ContainsKey(otherPlayer.Guid))
 			{
-				World.CharacterInteractionStatesQueue[otherPlayer.Guid].Executor
-					.CharacterInteractInstant(World.CharacterInteractionStatesQueue[otherPlayer.Guid],
+				world.CharacterInteractionStatesQueue[otherPlayer.Guid].Executor
+					.CharacterInteractInstant(world.CharacterInteractionStatesQueue[otherPlayer.Guid],
 						otherPlayer.Guid);
-				World.CharacterInteractionStatesQueue.Remove(otherPlayer.Guid);
+				world.CharacterInteractionStatesQueue.Remove(otherPlayer.Guid);
 			}
 
 			otherPlayer.SpawnInventory(dynamicObjects);
@@ -248,7 +250,7 @@ namespace ZeroGravity.Objects
 		{
 			foreach (DynamicObjectDetails details in dynamicObjects ?? Array.Empty<DynamicObjectDetails>())
 			{
-				DynamicObject.CreateDynamicObject(details);
+				DynamicObject.CreateDynamicObject(World, details);
 			}
 		}
 

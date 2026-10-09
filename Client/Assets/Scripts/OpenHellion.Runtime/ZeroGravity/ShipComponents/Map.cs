@@ -743,51 +743,6 @@ namespace ZeroGravity.ShipComponents
 			}
 		}
 
-		public void InitializeMapObjectEndWarp(Vector3D position, double minMaxScale)
-		{
-			GameObject fixedPositionObject = Instantiate(MapObjectWarpEnd, MapObjectsRoot);
-			MapObjectFixedPosition mapObjectFixedPosition = fixedPositionObject.GetComponent<MapObjectFixedPosition>();
-			mapObjectFixedPosition.FixedPosition = position;
-			mapObjectFixedPosition.MinMaxScale = minMaxScale;
-			mapObjectFixedPosition.Name = Localization.WarpSignature.ToUpper();
-			mapObjectFixedPosition.Description = Localization.WarpSignatureDescription;
-			fixedPositionObject.Activate(value: true);
-		}
-
-		public void InitializeMapObjectFuzzyScan(Vector3D position, double scale, SpaceObjectVessel vessel)
-		{
-			GameObject fuzzyScanObject = Instantiate(MapObjectFuzzuScan, MapObjectsRoot);
-			MapObjectFuzzyScan mapObjectFuzzyScan = fuzzyScanObject.GetComponent<MapObjectFuzzyScan>();
-			mapObjectFuzzyScan.FixedPosition = position;
-			mapObjectFuzzyScan.MinMaxScale = (scale - mapObjectFuzzyScan.MinScale) /
-			                                 (mapObjectFuzzyScan.MaxScale - mapObjectFuzzyScan.MinScale);
-			mapObjectFuzzyScan.Name = Localization.UnidentifiedObject.ToUpper();
-			mapObjectFuzzyScan.Description = Localization.UnidentifiedObjectDescription;
-			mapObjectFuzzyScan.Vessels.Add(vessel);
-			fuzzyScanObject.Activate(value: true);
-		}
-
-		public void InitializeMapObjectStartWarpNear(Vector3D position, Quaternion rotation)
-		{
-			GameObject warpStartObject = Instantiate(MapObjectWarpStartNear, MapObjectsRoot);
-			MapObjectWarpStart mapObjectWarpStart = warpStartObject.GetComponent<MapObjectWarpStart>();
-			mapObjectWarpStart.WarpStartPosition = position;
-			mapObjectWarpStart.WarpConeRotation = rotation;
-			mapObjectWarpStart.Name = Localization.WarpSignature.ToUpper();
-			warpStartObject.Activate(value: true);
-		}
-
-		public void InitializeMapObjectStartWarpFar(Vector3D position, double minMaxScale)
-		{
-			GameObject fixedPositionObject = Instantiate(MapObjectWarpStartFar, MapObjectsRoot);
-			MapObjectFixedPosition mapObjectFixedPosition = fixedPositionObject.GetComponent<MapObjectFixedPosition>();
-			mapObjectFixedPosition.FixedPosition = position;
-			mapObjectFixedPosition.MinMaxScale = minMaxScale;
-			mapObjectFixedPosition.Name = Localization.WarpSignature.ToUpper();
-			mapObjectFixedPosition.Description = Localization.WarpSignatureDescription;
-			fixedPositionObject.Activate(value: true);
-		}
-
 		public void RemoveMapObject(IMapMainObject obj)
 		{
 			if (AllMapObjects.TryGetValue(obj, out var value) && value != null)
@@ -909,6 +864,8 @@ namespace ZeroGravity.ShipComponents
 				}
 
 				MapObjectCustomOrbit newCustomOrbit = customOrbitObject.GetComponent<MapObjectCustomOrbit>();
+				newCustomOrbit.OnCreate(_world, null);
+				customOrbitObject.SetActive(true);
 				AllCustomOrbits.Add(newCustomOrbit);
 				newCustomOrbit.CreateOrbit(SelectedObject);
 				newCustomOrbit.CreateVisual();
@@ -945,7 +902,7 @@ namespace ZeroGravity.ShipComponents
 					WarpManeuver.TargetType = targetItem.Type;
 				}
 
-				WarpManeuver.Initialize();
+				WarpManeuver.Initialize(_world);
 			}
 		}
 

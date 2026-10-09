@@ -702673,7 +702673,7 @@ MonoBehaviour:
     Dependency:
       DelegateObjects:
       - Object: {fileID: 4530}
-        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggeredPlayer
+        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggered
         Operation: 0
         ValueBool: 1
         ValueInt: 0
@@ -702735,7 +702735,7 @@ MonoBehaviour:
     Dependency:
       DelegateObjects:
       - Object: {fileID: 4530}
-        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggeredPlayer
+        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggered
         Operation: 0
         ValueBool: 1
         ValueInt: 0
@@ -702797,7 +702797,7 @@ MonoBehaviour:
     Dependency:
       DelegateObjects:
       - Object: {fileID: 4530}
-        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggeredPlayer
+        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggered
         Operation: 0
         ValueBool: 1
         ValueInt: 0
@@ -703575,7 +703575,7 @@ MonoBehaviour:
     Dependency:
       DelegateObjects:
       - Object: {fileID: 4530}
-        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggeredPlayer
+        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggered
         Operation: 0
         ValueBool: 1
         ValueInt: 0
@@ -703817,7 +703817,7 @@ MonoBehaviour:
     Dependency:
       DelegateObjects:
       - Object: {fileID: 4530}
-        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggeredPlayer
+        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggered
         Operation: 0
         ValueBool: 1
         ValueInt: 0
@@ -709168,7 +709168,7 @@ MonoBehaviour:
     Dependency:
       DelegateObjects:
       - Object: {fileID: 4530}
-        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggeredPlayer
+        ScriptFunctionName: SceneTriggerExecutor/IsMyPlayerTriggered
         Operation: 0
         ValueBool: 1
         ValueInt: 0

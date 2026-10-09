@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using OpenHellion;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
@@ -137,8 +136,6 @@ namespace ZeroGravity.LevelDesign
 
 		private long _interactionToSetAfterTranslateGuid;
 
-		private static World _world;
-
 		public int InSceneID
 		{
 			get => _inSceneID;
@@ -164,10 +161,10 @@ namespace ZeroGravity.LevelDesign
 
 		public bool IsMyPlayerTriggered => MyPlayer.Instance != null && MyPlayer.Instance.Guid == _triggeredPlayerGuid; // Used by dependency delegate.
 
+		public bool IsMyPlayerLockedToPanel => MyPlayer.Instance != null && MyPlayer.Instance.IsLockedToTrigger; // Used by dependency delegate.
+
 		private void Awake()
 		{
-			_world ??= GameObject.Find("/World").GetComponent<World>();
-
 			ReadStates();
 		}
 
@@ -343,7 +340,7 @@ namespace ZeroGravity.LevelDesign
 				return;
 			}
 
-			OtherPlayer player = _world.GetPlayer(_triggeredPlayerGuid);
+			OtherPlayer player = ParentVessel.World.GetPlayer(_triggeredPlayerGuid);
 			if (player != null)
 			{
 				player.OnIteractStart = null;
@@ -367,7 +364,7 @@ namespace ZeroGravity.LevelDesign
 				return;
 			}
 
-			OtherPlayer player = _world.GetPlayer(_triggeredPlayerGuid);
+			OtherPlayer player = ParentVessel.World.GetPlayer(_triggeredPlayerGuid);
 			if (player != null)
 			{
 				player.OnIteractComplete = null;
@@ -391,7 +388,7 @@ namespace ZeroGravity.LevelDesign
 				return;
 			}
 
-			OtherPlayer player = _world.GetPlayer(_triggeredPlayerGuid);
+			OtherPlayer player = ParentVessel.World.GetPlayer(_triggeredPlayerGuid);
 			if (player != null)
 			{
 				player.OnLockStart = null;
@@ -415,7 +412,7 @@ namespace ZeroGravity.LevelDesign
 				return;
 			}
 
-			OtherPlayer player = _world.GetPlayer(_triggeredPlayerGuid);
+			OtherPlayer player = ParentVessel.World.GetPlayer(_triggeredPlayerGuid);
 			if (player != null)
 			{
 				player.OnLockComplete = null;
@@ -483,7 +480,7 @@ namespace ZeroGravity.LevelDesign
 			}
 			else
 			{
-				OtherPlayer player = _world.GetPlayer(_triggeredPlayerGuid);
+				OtherPlayer player = ParentVessel.World.GetPlayer(_triggeredPlayerGuid);
 				if (player != null)
 				{
 					player.OnIteractStart = CharacterInteractStarted;
@@ -811,7 +808,7 @@ namespace ZeroGravity.LevelDesign
 				return;
 			}
 
-			OtherPlayer player = _world.GetPlayer(_triggeredPlayerGuid);
+			OtherPlayer player = ParentVessel.World.GetPlayer(_triggeredPlayerGuid);
 			if (player != null)
 			{
 				if (!cis.ImmediatePositionChange && !isInstant &&
@@ -862,7 +859,7 @@ namespace ZeroGravity.LevelDesign
 			else if (isInstant && cis.LockType != 0)
 			{
 				cis.Executor = this;
-				_world.CharacterInteractionStatesQueue[_triggeredPlayerGuid] = cis;
+				ParentVessel.World.CharacterInteractionStatesQueue[_triggeredPlayerGuid] = cis;
 			}
 		}
 
@@ -930,7 +927,7 @@ namespace ZeroGravity.LevelDesign
 				return;
 			}
 
-			OtherPlayer player = _world.GetPlayer(_triggeredPlayerGuid);
+			OtherPlayer player = ParentVessel.World.GetPlayer(_triggeredPlayerGuid);
 			if (player != null)
 			{
 				player.tpsController.animHelper.ResetParameterTrigger(AnimatorHelper.Triggers.LockImmediate);
@@ -943,9 +940,9 @@ namespace ZeroGravity.LevelDesign
 
 				player.tpsController.animHelper.SetLayerWeight(AnimatorHelper.AnimatorLayers_TPS.MouseLookVertical, 1f);
 			}
-			else if (_world.CharacterInteractionStatesQueue.ContainsKey(_triggeredPlayerGuid))
+			else if (ParentVessel.World.CharacterInteractionStatesQueue.ContainsKey(_triggeredPlayerGuid))
 			{
-				_world.CharacterInteractionStatesQueue.Remove(_triggeredPlayerGuid);
+				ParentVessel.World.CharacterInteractionStatesQueue.Remove(_triggeredPlayerGuid);
 			}
 		}
 

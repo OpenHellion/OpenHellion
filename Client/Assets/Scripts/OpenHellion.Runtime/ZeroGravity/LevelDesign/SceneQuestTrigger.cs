@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenHellion;
 using OpenHellion.Net;
 using UnityEngine;
 using UnityEngine.Events;
@@ -62,15 +61,13 @@ namespace ZeroGravity.LevelDesign
 
 		private double _lastActivationTime;
 
-		private static World _world;
-
 		public QuestTrigger QuestTrigger => _questTrigger;
 
 		public SpaceObjectVessel ParentVessel => _parentVessel;
 
 		private void Awake()
 		{
-			_world ??= GameObject.Find("/World").GetComponent<World>();
+			_parentVessel = gameObject.GetComponentInParent<SpaceObjectVessel>();
 		}
 
 		private void Start()
@@ -84,9 +81,8 @@ namespace ZeroGravity.LevelDesign
 			{
 				QuestID = Task.QuestID;
 				QuestTriggerID = Task.QuestTriggerID;
-				_quest = _world.Quests.FirstOrDefault((Quest m) => m.ID == QuestID);
+				_quest = _parentVessel.World.Quests.FirstOrDefault((Quest m) => m.ID == QuestID);
 				_questTrigger = _quest.QuestTriggers.FirstOrDefault((QuestTrigger m) => m.ID == QuestTriggerID);
-				_parentVessel = gameObject.GetComponentInParent<SpaceObjectVessel>();
 				OnQuestTriggerUpdate();
 				UpdateQuestTriggerMarker();
 				UpdateAvailableQuestMarker();
@@ -109,12 +105,12 @@ namespace ZeroGravity.LevelDesign
 
 		private void OnDestroy()
 		{
-			_world.InGameGUI.QuestIndicators.StopQuestIndicator(this);
+			_parentVessel.World.InGameGUI.QuestIndicators.StopQuestIndicator(this);
 		}
 
 		private void OnDisable()
 		{
-			_world.InGameGUI.QuestIndicators.StopQuestIndicator(this);
+			_parentVessel.World.InGameGUI.QuestIndicators.StopQuestIndicator(this);
 		}
 
 		public void TriggerEvents()
@@ -122,14 +118,14 @@ namespace ZeroGravity.LevelDesign
 			PostTriggerEvent.Invoke();
 			if (QuickTooltip != string.Empty)
 			{
-				_world.InGameGUI.QuickTip(Localization.GetLocalizedField(QuickTooltip));
+				_parentVessel.World.InGameGUI.QuickTip(Localization.GetLocalizedField(QuickTooltip));
 			}
 		}
 
 		public void CompleteQuest()
 		{
 			if (Time.realtimeSinceStartup - _lastActivationTime < 1.0 || (_quest.DependencyQuests != null &&
-			                                                              _world.Quests.FirstOrDefault((Quest m) =>
+			                                                              _parentVessel.World.Quests.FirstOrDefault((Quest m) =>
 				                                                              _quest.DependencyQuests.Contains(m.ID) &&
 				                                                              m.Status != QuestStatus.Completed) !=
 			                                                              null))
@@ -139,7 +135,7 @@ namespace ZeroGravity.LevelDesign
 
 			_lastActivationTime = Time.realtimeSinceStartup;
 			if (_quest.IsFinished || _questTrigger == null || _questTrigger.Status != QuestStatus.Active ||
-			    !_questTrigger.CheckLocation(_world, ParentVessel))
+			    !_questTrigger.CheckLocation(_parentVessel.World, ParentVessel))
 			{
 				return;
 			}
@@ -162,9 +158,9 @@ namespace ZeroGravity.LevelDesign
 		public void UpdateQuestTriggerMarker()
 		{
 			Quest quest = null;
-			if (_world.InGameGUI.CurrentTrackingQuest != null)
+			if (_parentVessel.World.InGameGUI.CurrentTrackingQuest != null)
 			{
-				quest = _world.InGameGUI.CurrentTrackingQuest;
+				quest = _parentVessel.World.InGameGUI.CurrentTrackingQuest;
 			}
 
 			if (quest != null)
@@ -172,18 +168,18 @@ namespace ZeroGravity.LevelDesign
 				if (this._quest == quest && _questTrigger.Status == QuestStatus.Active &&
 				    SceneHelper.CompareTags(ParentVessel.Tag, SceneTagObject.TagsToString(Task.Tags)))
 				{
-					_world.InGameGUI.QuestIndicators.AddQuestIndicator(this);
+					_parentVessel.World.InGameGUI.QuestIndicators.AddQuestIndicator(this);
 				}
 				else if ((_questTrigger.Type != QuestTriggerType.Activate ||
 				          _questTrigger.Status != QuestStatus.Active) &&
 				         SceneHelper.CompareTags(ParentVessel.Tag, SceneTagObject.TagsToString(Task.Tags)))
 				{
-					_world.InGameGUI.QuestIndicators.StopQuestIndicator(this);
+					_parentVessel.World.InGameGUI.QuestIndicators.StopQuestIndicator(this);
 				}
 			}
 			else if (_questTrigger.Type != QuestTriggerType.Activate || _questTrigger.Status != QuestStatus.Active)
 			{
-				_world.InGameGUI.QuestIndicators.StopQuestIndicator(this);
+				_parentVessel.World.InGameGUI.QuestIndicators.StopQuestIndicator(this);
 			}
 		}
 
@@ -205,7 +201,7 @@ namespace ZeroGravity.LevelDesign
 			{
 				foreach (uint dependencyQuestID in _questTrigger.Quest.DependencyQuests)
 				{
-					Quest quest = _world.Quests.FirstOrDefault((Quest m) => m.ID == dependencyQuestID);
+					Quest quest = _parentVessel.World.Quests.FirstOrDefault((Quest m) => m.ID == dependencyQuestID);
 					if (quest != null && quest.Status != QuestStatus.Completed)
 					{
 						flag2 = false;
@@ -216,7 +212,7 @@ namespace ZeroGravity.LevelDesign
 
 			if (flag2)
 			{
-				_world.InGameGUI.QuestIndicators.AddAvailableQuestIndicator(this);
+				_parentVessel.World.InGameGUI.QuestIndicators.AddAvailableQuestIndicator(this);
 			}
 		}
 

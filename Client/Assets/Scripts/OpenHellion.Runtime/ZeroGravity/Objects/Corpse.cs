@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OpenHellion;
 using UnityEngine;
 using ZeroGravity.CharacterMovement;
 using ZeroGravity.LevelDesign;
@@ -75,13 +76,14 @@ namespace ZeroGravity.Objects
 					new Vector3(20000f, 20000f, 20000f), Quaternion.identity) as GameObject;
 			gameObject.SetActive(value: false);
 			Corpse component = gameObject.GetComponent<Corpse>();
+			component.World = template.World;
 			component.Gender = template.Gender;
 			component.Guid = template.Guid;
 			component.animHelper.CreateRig();
 			component.InitializeInventory();
 			component.ReconnectAllBones();
 			component.gameObject.name = "Corpse_" + component.Guid;
-			World.AddCorpse(component.Guid, component);
+			template.World.AddCorpse(component.Guid, component);
 			component.Parent = template.Parent;
 			component.transform.SetPositionAndRotation(template.transform.position, template.transform.rotation);
 			foreach (KeyValuePair<AnimatorHelper.HumanBones, Transform> bone in template.animHelper.GetBones())
@@ -98,15 +100,15 @@ namespace ZeroGravity.Objects
 			return component;
 		}
 
-		public static Corpse Create(long guid, Vector3 position, Quaternion rotation, long parentGUID, Gender gender,
+		public static Corpse Create(World world, long guid, Vector3 position, Quaternion rotation, long parentGUID, Gender gender,
 			DynamicObjectDetails[] dynamicObjects)
 		{
-			if (World.GetCorpse(guid) != null)
+			if (world.GetCorpse(guid) != null)
 			{
 				return null;
 			}
 
-			if (!World.TryGetSpaceObject(parentGUID, out SpaceObject spaceObject))
+			if (!world.TryGetSpaceObject(parentGUID, out SpaceObject spaceObject))
 			{
 				Debug.LogErrorFormat("Cannot spawn corpse (guid: {0}) because there is no corpse parent (guid: {1}).", guid, parentGUID);
 				return null;
@@ -119,6 +121,7 @@ namespace ZeroGravity.Objects
 					new Vector3(20000f, 20000f, 20000f), Quaternion.identity) as GameObject;
 			corpseGameObject.SetActive(value: false);
 			Corpse corpse = corpseGameObject.GetComponent<Corpse>();
+			corpse.World = world;
 			corpse.Gender = gender;
 			corpse.Guid = guid;
 			corpse.animHelper.CreateRig();
@@ -133,13 +136,13 @@ namespace ZeroGravity.Objects
 
 			// Register before spawning the loot: each item's attach data names this corpse as its parent
 			// and is resolved through World.GetCorpse during ProcessAttachData.
-			World.AddCorpse(corpse.Guid, corpse);
+			world.AddCorpse(corpse.Guid, corpse);
 			corpse.SpawnInventory(dynamicObjects);
 
 			if (corpse.Inventory.ItemInHands != null)
 			{
 				Vector3 value = corpse.transform.parent.InverseTransformPoint(corpse.transform.position);
-				World.SolarSystem.SendMoveCommand(corpse.Inventory.ItemInHands.DynamicObj, MyPlayer.Instance.Parent, null, value,
+				world.SolarSystem.SendMoveCommand(corpse.Inventory.ItemInHands.DynamicObj, MyPlayer.Instance.Parent, null, value,
 					Quaternion.identity, Vector3.zero, Vector3.zero, MyPlayer.Instance.rigidBody.linearVelocity);
 			}
 
@@ -150,7 +153,7 @@ namespace ZeroGravity.Objects
 		{
 			foreach (DynamicObjectDetails details in dynamicObjects ?? Array.Empty<DynamicObjectDetails>())
 			{
-				DynamicObject.CreateDynamicObject(details);
+				DynamicObject.CreateDynamicObject(World, details);
 			}
 		}
 

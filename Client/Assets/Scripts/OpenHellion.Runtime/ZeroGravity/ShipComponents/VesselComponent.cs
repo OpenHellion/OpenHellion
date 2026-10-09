@@ -13,7 +13,7 @@ namespace ZeroGravity.ShipComponents
 	{
 		[SerializeField] private int _inSceneID;
 
-		protected static World World;
+		protected World World => _ParentVessel.World;
 
 		[Space(5f)] public SceneMachineryPartSlot[] MachineryPartSlots = new SceneMachineryPartSlot[0];
 
@@ -63,11 +63,6 @@ namespace ZeroGravity.ShipComponents
 			}
 
 			return num;
-		}
-
-		private void Awake()
-		{
-			World ??= GameObject.Find("/World").GetComponent<World>();
 		}
 
 		protected virtual void Start()

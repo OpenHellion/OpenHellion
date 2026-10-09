@@ -1,3 +1,4 @@
+using OpenHellion;
 using UnityEngine;
 using ZeroGravity.Math;
 
@@ -15,9 +16,9 @@ namespace ZeroGravity.Objects
 
 		public override SpaceObjectType Type => _pivotType;
 
-		public static Pivot Create(long guid, SpaceObjectType pivotType, Vector3 position, Quaternion rotation, bool isMainObject)
+		public static Pivot Create(World world, long guid, SpaceObjectType pivotType, Vector3 position, Quaternion rotation, bool isMainObject)
 		{
-			Pivot pivot = InitialiseArtificialBody(guid, pivotType, position, rotation) as Pivot;
+			Pivot pivot = InitialiseArtificialBody(world, guid, pivotType, position, rotation) as Pivot;
 			pivot._pivotType = pivotType;
 			switch (pivotType)
 			{
@@ -45,7 +46,7 @@ namespace ZeroGravity.Objects
 				ab.UpdateStabilizedPosition();
 			}
 
-			return Create(guid, pivotType, ab.transform.position, Quaternion.identity, isMainObject);
+			return Create(ab.World, guid, pivotType, ab.transform.position, Quaternion.identity, isMainObject);
 		}
 
 		protected override void FixedUpdate()

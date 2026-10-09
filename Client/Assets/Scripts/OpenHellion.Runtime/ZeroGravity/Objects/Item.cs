@@ -205,7 +205,7 @@ namespace ZeroGravity.Objects
 
 		private int explosionRaycastMask;
 
-		protected static World World;
+		protected World World => DynamicObj.World;
 
 		public Sprite Icon
 		{
@@ -400,8 +400,6 @@ namespace ZeroGravity.Objects
 
 		protected virtual void Awake()
 		{
-			World ??= GameObject.Find("/World").GetComponent<World>();
-
 			Slots = GetComponentsInChildren<ItemSlot>().ToDictionary((ItemSlot k) => k.ID, (ItemSlot v) => v);
 			foreach (ItemSlot value in Slots.Values)
 			{
@@ -1339,22 +1337,22 @@ namespace ZeroGravity.Objects
 		{
 			if (item is GenericItem)
 			{
-				return GetRecycleResources(item.Type, (item as GenericItem).SubType, MachineryPartType.None, item.Tier);
+				return GetRecycleResources(item.World, item.Type, (item as GenericItem).SubType, MachineryPartType.None, item.Tier);
 			}
 
 			if (item is MachineryPart)
 			{
-				return GetRecycleResources(item.Type, GenericItemSubType.None, (item as MachineryPart).PartType,
+				return GetRecycleResources(item.World, item.Type, GenericItemSubType.None, (item as MachineryPart).PartType,
 					item.Tier);
 			}
 
-			return GetRecycleResources(item.Type, GenericItemSubType.None, MachineryPartType.None, item.Tier);
+			return GetRecycleResources(item.World, item.Type, GenericItemSubType.None, MachineryPartType.None, item.Tier);
 		}
 
-		public static Dictionary<ResourceType, float> GetRecycleResources(ItemType itemType, GenericItemSubType subType,
+		public static Dictionary<ResourceType, float> GetRecycleResources(World world, ItemType itemType, GenericItemSubType subType,
 			MachineryPartType partType, int tier)
 		{
-			ItemIngredientsData itemIngredientsData = World.ItemsIngredients.FirstOrDefault(
+			ItemIngredientsData itemIngredientsData = world.ItemsIngredients.FirstOrDefault(
 				(ItemIngredientsData m) => m.Type == itemType && m.SubType == subType && m.PartType == partType);
 			if (itemIngredientsData != null)
 			{
@@ -1374,20 +1372,15 @@ namespace ZeroGravity.Objects
 			return null;
 		}
 
-		public static Dictionary<ResourceType, float> GetCraftingResources(ItemIngredientsData item, int tier)
+		public static Dictionary<ResourceType, float> GetCraftingResources(World world, ItemCompoundType item)
 		{
-			return GetCraftingResources(item.Type, item.SubType, item.PartType, tier);
+			return GetCraftingResources(world, item.Type, item.SubType, item.PartType, item.Tier);
 		}
 
-		public static Dictionary<ResourceType, float> GetCraftingResources(ItemCompoundType item)
-		{
-			return GetCraftingResources(item.Type, item.SubType, item.PartType, item.Tier);
-		}
-
-		public static Dictionary<ResourceType, float> GetCraftingResources(ItemType itemType,
+		public static Dictionary<ResourceType, float> GetCraftingResources(World world, ItemType itemType,
 			GenericItemSubType subType, MachineryPartType partType, int tier)
 		{
-			ItemIngredientsData itemIngredientsData = World.ItemsIngredients.FirstOrDefault(
+			ItemIngredientsData itemIngredientsData = world.ItemsIngredients.FirstOrDefault(
 				(ItemIngredientsData m) => m.Type == itemType && m.SubType == subType && m.PartType == partType);
 			if (itemIngredientsData != null)
 			{
@@ -1405,13 +1398,6 @@ namespace ZeroGravity.Objects
 			}
 
 			return null;
-		}
-
-		public static List<ItemIngredientsData> GetCraftableItems()
-		{
-			return World.ItemsIngredients.Where((ItemIngredientsData m) =>
-				m.IngredientsTiers != null && m.IngredientsTiers.Count((KeyValuePair<int, ItemIngredientsTierData> n) =>
-					n.Value.Recycle != null && n.Value.Recycle.Count > 0) > 0).ToList();
 		}
 
 		public static string GetName(ItemCompoundType item)
