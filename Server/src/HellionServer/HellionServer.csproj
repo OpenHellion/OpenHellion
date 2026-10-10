@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <AssemblyName>HellionServer</AssemblyName>
+        <Title>OpenHellion Server</Title>
+        <Description>A dedicated server for the Hellion game.</Description>
+        <Version>1.0-rc1</Version>
+        <Product>OpenHellion Server</Product>
+        <Authors>OpenHellion contributors and ZeroGravity Games</Authors>
+        <Company>OpenHellion</Company>
+        <ApplicationIcon>app.ico</ApplicationIcon>
+        <OutputType>exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>embedded</DebugType>
+        <Optimize>false</Optimize>
+        <DefineConstants>DEBUG;SHOW_ALL_LOGS;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>2</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <DebugSymbols>false</DebugSymbols>
+        <DebugType>none</DebugType>
+        <Optimize>true</Optimize>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>none</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+		<CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Include="Data\**" CopyToPublishDirectory="PreserveNewest"/>
+        <None Update="GameServer.ini;Data\**" CopyToOutputDirectory="PreserveNewest"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
+        <PackageReference Include="protobuf-net" Version="3.2.56"/>
+        <PackageReference Include="BulletSharp.x64" Version="0.12.0"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\OpenHellion.State\OpenHellion.State.csproj"/>
+    </ItemGroup>
+</Project>

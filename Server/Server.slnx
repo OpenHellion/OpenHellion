@@ -1,0 +1,14 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/HellionServer/HellionServer.csproj" />
+    <Project Path="src/OpenHellion.State/OpenHellion.State.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HellionServer.Tests/HellionServer.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<AssemblyName>OpenHellion.State</AssemblyName>
+		<RootNamespace>OpenHellion.State</RootNamespace>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<LangVersion>9</LangVersion>
+		<Nullable>disable</Nullable>
+		<ImplicitUsings>disable</ImplicitUsings>
+	</PropertyGroup>
+</Project>

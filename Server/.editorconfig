@@ -1,0 +1,12 @@
+root = false
+
+[**.cs]
+dotnet_diagnostic.IDE0090.severity = none
+dotnet_diagnostic.IDE0018.severity = none
+dotnet_diagnostic.IDE0030.severity = none
+
+# IDE0350: Use implicitly typed lambda
+dotnet_diagnostic.IDE0350.severity = none
+
+# IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0290.severity = none
