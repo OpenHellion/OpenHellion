@@ -108,6 +108,25 @@ Short-term:
 [ ] Fix failing to interact with newly spawned vessels
 [ ] Fix switching to docking camera softlocking the game
 
+Server:
+[x] Remove VesselData
+[x] Make sure inventory is sent to the player on spawn
+[x] Make all rotations be quaternion
+[x] Implement server-side resimulation of jetpack movement to properly verify consumption.
+[x] Check ObjectMoveRequest if valid
+[x] Only send MovementMessage when positions were changed
+[x] Fix main loop watcher
+[x] Make admin mode on for all debug builds
+[x] Add assert to Debug.cs
+[ ] Rewrite EventSystem to fix weaknesses
+[ ] Respawn command does not work
+[ ] Collect all network messages and flush on tick
+[ ] Merge similar network messages in same tick
+[ ] Dispose all known syncrequests on delete
+[ ] Fix Euler - Radians conversion
+[ ] Fix server constantly being over tick time budget
+[ ] Remove subscribe/unsubscribe, send to players in range
+
 Later:
 [ ] Find areas where risk of race conditions are high
 [ ] Make map support fuzzy objects

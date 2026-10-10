@@ -10,6 +10,20 @@
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 [Pp]rofiler[Cc]aptures/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+bin/
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
@@ -99,6 +113,25 @@ WwiseUnityIntegration_*_Src.zip
 ## End WWise Stuff ##
 ## --------------- ##
 
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet Packages
+*.nupkg
+# NuGet Symbol Packages
+*.snupkg
+# The packages folder can be ignored because of Package Restore
+**/[Pp]ackages/*
+# except build/, which is used as an MSBuild target.
+!**/[Pp]ackages/build/
+# Uncomment if necessary however generally it will be regenerated when needed
+#!**/[Pp]ackages/repositories.config
+# NuGet v3's project.json files produces more ignorable files
+*.nuget.props
+*.nuget.targets
+
 *.zip
 *.7z
 *.gz
@@ -123,3 +156,7 @@ UpgradeLog.htm
 output_log.txt
 *.slnx
 CLAUDE.md
+**log.txt
+**log_backup.txt
+*.log
+*.save

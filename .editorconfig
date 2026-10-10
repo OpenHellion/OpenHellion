@@ -5,31 +5,15 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 charset = utf-8
 
-[*.cs]
-dotnet_diagnostic.IDE0090.severity = none
-dotnet_diagnostic.IDE0018.severity = none
-dotnet_diagnostic.IDE0030.severity = none
-
-# UNT0006: Incorrect message signature
-dotnet_diagnostic.UNT0006.severity = none
-
-# IDE0051: Remove unused private members
-dotnet_diagnostic.IDE0051.severity = none
-
-# IDE0350: Use implicitly typed lambda
-dotnet_diagnostic.IDE0350.severity = none
-
-# CS4014: Because this call is not awaited, execution of the current method continues before the call is completed
-dotnet_diagnostic.CS4014.severity = error
-
-# IDE0130: Namespace does not match folder structure
-dotnet_style_namespace_match_folder = false
-
 [**.{cs,shader}]
 indent_style = tab
 indent_size = tab
 tab_width = 4
 
-[**.{prefab,unity,asset,playable}]
+[**.ini]
+indent_style = space
+indent_size = 4
+
+[**.{prefab,unity,asset,playable,json}]
 indent_style = space
 indent_size = 2
