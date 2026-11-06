@@ -847,7 +847,7 @@ namespace ZeroGravity.Objects
 				}
 			}
 
-			if (shipObjects.DockingPorts != null)
+			if (shipObjects.DockingPorts != null && !isInitialize)
 			{
 				foreach (SceneDockingPortDetails dockingPort in shipObjects.DockingPorts)
 				{
@@ -1273,7 +1273,7 @@ namespace ZeroGravity.Objects
 			SceneHelper.FillSceneTriggerExecutors(this, sceneRoot, SceneTriggerExecutors,
 				shipObjects?.SceneTriggerExecutors);
 			SceneHelper.FillSpawnWithChanceData(sceneRoot, shipObjects.SpawnWithChance);
-			SceneHelper.FillSceneDockingPorts(this, sceneRoot, DockingPorts, shipObjects?.DockingPorts);
+			SceneHelper.FillSceneDockingPorts(this, sceneRoot, DockingPorts);
 			SceneHelper.FillSpawnPoints(this, sceneRoot, SpawnPoints, shipObjects?.SpawnPoints);
 			SceneHelper.FillCubemapProbes(sceneRoot, World);
 			SceneHelper.FillNameTags(this, sceneRoot, NameTags, shipObjects?.NameTags);

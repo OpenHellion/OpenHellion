@@ -15,11 +15,12 @@ Spawn:
 [x] Rejoining a server in the same session on the client always breaks the second time
 [x] Adding item to inventory using console doesn't update the client
 [ ] Fix empty dynamic objects at scene root
+[ ] Queue state update messages when loading, and apply after loading is done
 
 WorldState rewrite:
 [x] Create a world state class to store basic data about dynamic objects (test the system)
 [x] Make syncronisation of changes in the state automatic (client never writes state but sends commands)
-[ ] Corridor doors do not sync with the outer doors of other modules
+[x] Corridor doors do not sync with the outer doors of other modules
 [ ] Do a total overhaul of how space objects are stored, cached and accessed on the server (put them into state)
 [ ] Remove all stats and details messages and put into StatsUpdateMessage/StatsUpdateRequest.
 [ ] Serve state as parameter instead of as a variable
@@ -54,7 +55,6 @@ Movement:
 [ ] Fix ship driving without power and engine
 [ ] Fix radar selection raycast not succeeding
 [ ] Fix turrets
-[ ] Fix force opening docked door only opening near door
 [ ] Anchor onto moving platform
 [ ] Implement leasing of space objects (security against hacking a vessel, only one player may lease an object at a time)
 

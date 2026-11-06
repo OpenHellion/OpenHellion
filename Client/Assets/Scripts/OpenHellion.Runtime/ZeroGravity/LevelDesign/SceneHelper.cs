@@ -375,23 +375,12 @@ namespace ZeroGravity.LevelDesign
 		}
 
 		public static void FillSceneDockingPorts(Ship ship, GameObject sceneRoot,
-			Dictionary<int, SceneDockingPort> sceneDockingPorts, List<SceneDockingPortDetails> sceneDockingPortDetails)
+			Dictionary<int, SceneDockingPort> sceneDockingPorts)
 		{
-			SceneDockingPort[] componentsInChildren =
-				sceneRoot.GetComponentsInChildren<SceneDockingPort>(includeInactive: true);
-			foreach (SceneDockingPort obj in componentsInChildren)
+			foreach (SceneDockingPort obj in sceneRoot.GetComponentsInChildren<SceneDockingPort>(includeInactive: true))
 			{
 				sceneDockingPorts[obj.InSceneID] = obj;
 				obj.ParentShip = ship;
-				if (sceneDockingPortDetails != null)
-				{
-					SceneDockingPortDetails sceneDockingPortDetails2 =
-						sceneDockingPortDetails.Find((SceneDockingPortDetails m) => m.ID.InSceneID == obj.InSceneID);
-					if (sceneDockingPortDetails2 != null)
-					{
-						obj.SetDetails(sceneDockingPortDetails2, isInitialize: true);
-					}
-				}
 			}
 		}
 
