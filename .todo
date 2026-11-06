@@ -13,12 +13,13 @@ Spawn:
 [x] Fix outfit sent twice on join
 [x] Fix bug where deleting character from server screen would crash server
 [x] Rejoining a server in the same session on the client always breaks the second time
-[ ] Adding item to inventory using console doesn't update the client
+[x] Adding item to inventory using console doesn't update the client
 [ ] Fix empty dynamic objects at scene root
 
 WorldState rewrite:
 [x] Create a world state class to store basic data about dynamic objects (test the system)
 [x] Make syncronisation of changes in the state automatic (client never writes state but sends commands)
+[ ] Corridor doors do not sync with the outer doors of other modules
 [ ] Do a total overhaul of how space objects are stored, cached and accessed on the server (put them into state)
 [ ] Remove all stats and details messages and put into StatsUpdateMessage/StatsUpdateRequest.
 [ ] Serve state as parameter instead of as a variable
@@ -54,6 +55,8 @@ Movement:
 [ ] Fix radar selection raycast not succeeding
 [ ] Fix turrets
 [ ] Fix force opening docked door only opening near door
+[ ] Anchor onto moving platform
+[ ] Implement leasing of space objects (security against hacking a vessel, only one player may lease an object at a time)
 
 Debugging/diagnostics:
 [x] Fix console (add errors and make player admin)
@@ -64,9 +67,9 @@ Debugging/diagnostics:
 [ ] Add tests to duplicate network data and similar
 [ ] Add test to ClassHasher (same on both client and server)
 [ ] Add test to static data integrity
-[ ] Implement TestShip spawn setup as testing spawn
-[ ] Show game state info in console and log to file
-[ ] Add assertions in code
+[x] Implement TestShip spawn setup as testing spawn
+[x] Show game state info in console and log to file
+[x] Add assertions in code
 
 Graphics:
 [ ] Recreate post processing using URP volumes

@@ -59,6 +59,10 @@ internal sealed class GameTransport
 
 	private readonly Action<long> _onDisconnected;
 
+	internal int ReceivedCount;
+
+	internal int SentCount;
+
 	private readonly Func<int> _maxConnections;
 
 	private readonly CancellationTokenSource _mainCancellationToken = new CancellationTokenSource();
@@ -238,6 +242,7 @@ internal sealed class GameTransport
 	{
 		while (_received.TryDequeue(out var received))
 		{
+			Interlocked.Increment(ref ReceivedCount);
 			try
 			{
 				if (received.Data.SyncRequest)
@@ -287,6 +292,7 @@ internal sealed class GameTransport
 				}
 
 				await connectionData.stream.WriteAsync(packedData, connectionData.cancellationToken.Token).ConfigureAwait(false);
+				Interlocked.Increment(ref SentCount);
 			}
 		}
 		catch (IOException ex)
@@ -329,6 +335,7 @@ internal sealed class GameTransport
 				connectionData.syncResponseReceivedEvent += responseHandler;
 
 				await connectionData.stream.WriteAsync(packedData, connectionData.cancellationToken.Token).ConfigureAwait(false);
+				Interlocked.Increment(ref SentCount);
 
 				await Task.Delay(TIMEOUT_MS, responseCancel.Token);
 				connectionData.syncResponseReceivedEvent -= responseHandler;
@@ -374,6 +381,7 @@ internal sealed class GameTransport
 				if (connection.Key == skipPlayerGuid) return;
 
 				await connection.Value.stream.WriteAsync(packedData, _mainCancellationToken.Token).ConfigureAwait(false);
+				Interlocked.Increment(ref SentCount);
 			}
 			catch (IOException ex)
 			{
@@ -403,6 +411,7 @@ internal sealed class GameTransport
 
 				await handler.stream.FlushAsync().ConfigureAwait(false);
 				await handler.stream.WriteAsync(packedData).ConfigureAwait(false);
+				Interlocked.Increment(ref SentCount);
 			}
 			else
 			{

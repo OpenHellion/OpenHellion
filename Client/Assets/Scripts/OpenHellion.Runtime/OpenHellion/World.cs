@@ -44,10 +44,6 @@ namespace OpenHellion
 
 		public static float DROP_MAX_TIME = 3f;
 
-
-
-
-
 		public List<DebrisField> DebrisFields = new List<DebrisField>();
 
 		[Title("Solar system and prefabs")]
@@ -139,7 +135,6 @@ namespace OpenHellion
 
 		private long _lastAppliedParentGuid;
 
-
 		public double ExposureRange;
 
 		private float[] _vesselExposureValues;
@@ -176,7 +171,6 @@ namespace OpenHellion
 				return _latencyMs;
 			}
 		}
-
 
 		private void Awake()
 		{
@@ -637,6 +631,7 @@ namespace OpenHellion
 				bool anchorChanged = AnchorGuid != movementMessage.AnchorGuid;
 				if (anchorChanged)
 				{
+					Diagnostics.SnapshotBeforeRebase(this, MyPlayer.Instance);
 					AnchorGuid = movementMessage.AnchorGuid;
 					ReOrigin();
 				}
@@ -651,6 +646,8 @@ namespace OpenHellion
 					AnchorThrustVelocity = Vector3.zero;
 				}
 
+				Diagnostics.Assert(TryGetSpaceObject(movementMessage.ParentGuid, out SpaceObject _),
+					$"movement message puts the player on unknown parent {movementMessage.ParentGuid}");
 				MyPlayer.Instance.ProcessMovementMessage(
 					movementMessage.ParentGuid,
 					movementMessage.PlayerPosition?.ToVector3(),
@@ -779,6 +776,8 @@ namespace OpenHellion
 				{
 					ReconcileView(movementMessage.VisibleObjects);
 				}
+
+				Diagnostics.AssertRebaseKeptRelativePositions(this, MyPlayer.Instance);
 			}
 			catch (NullReferenceException ex)
 			{

@@ -264,6 +264,8 @@ namespace ZeroGravity.Objects
 
 		private bool _isRagdolled;
 
+		public bool IsRagdolled => _isRagdolled;
+
 		private bool _isRagdollFinished = true;
 
 		private bool _wasInStance;
@@ -352,7 +354,10 @@ namespace ZeroGravity.Objects
 				bool parentChanged = previousParent is not SpaceObjectVessel
 					|| value is not SpaceObjectVessel
 					|| !((previousParent as SpaceObjectVessel).MainVessel == (value as SpaceObjectVessel).MainVessel);
+				Vector3 positionBefore = transform.position;
 				base.Parent = value;
+				Diagnostics.Assert((transform.position - positionBefore).sqrMagnitude < 0.0001f,
+					$"parent change {previousParent?.Guid ?? 0} -> {value?.Guid ?? 0} moved the player from {positionBefore} to {transform.position}");
 
 				if (PlayerReady && previousParent != null && value != null && previousParent != value)
 				{
@@ -1641,6 +1646,8 @@ namespace ZeroGravity.Objects
 				  Inventory.ItemInHands != null &&
 				  LookingAtTrigger.PlayerHandsItemType.Contains(Inventory.ItemInHands.Type))))
 			{
+				Diagnostics.Assert(LookingAtTrigger.GetComponentInParent<GeometryRoot>() is { MainObject: SpaceObjectVessel { SceneObjectsLoaded: true } },
+					$"interacting with trigger '{LookingAtTrigger.name}' ({LookingAtTrigger.TriggerType}) whose vessel is missing or not loaded: {LookingAtTrigger.GetComponentInParent<GeometryRoot>()?.MainObject?.Guid ?? 0}");
 				if (LookingAtTrigger.ExclusivePlayerLocking)
 				{
 					NetworkController.SendAndForget(new LockToTriggerMessage
@@ -3608,6 +3615,9 @@ namespace ZeroGravity.Objects
 					LookingAtTrigger = vessel.GeometryRoot.GetComponentsInChildren<BaseSceneTrigger>()
 						.FirstOrDefault((BaseSceneTrigger m) => m.GetID().InSceneID == ltm.TriggerID.InSceneID);
 				}
+
+				Diagnostics.Assert(LookingAtTrigger != null,
+					$"server locked player to trigger {ltm.TriggerID.InSceneID} on vessel {ltm.TriggerID.VesselGUID}, which is not found (vessel known: {vessel != null})");
 			}
 
 			if (LookingAtTrigger != null && !LookingAtTrigger.Interact(this))

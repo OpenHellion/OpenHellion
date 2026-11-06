@@ -248,6 +248,21 @@ namespace OpenHellion.UI
 			{
 				SplashScreen.FreshStart(CreateFreshStartTask(SpawnSetupType.Start4));
 			});
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+			StartingPointOptionData testShipData = ScriptableObject.CreateInstance<StartingPointOptionData>();
+			testShipData.Type = StartingPointOption.FreshStart;
+			testShipData.Background = freshStartUI.Data.Background;
+			testShipData.Title = "Test ship";
+			testShipData.Description = "Development only. Crew quarters, command and life support modules, always spawned the same way.";
+			StartingPointOptionUI testShipUI = Instantiate(StartingPointUI, FreshStartSpawnOptions);
+			testShipUI.Type = StartingPointOption.FreshStart;
+			testShipUI.Data = testShipData;
+			testShipUI.GetComponent<Button>().onClick.AddListener(delegate
+			{
+				SplashScreen.FreshStart(CreateFreshStartTask(SpawnSetupType.TestShip));
+			});
+#endif
 		}
 
 		private Action CreateFreshStartTask(SpawnSetupType tip)

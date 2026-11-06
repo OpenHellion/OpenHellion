@@ -45,6 +45,10 @@ namespace OpenHellion.Net
 
 		private static NetworkController _instance;
 
+		public static int MessagesReceived => _gameTransport?.ReceivedCount ?? 0;
+
+		public static int MessagesDropped => _gameTransport?.DroppedCount ?? 0;
+
 		public static NetworkController Instance
 		{
 			get

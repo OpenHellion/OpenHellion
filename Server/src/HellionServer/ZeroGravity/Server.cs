@@ -871,6 +871,12 @@ public sealed class Server
 		{
 			return false;
 		}
+#if !DEBUG
+		if (setupType == SpawnSetupType.TestShip)
+		{
+			return false;
+		}
+#endif
 		Ship foundShip = null;
 		ShipSpawnPoint foundSpawnPoint = null;
 		switch (setupType)
@@ -2505,6 +2511,12 @@ public sealed class Server
 		_mainLoopStarted = true;
 		new Thread(StartMainLoopWatcher).Start();
 		long tickDeadline = Stopwatch.GetTimestamp() + tickPeriod;
+		long secondStart = Stopwatch.GetTimestamp();
+		int secondTicks = 0;
+		int secondOverruns = 0;
+		int secondReceivedBefore = 0;
+		int secondSentBefore = 0;
+		static double Ms(long timestamp) => timestamp * 1000.0 / Stopwatch.Frequency;
 		while (IsRunning)
 		{
 			long now = Stopwatch.GetTimestamp();
@@ -2515,10 +2527,12 @@ public sealed class Server
 			}
 
 			await AddRemovePlayers();
+			long playersDone = Stopwatch.GetTimestamp();
 			DeltaTime = (double)(now - Volatile.Read(ref _lastTickTimestamp)) / Stopwatch.Frequency;
 			Volatile.Write(ref _lastTickTimestamp, now);
 
 			await UpdateData(DeltaTime);
+			long dataDone = Stopwatch.GetTimestamp();
 
 			foreach (KeyValuePair<UpdateTimer.TimerStep, UpdateTimer> timer in _timers)
 			{
@@ -2532,9 +2546,28 @@ public sealed class Server
 				}
 			}
 
+			long timersDone = Stopwatch.GetTimestamp();
 			await SpawnManager.UpdateTimers(DeltaTime);
 
 			long tickDuration = Stopwatch.GetTimestamp() - now;
+			secondTicks++;
+			if (tickDuration > tickPeriod)
+			{
+				secondOverruns++;
+				Debug.State($"tick over budget: {Ms(tickDuration):F1} ms of {Ms(tickPeriod):F1} ms; players {Ms(playersDone - now):F1}, update {Ms(dataDone - playersDone):F1}, timers {Ms(timersDone - dataDone):F1}, spawn {Ms(now + tickDuration - timersDone):F1}");
+			}
+			if (now - secondStart >= Stopwatch.Frequency)
+			{
+				Debug.State($"last second: {secondTicks} ticks, {secondOverruns} over budget, " +
+					$"{unchecked(NetworkController.ReceivedCount - secondReceivedBefore)} messages received, " +
+					$"{unchecked(NetworkController.SentCount - secondSentBefore)} sent, {NetworkController.Connections} connections");
+				secondStart = now;
+				secondTicks = 0;
+				secondOverruns = 0;
+				secondReceivedBefore = NetworkController.ReceivedCount;
+				secondSentBefore = NetworkController.SentCount;
+			}
+
 			if (tickDuration > tickPeriod && (DateTime.UtcNow - lastOverrunLogTime).TotalSeconds > 60.0)
 			{
 				Debug.LogWarningFormat("Tick overran its budget. Tick ms {0:F1}. Budget ms {1:F2}. Objects {2}. Players {3}. Vessels {4}. Artificial bodies {5}.", tickDuration * 1000.0 / Stopwatch.Frequency, tickPeriod * 1000.0 / Stopwatch.Frequency, SpaceObjects.Count, _players.Count, _vessels.Count, SolarSystem.ArtificialBodiesCount);

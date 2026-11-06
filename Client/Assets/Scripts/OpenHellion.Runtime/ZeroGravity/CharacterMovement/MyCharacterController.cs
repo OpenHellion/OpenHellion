@@ -325,6 +325,8 @@ namespace ZeroGravity.CharacterMovement
 
 		public bool IsZeroG => _isZeroG;
 
+		public bool IsGravityChangeRagdolled => _gravityChangedRagdoll;
+
 		public bool IsFreeLook => _cameraController.IsFreeLook;
 
 		public bool MeleeTriggered { get; set; }

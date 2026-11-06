@@ -85,7 +85,20 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 	public override Vector3D Velocity => (Parent?.Velocity ?? Vector3D.Zero)
 		+ (Parent?.Rotation ?? QuaternionD.Identity) * LocalVelocity;
 
-	public long AnchorGuid { get; set; }
+	private long _anchorGuid;
+
+	public long AnchorGuid
+	{
+		get => _anchorGuid;
+		set
+		{
+			if (_anchorGuid != value)
+			{
+				Debug.State($"player {Guid} anchor {_anchorGuid} -> {value}");
+			}
+			_anchorGuid = value;
+		}
+	}
 
 	public const double AnchorRebaseDistance = 200.0;
 
@@ -203,6 +216,10 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		}
 		set
 		{
+			if (_parent != value)
+			{
+				Debug.State($"player {Guid} parent {_parent?.Guid ?? 0} -> {value?.Guid ?? 0} {value?.GetType().Name}");
+			}
 			if (_parent is SpaceObjectVessel vessel)
 			{
 				vessel.RemovePlayerFromCrew(this);
@@ -1541,6 +1558,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 			.MaxBy((PlayerDamage m) => m.Amount)?.HurtType ?? HurtType.None;
 		float tmpHealthBefore = Health;
 		Health = MathHelper.Clamp(Health - amount, 0f, MaxHealth);
+		Debug.State($"player {Guid} damage {amount:F2} from {source} ({string.Join(", ", damages.Where(m => m.Amount > 0f).Select(m => $"{m.HurtType} {m.Amount:F2}"))}) health {tmpHealthBefore:F1} -> {Health:F1}");
 		if (Health <= float.Epsilon)
 		{
 			await KillPlayer(causeOfDeath);

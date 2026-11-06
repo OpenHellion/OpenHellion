@@ -51,6 +51,9 @@ namespace OpenHellion.Net
 		private bool _disconnectPending;
 		private bool _disconnectRaised;
 
+		internal int ReceivedCount;
+		internal int DroppedCount;
+
 		private readonly ConcurrentQueue<(NetworkData Data, DateTime ReceivedUtc)> _inboundQueue = new();
 
 		// Requests awaiting a matching sync response from the server, keyed by conversation.
@@ -153,6 +156,13 @@ namespace OpenHellion.Net
 				{
 					EventSystem.Dispatch(data);
 				}
+				else
+				{
+					DroppedCount++;
+					Diagnostics.Log($"dropped {data.GetType().Name}, expired {(received.ReceivedUtc - data.ExpirationUtc).TotalMilliseconds:0}ms before receive");
+				}
+
+				ReceivedCount++;
 			}
 
 			// Fail pending request on the main thread so their

@@ -41,6 +41,20 @@ public static class Debug
 		Trace.AutoFlush = true;
 	}
 
+	private static StreamWriter _stateLog;
+
+	private static readonly object StateLogLock = new();
+
+	[Conditional("DEBUG")]
+	public static void State(string message)
+	{
+		lock (StateLogLock)
+		{
+			_stateLog ??= new StreamWriter(OutputDir + "state.log", append: false) { AutoFlush = true };
+			_stateLog.WriteLine(DateTime.UtcNow.ToString(TimestampFormat) + " " + message);
+		}
+	}
+
 	public static void Destroy()
 	{
 		Trace.Listeners.Clear();

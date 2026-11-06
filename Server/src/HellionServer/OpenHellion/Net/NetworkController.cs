@@ -20,6 +20,12 @@ public static class NetworkController
 
 	public static int MaxPlayers = 100;
 
+	public static int ReceivedCount => _transport.ReceivedCount;
+
+	public static int SentCount => _transport.SentCount;
+
+	public static int Connections => _transport.Connections;
+
 	static NetworkController()
 	{
 		_transport = new GameTransport(OnClientConnected, OnDisconnected, maxConnections: () => MaxPlayers);

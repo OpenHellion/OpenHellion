@@ -1,5 +1,45 @@
 [
   {
+    "RuleName": "TestShip",
+    "Orbit": {
+      "CelestialBody": "Bethyr",
+      "PeriapsisDistance_Km": {
+        "Min": 30650,
+        "Max": 30650
+      },
+      "ApoapsisDistance_Km": {
+        "Min": 162000,
+        "Max": 162000
+      },
+      "Inclination_Deg": {
+        "Min": 25,
+        "Max": 25
+      },
+      "ArgumentOfPeriapsis_Deg": {
+        "Min": 90,
+        "Max": 90
+      },
+      "LongitudeOfAscendingNode_Deg": {
+        "Min": 180,
+        "Max": 180
+      },
+      "TrueAnomaly_Deg": {
+        "Min": 180,
+        "Max": 180
+      },
+      "UseCurrentSolarSystemTime": true
+    },
+    "LocationType": "StartingScene",
+    "LocationTag": "TestShip",
+    "StationBlueprint": "TestShip",
+    "RespawnTimer_Minutes": 0,
+    "NumberOfClusters": {
+      "Min": 1,
+      "Max": 1
+    },
+    "IsVisibleOnRadar": false
+  },
+  {
     "RuleName": "Start1",
     "Orbit": {
       "CelestialBody": "Bethyr",
