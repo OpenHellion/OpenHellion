@@ -133,7 +133,7 @@ public class Asteroid : SpaceObjectVessel, IPersistantObject
 		}
 	}
 
-	public override void RemovePlayerFromCrew(Player pl, bool checkDetails = false)
+	public override void RemovePlayerFromCrew(Player pl)
 	{
 		VesselCrew.Remove(pl);
 	}

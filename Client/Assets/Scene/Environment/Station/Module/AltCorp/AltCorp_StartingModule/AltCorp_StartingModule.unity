@@ -483147,7 +483147,7 @@ MonoBehaviour:
             m_Arguments:
               m_ObjectArgument: {fileID: 10919}
               m_ObjectArgumentAssemblyTypeName: ZeroGravity.LevelDesign.CharacterInteractionState,
-                Assembly-CSharp
+                OpenHellion.Runtime
               m_IntArgument: 0
               m_FloatArgument: 0
               m_StringArgument: 
@@ -483357,7 +483357,7 @@ MonoBehaviour:
           m_Arguments:
             m_ObjectArgument: {fileID: 11437}
             m_ObjectArgumentAssemblyTypeName: ZeroGravity.LevelDesign.CharacterInteractionState,
-              Assembly-CSharp
+              OpenHellion.Runtime
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 
@@ -483437,7 +483437,7 @@ MonoBehaviour:
             m_Arguments:
               m_ObjectArgument: {fileID: 11437}
               m_ObjectArgumentAssemblyTypeName: ZeroGravity.LevelDesign.CharacterInteractionState,
-                Assembly-CSharp
+                OpenHellion.Runtime
               m_IntArgument: 0
               m_FloatArgument: 0
               m_StringArgument: 
@@ -483503,7 +483503,7 @@ MonoBehaviour:
           m_Arguments:
             m_ObjectArgument: {fileID: 10627}
             m_ObjectArgumentAssemblyTypeName: ZeroGravity.LevelDesign.CharacterInteractionState,
-              Assembly-CSharp
+              OpenHellion.Runtime
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 
@@ -483534,7 +483534,7 @@ MonoBehaviour:
           m_Arguments:
             m_ObjectArgument: {fileID: 10627}
             m_ObjectArgumentAssemblyTypeName: ZeroGravity.LevelDesign.CharacterInteractionState,
-              Assembly-CSharp
+              OpenHellion.Runtime
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 
@@ -485974,7 +485974,7 @@ MonoBehaviour:
             m_Arguments:
               m_ObjectArgument: {fileID: 10870}
               m_ObjectArgumentAssemblyTypeName: ZeroGravity.LevelDesign.CharacterInteractionState,
-                Assembly-CSharp
+                OpenHellion.Runtime
               m_IntArgument: 0
               m_FloatArgument: 0
               m_StringArgument: 
@@ -486184,7 +486184,7 @@ MonoBehaviour:
           m_Arguments:
             m_ObjectArgument: {fileID: 10599}
             m_ObjectArgumentAssemblyTypeName: ZeroGravity.LevelDesign.CharacterInteractionState,
-              Assembly-CSharp
+              OpenHellion.Runtime
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 
@@ -486264,7 +486264,7 @@ MonoBehaviour:
             m_Arguments:
               m_ObjectArgument: {fileID: 10599}
               m_ObjectArgumentAssemblyTypeName: ZeroGravity.LevelDesign.CharacterInteractionState,
-                Assembly-CSharp
+                OpenHellion.Runtime
               m_IntArgument: 0
               m_FloatArgument: 0
               m_StringArgument: 
@@ -486330,7 +486330,7 @@ MonoBehaviour:
           m_Arguments:
             m_ObjectArgument: {fileID: 11334}
             m_ObjectArgumentAssemblyTypeName: ZeroGravity.LevelDesign.CharacterInteractionState,
-              Assembly-CSharp
+              OpenHellion.Runtime
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 
@@ -486361,7 +486361,7 @@ MonoBehaviour:
           m_Arguments:
             m_ObjectArgument: {fileID: 11334}
             m_ObjectArgumentAssemblyTypeName: ZeroGravity.LevelDesign.CharacterInteractionState,
-              Assembly-CSharp
+              OpenHellion.Runtime
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 

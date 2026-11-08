@@ -922,6 +922,7 @@ public sealed class Server
 				foundSpawnPoint.IsPlayerInSpawnPoint = true;
 			}
 			await foundSpawnPoint.AuthorizePlayerToSpawnPoint(pl, sendMessage: true);
+			await foundSpawnPoint.SetExecutorOccupied(true);
 			pl.Parent = foundSpawnPoint.Ship;
 			pl.SetSpawnPoint(foundSpawnPoint);
 			pl.SubscribeTo(foundSpawnPoint.Ship.MainVessel);
@@ -938,9 +939,13 @@ public sealed class Server
 			{
 				await (player.Parent as Pivot).Destroy();
 			}
+			if (player.Parent is Ship ship)
+			{
+				ship.RemovePlayerFromExecutors(player);
+			}
 			if (player.Parent.ObjectType is SpaceObjectType.Ship or SpaceObjectType.Asteroid)
 			{
-				(player.Parent as SpaceObjectVessel).RemovePlayerFromCrew(player, checkDetails: true);
+				(player.Parent as SpaceObjectVessel).RemovePlayerFromCrew(player);
 			}
 			else if (player.Parent.ObjectType != SpaceObjectType.Station)
 			{

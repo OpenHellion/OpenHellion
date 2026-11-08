@@ -1204,7 +1204,8 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 				vesselDamageType = ship.LastVesselDamageType;
 			}
 			ship.RemovePlayerFromRoom(this);
-			ship.RemovePlayerFromCrew(this, checkDetails: true);
+			ship.RemovePlayerFromCrew(this);
+			ship.RemovePlayerFromExecutors(this);
 		}
 		else if (Parent is Pivot)
 		{

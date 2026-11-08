@@ -1220,44 +1220,38 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 
 	public override void AddPlayerToCrew(Player pl)
 	{
-		if (!VesselCrew.Contains(pl))
-		{
-			VesselCrew.Add(pl);
-			RemovePlayerFromExecutors(pl);
-		}
+		VesselCrew.Add(pl);
 	}
 
-	public override void RemovePlayerFromCrew(Player pl, bool checkDetails = false)
+	public override void RemovePlayerFromCrew(Player pl)
 	{
 		VesselCrew.Remove(pl);
-		if (checkDetails)
-		{
-			RemovePlayerFromExecutors(pl);
-		}
 	}
 
+	/// <remarks>
+	/// 	Quite expensive because it loops through all ships in the world. Should therefore not be run in tick. (TODO maybe this can be optimised?)
+	/// </remarks>
 	public void RemovePlayerFromExecutors(Player pl)
 	{
-		List<SceneTriggerExecutorDetails> executors = new List<SceneTriggerExecutorDetails>();
-		foreach (SceneTriggerExecutor ex in SceneTriggerExecutors)
+		foreach (Ship ship in AllVessels.OfType<Ship>())
 		{
-			SceneTriggerExecutorDetails det = ex.RemovePlayerFromExecutor(pl);
-			if (det == null)
+			List<SceneTriggerExecutorDetails> executors = [];
+			foreach (SceneTriggerExecutor ex in ship.SceneTriggerExecutors)
 			{
-				det = ex.RemovePlayerFromProximity(pl);
+				SceneTriggerExecutorDetails det = ex.RemovePlayerFromExecutor(pl) ?? ex.RemovePlayerFromProximity(pl);
+				if (det != null)
+				{
+					executors.Add(det);
+				}
 			}
-			if (det != null)
+			if (executors.Count > 0)
 			{
-				executors.Add(det);
+				ship.ShipStatsMessageListener(new ShipStatsMessage
+				{
+					Guid = ship.Guid,
+					VesselObjects = new VesselObjects { SceneTriggerExecutors = executors }
+				});
 			}
-		}
-		if (executors.Count > 0)
-		{
-			ShipStatsMessage retStatsMsg = new ShipStatsMessage();
-			retStatsMsg.VesselObjects = new VesselObjects();
-			retStatsMsg.Guid = Guid;
-			retStatsMsg.VesselObjects.SceneTriggerExecutors = executors;
-			ShipStatsMessageListener(retStatsMsg);
 		}
 	}
 
@@ -1997,6 +1991,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 					retMsg.VesselObjects.SpawnPoints = [];
 					retMsg.SelfDestructTime = SelfDestructTimer?.Time;
 				}
+				await sp.SetExecutorOccupied(false);
 				sp.Player = null;
 				sp.State = SpawnPointState.Unlocked;
 				sp.IsPlayerInSpawnPoint = false;

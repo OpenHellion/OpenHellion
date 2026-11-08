@@ -18,7 +18,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Linq;
 using OpenHellion.Net;
 using OpenHellion.Social;
 using OpenHellion.Social.Message;
@@ -27,7 +26,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using OpenHellion.UI;
 using ZeroGravity;
-using ZeroGravity.LevelDesign;
 using ZeroGravity.Network;
 using ZeroGravity.Objects;
 using System.Net.Sockets;
@@ -159,7 +157,6 @@ namespace OpenHellion
 						RichPresenceManager.UpdateStatus(_world);
 
 						_world.InGameGUI.HelmetHud.gameObject.Activate(true);
-						await FixCryoPodState();
 						GlobalGUI.CloseLoadingScreen();
 					}
 
@@ -196,29 +193,6 @@ namespace OpenHellion
 			MainMenuGUI.ReturnToServerList = true;
 			SceneManager.LoadScene(1);
 			Destroy(gameObject);
-		}
-
-		private async UniTask FixCryoPodState()
-		{
-			await UniTask.WaitUntil(() => MyPlayer.Instance.gameObject.activeInHierarchy);
-			SceneTriggerExecutor[] executorsInChildren = MyPlayer.Instance.Parent
-				.GetComponentsInChildren<SceneTriggerExecutor>(includeInactive: true);
-
-			SceneTriggerExecutor exec = executorsInChildren.FirstOrDefault(static (SceneTriggerExecutor m) => m.CurrentState == "spawn");
-			if (exec == null)
-			{
-				return;
-			}
-
-			try
-			{
-				await UniTask.WaitUntil(() => MyPlayer.Instance.InLockState).Timeout(TimeSpan.FromSeconds(2));
-				exec.ChangeStateImmediateForce("occupied");
-			}
-			catch (TimeoutException)
-			{
-				Debug.LogWarning("Cryo pod lock animation event did not fire within the timeout; leaving player in spawn state.");
-			}
 		}
 	}
 }

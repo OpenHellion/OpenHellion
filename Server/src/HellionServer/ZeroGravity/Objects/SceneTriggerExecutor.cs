@@ -157,7 +157,7 @@ public class SceneTriggerExecutor : IPersistantObject
 		{
 			data.IsFail = true;
 		}
-		if (SpawnPoint != null && ((SpawnPoint.Type == SpawnPointType.WithAuthorization && SpawnPoint.State == SpawnPointState.Locked) || (SpawnPoint.Player != null && SpawnPoint.Player != pl) || SpawnPoint.Player == null))
+		if (SpawnPoint != null && sender != 0 && ((SpawnPoint.Type == SpawnPointType.WithAuthorization && SpawnPoint.State == SpawnPointState.Locked) || (SpawnPoint.Player != null && SpawnPoint.Player != pl) || SpawnPoint.Player == null))
 		{
 			data.IsFail = true;
 		}
@@ -176,11 +176,6 @@ public class SceneTriggerExecutor : IPersistantObject
 				{
 					SpawnPoint.Player.IsInsideSpawnPoint = false;
 					SpawnPoint.IsPlayerInSpawnPoint = false;
-					if (SpawnPoint.Type == SpawnPointType.SimpleSpawn)
-					{
-						SpawnPoint.Player.SetSpawnPoint(null);
-						SpawnPoint.Player = null;
-					}
 				}
 			}
 			try

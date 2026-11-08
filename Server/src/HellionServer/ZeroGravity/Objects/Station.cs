@@ -44,7 +44,7 @@ public class Station : SpaceObjectVessel
 		return false;
 	}
 
-	public override void RemovePlayerFromCrew(Player pl, bool checkDetails = false)
+	public override void RemovePlayerFromCrew(Player pl)
 	{
 		throw new NotImplementedException();
 	}

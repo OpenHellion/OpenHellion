@@ -1270,8 +1270,7 @@ namespace ZeroGravity.Objects
 			SceneHelper.FillRoomTriggers(this, sceneRoot, RoomTriggers, shipObjects?.RoomTriggers);
 			SceneHelper.FillResourceContainers(sceneRoot, ResourceContainers, shipObjects?.ResourceContainers);
 			SceneHelper.FillDoors(this, sceneRoot, Doors, shipObjects?.Doors);
-			SceneHelper.FillSceneTriggerExecutors(this, sceneRoot, SceneTriggerExecutors,
-				shipObjects?.SceneTriggerExecutors);
+			SceneHelper.FillSceneTriggerExecutors(this, sceneRoot, SceneTriggerExecutors);
 			SceneHelper.FillSpawnWithChanceData(sceneRoot, shipObjects.SpawnWithChance);
 			SceneHelper.FillSceneDockingPorts(this, sceneRoot, DockingPorts);
 			SceneHelper.FillSpawnPoints(this, sceneRoot, SpawnPoints, shipObjects?.SpawnPoints);

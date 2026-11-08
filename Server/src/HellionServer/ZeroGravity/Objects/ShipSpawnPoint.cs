@@ -35,6 +35,43 @@ public class ShipSpawnPoint
 
 	public List<int> ExecutorOccupiedStateIDs;
 
+	public async Task SetExecutorOccupied(bool occupied)
+	{
+		if (Executor == null)
+		{
+			return;
+		}
+
+		int stateID = occupied ? ExecutorStateID : Executor.DefaultStateID;
+		if (stateID == Executor.StateID || !Executor.States.ContainsKey(stateID))
+		{
+			return;
+		}
+
+		int previousStateID = Executor.StateID;
+		Executor.StateID = stateID;
+		Executor.PlayerThatActivated = occupied && Player != null ? Player.FakeGuid : 0L;
+		Debug.State($"spawn point {Ship.Guid}:{SpawnPointID} executor {Executor.InSceneID} {previousStateID} -> {stateID} owner {Player?.Guid}");
+		await NetworkController.SendToClientsSubscribedTo(new ShipStatsMessage
+		{
+			Guid = Ship.Guid,
+			VesselObjects = new VesselObjects
+			{
+				SceneTriggerExecutors =
+				[
+					new SceneTriggerExecutorDetails
+					{
+						InSceneID = Executor.InSceneID,
+						CurrentStateID = previousStateID,
+						NewStateID = stateID,
+						IsImmediate = true,
+						PlayerThatActivated = Executor.PlayerThatActivated
+					}
+				]
+			}
+		}, -1L, Ship);
+	}
+
 	public async Task<SpawnPointStats> SetStats(SpawnPointStats stats, Player sender)
 	{
 		if (Type == SpawnPointType.SimpleSpawn)
@@ -119,22 +156,28 @@ public class ShipSpawnPoint
 				if (sender.AuthorizedSpawnPoint is { State: SpawnPointState.Authorized })
 				{
 					sender.AuthorizedSpawnPoint.State = SpawnPointState.Locked;
-					ShipStatsMessage retMsg = new ShipStatsMessage();
-					retMsg.Guid = sender.AuthorizedSpawnPoint.Ship.Guid;
-					retMsg.Temperature = sender.AuthorizedSpawnPoint.Ship.Temperature;
-					retMsg.Health = sender.AuthorizedSpawnPoint.Ship.Health;
-					retMsg.Armor = sender.AuthorizedSpawnPoint.Ship.Armor;
-					retMsg.VesselObjects = new VesselObjects();
-					retMsg.VesselObjects.SpawnPoints = new List<SpawnPointStats>();
-					retMsg.VesselObjects.SpawnPoints.Add(new SpawnPointStats
+					ShipStatsMessage retMsg = new ShipStatsMessage
 					{
-						InSceneID = sender.AuthorizedSpawnPoint.SpawnPointID,
-						NewState = sender.AuthorizedSpawnPoint.State,
-						PlayerGUID = sender.FakeGuid,
-						PlayerName = sender.Name,
-						PlayerId = sender.PlayerId
-					});
-					retMsg.SelfDestructTime = sender.AuthorizedSpawnPoint.Ship.SelfDestructTimer?.Time;
+						Guid = sender.AuthorizedSpawnPoint.Ship.Guid,
+						Temperature = sender.AuthorizedSpawnPoint.Ship.Temperature,
+						Health = sender.AuthorizedSpawnPoint.Ship.Health,
+						Armor = sender.AuthorizedSpawnPoint.Ship.Armor,
+						VesselObjects = new VesselObjects()
+						{
+							SpawnPoints =
+							[
+								new SpawnPointStats
+								{
+									InSceneID = sender.AuthorizedSpawnPoint.SpawnPointID,
+									NewState = sender.AuthorizedSpawnPoint.State,
+									PlayerGUID = sender.FakeGuid,
+									PlayerName = sender.Name,
+									PlayerId = sender.PlayerId
+								},
+							]
+						},
+						SelfDestructTime = sender.AuthorizedSpawnPoint.Ship.SelfDestructTimer?.Time
+					};
 					await NetworkController.SendToClientsSubscribedTo(retMsg, -1L, sender.AuthorizedSpawnPoint.Ship);
 				}
 				State = SpawnPointState.Authorized;
@@ -161,25 +204,31 @@ public class ShipSpawnPoint
 			InvitedPlayerName = name;
 			if (sendMessage)
 			{
-				ShipStatsMessage retMsg = new ShipStatsMessage();
-				retMsg.Guid = Ship.Guid;
-				retMsg.Temperature = Ship.Temperature;
-				retMsg.Health = Ship.Health;
-				retMsg.Armor = Ship.Armor;
-				retMsg.VesselObjects = new VesselObjects();
-				retMsg.VesselObjects.SpawnPoints = new List<SpawnPointStats>();
-				retMsg.VesselObjects.SpawnPoints.Add(new SpawnPointStats
+				ShipStatsMessage retMsg = new ShipStatsMessage
 				{
-					InSceneID = SpawnPointID,
-					NewState = State,
-					PlayerGUID = Player is not null ? Player.FakeGuid : -1,
-					PlayerName = Player is not null ? Player.Name : "",
-					PlayerId = Player is not null ? Player.PlayerId : "",
-					PlayerInvite = true,
-					InvitedPlayerName = InvitedPlayerName,
-					InvitedPlayerId = InvitedPlayerId
-				});
-				retMsg.SelfDestructTime = Ship.SelfDestructTimer?.Time;
+					Guid = Ship.Guid,
+					Temperature = Ship.Temperature,
+					Health = Ship.Health,
+					Armor = Ship.Armor,
+					VesselObjects = new VesselObjects
+					{
+						SpawnPoints =
+						[
+							new SpawnPointStats
+							{
+								InSceneID = SpawnPointID,
+								NewState = State,
+								PlayerGUID = Player is not null ? Player.FakeGuid : -1,
+								PlayerName = Player is not null ? Player.Name : "",
+								PlayerId = Player is not null ? Player.PlayerId : "",
+								PlayerInvite = true,
+								InvitedPlayerName = InvitedPlayerName,
+								InvitedPlayerId = InvitedPlayerId
+							},
+						]
+					},
+					SelfDestructTime = Ship.SelfDestructTimer?.Time
+				};
 				await NetworkController.SendToClientsSubscribedTo(retMsg, -1L, Ship);
 			}
 		}
@@ -194,22 +243,28 @@ public class ShipSpawnPoint
 			pl.SetSpawnPoint(this);
 			if (sendMessage)
 			{
-				ShipStatsMessage retMsg = new ShipStatsMessage();
-				retMsg.Guid = Ship.Guid;
-				retMsg.Temperature = Ship.Temperature;
-				retMsg.Health = Ship.Health;
-				retMsg.Armor = Ship.Armor;
-				retMsg.VesselObjects = new VesselObjects();
-				retMsg.VesselObjects.SpawnPoints = new List<SpawnPointStats>();
-				retMsg.VesselObjects.SpawnPoints.Add(new SpawnPointStats
+				ShipStatsMessage retMsg = new ShipStatsMessage
 				{
-					InSceneID = SpawnPointID,
-					NewState = State,
-					PlayerGUID = Player.FakeGuid,
-					PlayerName = Player.Name,
-					PlayerId = Player.PlayerId
-				});
-				retMsg.SelfDestructTime = Ship.SelfDestructTimer?.Time;
+					Guid = Ship.Guid,
+					Temperature = Ship.Temperature,
+					Health = Ship.Health,
+					Armor = Ship.Armor,
+					VesselObjects = new VesselObjects
+					{
+						SpawnPoints =
+						[
+							new SpawnPointStats
+							{
+								InSceneID = SpawnPointID,
+								NewState = State,
+								PlayerGUID = Player.FakeGuid,
+								PlayerName = Player.Name,
+								PlayerId = Player.PlayerId
+							},
+						]
+					},
+					SelfDestructTime = Ship.SelfDestructTimer?.Time
+				};
 				await NetworkController.SendToClientsSubscribedTo(retMsg, -1L, Ship);
 			}
 		}

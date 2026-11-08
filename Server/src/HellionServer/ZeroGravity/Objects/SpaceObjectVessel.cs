@@ -339,7 +339,7 @@ public abstract class SpaceObjectVessel : ArtificialBody
 
 	public abstract void AddPlayerToCrew(Player pl);
 
-	public abstract void RemovePlayerFromCrew(Player pl, bool checkDetails = false);
+	public abstract void RemovePlayerFromCrew(Player pl);
 
 	public abstract bool HasPlayerInCrew(Player pl);
 

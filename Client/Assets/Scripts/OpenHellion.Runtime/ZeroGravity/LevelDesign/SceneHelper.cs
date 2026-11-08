@@ -330,25 +330,12 @@ namespace ZeroGravity.LevelDesign
 		}
 
 		public static void FillSceneTriggerExecutors(SpaceObjectVessel vessel, GameObject sceneRoot,
-			Dictionary<int, SceneTriggerExecutor> SceneTriggerExecutors,
-			List<SceneTriggerExecutorDetails> sceneTriggersExecutorDetails)
+			Dictionary<int, SceneTriggerExecutor> SceneTriggerExecutors)
 		{
-			SceneTriggerExecutor[] componentsInChildren =
-				sceneRoot.GetComponentsInChildren<SceneTriggerExecutor>(includeInactive: true);
-			foreach (SceneTriggerExecutor ste in componentsInChildren)
+			foreach (SceneTriggerExecutor ste in sceneRoot.GetComponentsInChildren<SceneTriggerExecutor>(includeInactive: true))
 			{
 				SceneTriggerExecutors[ste.InSceneID] = ste;
 				ste.ParentVessel = vessel;
-				if (sceneTriggersExecutorDetails != null)
-				{
-					SceneTriggerExecutorDetails sceneTriggerExecutorDetails =
-						sceneTriggersExecutorDetails.Find((SceneTriggerExecutorDetails m) =>
-							m.InSceneID == ste.InSceneID);
-					if (sceneTriggerExecutorDetails != null)
-					{
-						ste.SetExecutorDetails(sceneTriggerExecutorDetails, isInstant: true);
-					}
-				}
 			}
 		}
 
