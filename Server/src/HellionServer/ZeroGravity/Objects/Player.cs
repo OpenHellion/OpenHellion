@@ -739,6 +739,8 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		}
 
 		ReparentKeepingWorldPose(newParent);
+		LastReportedPosition = LocalPosition;
+		LastReportedVelocity = LocalVelocity;
 		if (oldParent is Pivot oldPivot)
 		{
 			await oldPivot.Destroy();
