@@ -1,5 +1,6 @@
 using OpenHellion.State;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using OpenHellion.Net;
 using ZeroGravity.Data;
@@ -69,9 +70,9 @@ internal class PortableTurret : Item
 	private async void PortableTurretShootingMessageListener(NetworkData data)
 	{
 		var message = data as PortableTurretShootingMessage;
-		if (message.TurretGUID == GUID && !isStunned)
+		if (message.TurretGUID == GUID && Server.Instance.GetPlayer(message.Sender) is { } sender && (!message.IsShooting || IsHostileTo(sender)))
 		{
-			targetPlayer = Server.Instance.GetPlayer(message.Sender);
+			targetPlayer = sender;
 			await NetworkController.SendToClientsSubscribedTo(message, -1L, targetPlayer.Parent);
 			if (message.IsShooting)
 			{
@@ -82,6 +83,36 @@ internal class PortableTurret : Item
 				Server.Instance.UnsubscribeFromTimer(UpdateTimer.TimerStep.Step_0_1_sec, DamagePlayer);
 			}
 		}
+	}
+
+	public bool IsHostileTo(Player player)
+	{
+		if (!IsActive || isStunned || Health <= 0f || AttachPointID is not { } attachPoint || Server.Instance.GetVessel(attachPoint.VesselGUID) is not { } vessel || vessel.VesselBaseSystem?.Status != SystemStatus.OnLine)
+		{
+			return false;
+		}
+
+		List<SpaceObjectVessel> connected = [vessel];
+		for (int i = 0; i < connected.Count; i++)
+		{
+			SpaceObjectVessel current = connected[i];
+			if (current.AuthorizedPersonel.Exists(m => m.PlayerId == player.PlayerId))
+			{
+				return false;
+			}
+			if (GameScenes.Ranges.IsShip(current.SceneId))
+			{
+				continue;
+			}
+			foreach (SpaceObjectVessel docked in current.DockedVessels.Append(current.DockedToVessel))
+			{
+				if (docked != null && !GameScenes.Ranges.IsShip(docked.SceneId) && !connected.Contains(docked))
+				{
+					connected.Add(docked);
+				}
+			}
+		}
+		return true;
 	}
 
 	private Task CheckStun(double deltaTime)

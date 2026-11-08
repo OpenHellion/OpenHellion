@@ -227,13 +227,11 @@ namespace ZeroGravity.Objects
 					turretAnimator.SetBool("IsActive",
 						!flag && BaseVesselSystem != null && BaseVesselSystem.Status == SystemStatus.Online);
 					targettingHelper.gameObject.SetActive(!flag);
-					_isActive = !flag;
 				}
 				else if (flag && !isDestroyed)
 				{
 					turretAnimator.SetBool("IsActive",
 						!flag && BaseVesselSystem != null && BaseVesselSystem.Status == SystemStatus.Online);
-					_isActive = !flag;
 					canTarget = !flag;
 				}
 
@@ -559,7 +557,7 @@ namespace ZeroGravity.Objects
 
 		public override bool CanPlayerPickUp(Player pl)
 		{
-			return !IsActive || isStunned || isDestroyed || !ShouldShootAtPlayer(MyPlayer.Instance);
+			return !IsActive || isStunned || isDestroyed || BaseVesselSystem == null || BaseVesselSystem.Status != SystemStatus.Online || !ShouldShootAtPlayer(MyPlayer.Instance);
 		}
 
 		private void PortableTurretShootingMessageListener(NetworkData data)

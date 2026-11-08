@@ -17,6 +17,8 @@ Spawn:
 [x] Fix not spawning inside cryopod.
 [ ] Fix empty dynamic objects at scene root
 [ ] Queue state update messages when loading, and apply after loading is done
+[ ] Server-authortative view, push full state of object in view instead client requesting it
+[ ] Implement respawn without needing to rejoin
 
 WorldState rewrite:
 [x] Create a world state class to store basic data about dynamic objects (test the system)
@@ -52,14 +54,18 @@ Movement:
 [ ] Send faraway "known" vessels to client, but only on map and radar position (subscibe objects and known vessels rewrite)
 [x] Fix changing parent deals damage
 [ ] Fix items, corpses and other players sliding when the anchor changes (fixed for items)
-[ ] Moving from 0g to 1g fast might cause you to go trough the wall and fall forever, crashing the game
+[ ] Moving from 0g to 1g fast making you fall out of the world (think is fixed, havent reproduced for a while)
 [ ] Landing and staying on asteroid is impossible (because object spins)
 [ ] Fix ship driving without power and engine
 [ ] Fix radar selection raycast not succeeding
-[ ] Fix turrets
+[x] Fix turrets
 [ ] Anchor onto moving platform
 [ ] Implement leasing of space objects (security against hacking a vessel, only one player may lease an object at a time)
 [ ] Fix parent flipping on border between two ships
+[ ] MovementMessages only for objects that have moved
+[ ] Remove subscribe/unsubscribe, and only use player view
+[ ] Harden collision damage
+[ ] Fix stabilising on hull of ship causing jumping around
 
 Debugging/diagnostics:
 [x] Fix console (add errors and make player admin)
@@ -69,6 +75,7 @@ Debugging/diagnostics:
 [x] Implement TestShip spawn setup as testing spawn
 [x] Show game state info in console and log to file
 [x] Add assertions in code
+[x] Test ship: Needs space suits and nanite cores
 [ ] Create a TestClient on the server
 [ ] Add tests to duplicate network data and similar
 [ ] Add test to ClassHasher (same on both client and server)
@@ -105,15 +112,16 @@ Short-term:
 [x] Add an offline mode for connections without main server
 [x] Add automatic retry to initialising menu
 [x] Fix warping menu
+[x] Fix failing to interact with newly spawned vessels
+[x] Fix switching to docking camera softlocking the game
+[x] Fix bug where direction of gravity in crew quarters module changes direction on entry at angle
+[x] Fix bug where direction of gravity in crew quarters module shifts by 90 degrees on an error causing ragdoll
 [ ] Move collections of all space objects into SolarSystem.cs on the server and only allow access trough getters and setters
-[ ] Fix bug where direction of gravity in crew quarters module shifts by 90 degrees on an error causing ragdoll
-[ ] Fix bug where direction of gravity in crew quarters module changes direction on entry at angle
 [ ] Test if new other character controller works
 [ ] Crashing into a planet when on a pivot does not kill the player
 [ ] Fix docking panels are inaccessible
-[ ] Fix failing to interact with newly spawned vessels
-[ ] Fix switching to docking camera softlocking the game
 [ ] Only use timeout for non-sensitive network messages (implement reliable/unreliable send mode in GameTransport)
+[ ] Fix health shader in helmet
 
 Server:
 [x] Remove VesselData
@@ -125,14 +133,10 @@ Server:
 [x] Fix main loop watcher
 [x] Make admin mode on for all debug builds
 [x] Add assert to Debug.cs
-[ ] Rewrite EventSystem to fix weaknesses
+[x] Collect all network messages and flush on tick
 [ ] Respawn command does not work
-[ ] Collect all network messages and flush on tick
-[ ] Merge similar network messages in same tick
-[ ] Dispose all known syncrequests on delete
 [ ] Fix Euler - Radians conversion
 [ ] Fix server constantly being over tick time budget
-[ ] Remove subscribe/unsubscribe, send to players in range
 
 Later:
 [x] Remove GameStarter.FixCryoPodState
@@ -144,8 +148,7 @@ Later:
 [ ] Make ambience sound persist between main menu and world menu
 [ ] Fix client CPU hog
 [ ] Make ShipStatsMessage send deltas
-[ ] Merge similar network messages in same tick
-[ ] Rewrite EventSystem to fix weaknesses
+[ ] Do an examination on EventSystem to find likely weaknesses
 [ ] Fix logging in on same session breaking scene loading
 [ ] Fix audio continuing after exiting game
 [ ] Remove ImpactDetector.cs

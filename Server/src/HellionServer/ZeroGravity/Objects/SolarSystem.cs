@@ -222,7 +222,8 @@ public class SolarSystem
 		{
 			holder = State.Location(container);
 		}
-		bool reachable = holder.Kind != LocationKind.Inventory || holder.ParentKey == sender.Key || Server.Instance.ResolveKey(holder.ParentKey) is not Player;
+		bool reachable = (holder.Kind != LocationKind.Inventory || holder.ParentKey == sender.Key || Server.Instance.ResolveKey(holder.ParentKey) is not Player)
+			&& !(item is PortableTurret turret && turret.IsHostileTo(sender));
 		bool held = location.Kind == LocationKind.Inventory && location.ParentKey == sender.Key;
 
 		try
