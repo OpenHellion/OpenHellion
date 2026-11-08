@@ -106,7 +106,6 @@ Short-term:
 [x] Add automatic retry to initialising menu
 [x] Fix warping menu
 [ ] Move collections of all space objects into SolarSystem.cs on the server and only allow access trough getters and setters
-[ ] Fix differences between GameTransport on client and server
 [ ] Fix bug where direction of gravity in crew quarters module shifts by 90 degrees on an error causing ragdoll
 [ ] Fix bug where direction of gravity in crew quarters module changes direction on entry at angle
 [ ] Test if new other character controller works
@@ -114,6 +113,7 @@ Short-term:
 [ ] Fix docking panels are inaccessible
 [ ] Fix failing to interact with newly spawned vessels
 [ ] Fix switching to docking camera softlocking the game
+[ ] Only use timeout for non-sensitive network messages (implement reliable/unreliable send mode in GameTransport)
 
 Server:
 [x] Remove VesselData

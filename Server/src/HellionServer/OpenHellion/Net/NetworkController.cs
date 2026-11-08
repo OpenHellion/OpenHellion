@@ -161,6 +161,11 @@ public static class NetworkController
 		return _transport.Tick();
 	}
 
+	public static Task Flush()
+	{
+		return _transport.Flush();
+	}
+
 	/// <summary>
 	/// 	Get a list of all the players on the server.
 	/// </summary>
@@ -177,16 +182,6 @@ public static class NetworkController
 	public static Task SendAsync(long guid, NetworkData data)
 	{
 		return _transport.SendAsyncInternal(guid, data);
-	}
-
-	/// <summary>
-	/// 	Use request/response-like communication with async support.
-	/// </summary>
-	/// <param name="guid">Guid of client to send to.</param>
-	/// <param name="data">The data to send.</param>
-	public static Task<NetworkData> SendReceiveAsync(long guid, NetworkData data)
-	{
-		return _transport.SendReceiveAsyncInternal(guid, data);
 	}
 
 	/// <summary>

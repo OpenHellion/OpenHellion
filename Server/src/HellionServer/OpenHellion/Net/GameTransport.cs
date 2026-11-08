@@ -80,7 +80,7 @@ internal sealed class GameTransport
 		internal Socket socket;
 		internal NetworkStream stream;
 		internal CancellationTokenSource cancellationToken;
-		internal Action<NetworkData> syncResponseReceivedEvent;
+		internal ConcurrentQueue<NetworkData> outbound;
 	}
 
 	internal GameTransport(Func<NetworkStream, long[], int, Task<long>> onConnected, Action<long> onDisconnected, Func<int> maxConnections)
@@ -156,7 +156,8 @@ internal sealed class GameTransport
 				{
 					socket = handler,
 					stream = stream,
-					cancellationToken = cancelToken
+					cancellationToken = cancelToken,
+					outbound = new ConcurrentQueue<NetworkData>()
 				};
 
 				new Thread(() => ListenerThread(guid, connection))
@@ -191,11 +192,7 @@ internal sealed class GameTransport
 					{
 						networkData.Sender = guid;
 
-						if (networkData.SyncResponse)
-						{
-							data.syncResponseReceivedEvent(networkData);
-						}
-						else if (networkData.SyncRequest || DateTime.UtcNow <= networkData.ExpirationUtc)
+						if (networkData.SyncRequest || DateTime.UtcNow <= networkData.ExpirationUtc)
 						{
 							_received.Enqueue((guid, networkData));
 						}
@@ -269,160 +266,99 @@ internal sealed class GameTransport
 		}
 	}
 
-	/// <summary>
-	/// 	Send network data to a client.
-	/// </summary>
-	/// <param name="guid">Guid of client to send to.</param>
-	/// <param name="data">The data to send.</param>
-	internal async Task SendAsyncInternal(long guid, NetworkData data)
+	internal Task SendAsyncInternal(long guid, NetworkData data)
 	{
-		try
+		if (_connections.TryGetValue(guid, out var connectionData))
 		{
-			if (_connections.TryGetValue(guid, out var connectionData))
-			{
-				if (data.ExpirationUtc != DateTime.MaxValue)
-				{
-					data.ExpirationUtc = DateTime.UtcNow.AddMilliseconds(TIMEOUT_MS);
-				}
-				var packedData = await ProtoSerialiser.Pack(data);
-				if (packedData == null)
-				{
-					Debug.LogError($"Dropping a {data.GetType().Name} for client {guid} that could not be serialised.");
-					return;
-				}
-
-				await connectionData.stream.WriteAsync(packedData, connectionData.cancellationToken.Token).ConfigureAwait(false);
-				Interlocked.Increment(ref SentCount);
-			}
-		}
-		catch (IOException ex)
-		{
-			Debug.Log("Socket terminated during a send, disconnecting client", guid, ex.Message);
-			DisconnectInternal(guid);
-		}
-	}
-
-	/// <summary>
-	/// 	Use request/response-like communication with async support.
-	/// </summary>
-	/// <param name="guid">Guid of client to send to.</param>
-	/// <param name="data">The data to send.</param>
-	internal async Task<NetworkData> SendReceiveAsyncInternal(long guid, NetworkData data)
-	{
-		try
-		{
-			if (_connections.TryGetValue(guid, out var connectionData))
+			if (data.ExpirationUtc != DateTime.MaxValue)
 			{
 				data.ExpirationUtc = DateTime.UtcNow.AddMilliseconds(TIMEOUT_MS);
-				data.SyncRequest = true;
-				var packedData = await ProtoSerialiser.Pack(data);
-				if (packedData == null)
-				{
-					Debug.LogError($"Dropping a {data.GetType().Name} for client {guid} that could not be serialised.");
-					return null;
-				}
-
-				NetworkData response = null;
-				CancellationTokenSource responseCancel = new();
-				void responseHandler(NetworkData responseData)
-				{
-					if (data.ConversationGuid == responseData.ConversationGuid)
-					{
-						response = responseData;
-						responseCancel.Cancel();
-					}
-				}
-				connectionData.syncResponseReceivedEvent += responseHandler;
-
-				await connectionData.stream.WriteAsync(packedData, connectionData.cancellationToken.Token).ConfigureAwait(false);
-				Interlocked.Increment(ref SentCount);
-
-				await Task.Delay(TIMEOUT_MS, responseCancel.Token);
-				connectionData.syncResponseReceivedEvent -= responseHandler;
-
-				if (response != null)
-				{
-					return response;
-				}
-				else
-				{
-					throw new TimeoutException("A response to a synchronous request was not received within the timeout window.");
-				}
 			}
+			connectionData.outbound.Enqueue(data);
 		}
-		catch (IOException ex)
-		{
-			Debug.Log("Socket terminated during a synchronous send, disconnecting client", guid, ex.Message);
-			DisconnectInternal(guid);
-		}
-
-		return null;
+		return Task.CompletedTask;
 	}
 
-	// Request to send to all clients.
-	internal async Task SendToAllAsyncInternal(NetworkData data, long skipPlayerGuid = -1L)
+	internal Task SendToAllAsyncInternal(NetworkData data, long skipPlayerGuid = -1L)
 	{
-		if (_connections.Count == 0) return;
 		if (data.ExpirationUtc != DateTime.MaxValue)
 		{
 			data.ExpirationUtc = DateTime.UtcNow.AddMilliseconds(TIMEOUT_MS);
 		}
-		var packedData = await ProtoSerialiser.Pack(data);
-		if (packedData == null)
+		foreach (var connection in _connections.ToArray())
 		{
-			Debug.LogError($"Dropping a broadcast {data.GetType().Name} that could not be serialised.");
-			return;
+			if (connection.Key != skipPlayerGuid)
+			{
+				connection.Value.outbound.Enqueue(data);
+			}
 		}
-
-		await Parallel.ForEachAsync(_connections, async (connection, _) =>
-		{
-			try
-			{
-				if (connection.Key == skipPlayerGuid) return;
-
-				await connection.Value.stream.WriteAsync(packedData, _mainCancellationToken.Token).ConfigureAwait(false);
-				Interlocked.Increment(ref SentCount);
-			}
-			catch (IOException ex)
-			{
-				Debug.Log("Socket terminated during a broadcast, disconnecting client", connection.Key, ex.Message);
-				DisconnectInternal(connection.Key);
-			}
-		});
+		return Task.CompletedTask;
 	}
 
 	internal async Task PrioritySendAsyncInternal(long guid, NetworkData data)
 	{
+		if (!_connections.TryGetValue(guid, out var connectionData))
+		{
+			Debug.LogWarning("Priority send to disconnected client.");
+			return;
+		}
+
+		connectionData.outbound.Clear();
+		if (data.ExpirationUtc != DateTime.MaxValue)
+		{
+			data.ExpirationUtc = DateTime.UtcNow.AddMilliseconds(TIMEOUT_MS);
+		}
+		byte[] packedData = await ProtoSerialiser.Pack(data);
+		if (packedData == null)
+		{
+			Debug.LogError($"Dropping a priority {data.GetType().Name} for client {guid} that could not be serialised.");
+			return;
+		}
+
 		try
 		{
-			if (_connections.TryGetValue(guid, out var handler))
-			{
-
-				if (data.ExpirationUtc != DateTime.MaxValue)
-				{
-					data.ExpirationUtc = DateTime.UtcNow.AddMilliseconds(TIMEOUT_MS);
-				}
-				var packedData = await ProtoSerialiser.Pack(data);
-				if (packedData == null)
-				{
-					Debug.LogError($"Dropping a priority {data.GetType().Name} for client {guid} that could not be serialised.");
-					return;
-				}
-
-				await handler.stream.FlushAsync().ConfigureAwait(false);
-				await handler.stream.WriteAsync(packedData).ConfigureAwait(false);
-				Interlocked.Increment(ref SentCount);
-			}
-			else
-			{
-				Debug.LogWarning("Priority send to disconnected client.");
-			}
+			await connectionData.stream.WriteAsync(packedData, connectionData.cancellationToken.Token).ConfigureAwait(false);
+			Interlocked.Increment(ref SentCount);
 		}
-		catch (IOException ex)
+		catch (Exception ex) when (ex is IOException or OperationCanceledException or ObjectDisposedException)
 		{
 			Debug.Log("Socket terminated during a priority send, disconnecting client", guid, ex.Message);
 			DisconnectInternal(guid);
 		}
+	}
+
+	internal async Task Flush()
+	{
+		await Parallel.ForEachAsync(_connections.ToArray(), async (connection, _) =>
+		{
+			if (connection.Value.outbound.IsEmpty)
+			{
+				return;
+			}
+
+			using MemoryStream batch = new();
+			while (connection.Value.outbound.TryDequeue(out NetworkData data))
+			{
+				byte[] packedData = await ProtoSerialiser.Pack(data);
+				if (packedData == null)
+				{
+					Debug.LogError($"Dropping a {data.GetType().Name} for client {connection.Key} that could not be serialised.");
+					continue;
+				}
+				batch.Write(packedData);
+				Interlocked.Increment(ref SentCount);
+			}
+
+			try
+			{
+				await connection.Value.stream.WriteAsync(batch.GetBuffer().AsMemory(0, (int)batch.Length), connection.Value.cancellationToken.Token).ConfigureAwait(false);
+			}
+			catch (Exception ex) when (ex is IOException or OperationCanceledException or ObjectDisposedException)
+			{
+				Debug.Log("Socket terminated during a send, disconnecting client", connection.Key, ex.Message);
+				DisconnectInternal(connection.Key);
+			}
+		});
 	}
 
 	internal bool IsClientConnected(long guid)

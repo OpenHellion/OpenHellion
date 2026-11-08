@@ -2553,6 +2553,7 @@ public sealed class Server
 
 			long timersDone = Stopwatch.GetTimestamp();
 			await SpawnManager.UpdateTimers(DeltaTime);
+			await NetworkController.Flush();
 
 			long tickDuration = Stopwatch.GetTimestamp() - now;
 			secondTicks++;
