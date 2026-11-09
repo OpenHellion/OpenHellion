@@ -123,7 +123,7 @@ public class CargoBay : ICargo, IPersistantObject
 		{
 			compartment.Resources.Remove(res);
 		}
-		await NetworkController.SendToClientsSubscribedTo(new ShipStatsMessage
+		await NetworkController.SendToClientsViewing(new ShipStatsMessage
 		{
 			Guid = ParentVessel.Guid,
 			Temperature = ParentVessel.Temperature,

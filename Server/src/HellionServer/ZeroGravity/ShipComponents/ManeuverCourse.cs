@@ -134,7 +134,7 @@ public class ManeuverCourse
 			}
 			if (!isValid)
 			{
-				await NetworkController.SendToClientsSubscribedTo(new ManeuverCourseResponse
+				await NetworkController.SendToClientsViewing(new ManeuverCourseResponse
 				{
 					IsValid = isValid,
 					CourseGUID = GUID,
@@ -289,7 +289,7 @@ public class ManeuverCourse
 			{
 				await parentShip.FTL.GoOffLine(autoRestart: false);
 			}
-			await NetworkController.SendToClientsSubscribedTo(new ManeuverCourseResponse
+			await NetworkController.SendToClientsViewing(new ManeuverCourseResponse
 			{
 				IsValid = isValid,
 				CourseGUID = GUID,
@@ -478,7 +478,7 @@ public class ManeuverCourse
 	{
 		if (isValid)
 		{
-			await NetworkController.SendToClientsSubscribedTo(new ManeuverCourseResponse
+			await NetworkController.SendToClientsViewing(new ManeuverCourseResponse
 			{
 				IsValid = isValid,
 				CourseGUID = GUID,
@@ -497,7 +497,7 @@ public class ManeuverCourse
 		if (isValid && !isStartingSoonSent)
 		{
 			isStartingSoonSent = true;
-			await NetworkController.SendToClientsSubscribedTo(new ManeuverCourseResponse
+			await NetworkController.SendToClientsViewing(new ManeuverCourseResponse
 			{
 				IsValid = isValid,
 				CourseGUID = GUID,

@@ -197,7 +197,7 @@ public class DebrisField
 				ShipOne = v.Guid,
 				ShipTwo = -1L
 			};
-			await NetworkController.SendToClientsSubscribedTo(scm, -1L, v);
+			await NetworkController.SendToClientsViewing(scm, -1L, v);
 			await v.ChangeHealthBy(0f - MathHelper.RandomRange(Data.Damage.Min, Data.Damage.Max), null, VesselRepairPoint.Priority.External, force: false, VesselDamageType.SmallDebrisHit, time);
 		}
 	}

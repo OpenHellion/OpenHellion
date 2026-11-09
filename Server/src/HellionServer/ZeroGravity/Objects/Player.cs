@@ -72,8 +72,6 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 
 	public int AnimationStatsMask;
 
-	private readonly HashSet<long> _subscribedToSpaceObjects = [];
-
 	public HashSet<long> KnownView = [];
 
 	/// <summary>
@@ -141,8 +139,6 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 	private double _deathDisconnectWait;
 
 	public bool IsInsideSpawnPoint;
-
-	public ConcurrentQueue<ShipStatsMessage> MessagesReceivedWhileLoading = new ConcurrentQueue<ShipStatsMessage>();
 
 	private PlayerStatsMessage lastPlayerStatsMessage;
 
@@ -367,7 +363,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		if (lastPlayerStatsMessage != null)
 		{
 			lastPlayerStatsMessage.LockedToTriggerID = null;
-			await NetworkController.SendToClientsSubscribedTo(lastPlayerStatsMessage, Guid, Parent);
+			await NetworkController.SendToClientsViewing(lastPlayerStatsMessage, Guid, Parent);
 		}
 	}
 
@@ -387,7 +383,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 			}
 			LockedToTriggerID = message.LockedToTriggerID;
 			IsPilotingVessel = message.IsPilotingVessel;
-			await NetworkController.SendToClientsSubscribedTo(message, message.Sender, Parent);
+			await NetworkController.SendToClientsViewing(message, message.Sender, Parent);
 		}
 	}
 
@@ -450,7 +446,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		}
 		if (Server.Instance.GetSpaceObject(message.HitGUID) is Player hitPlayer)
 		{
-			await NetworkController.SendToClientsSubscribedTo(message, Guid, Parent, hitPlayer.Parent);
+			await NetworkController.SendToClientsViewing(message, Guid, Parent, hitPlayer.Parent);
 			await hitPlayer.TakeHitDamage(damage, (HitBoxType)message.ShotData.colliderType, message.ShotData.IsMeleeAttack, message.ShotData.Orientation.ToVector3D());
 		}
 	}
@@ -466,7 +462,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 				dontPlayEffect = message.dontPlayEffect,
 				isDrilling = message.isDrilling
 			};
-			await NetworkController.SendToClientsSubscribedTo(pdmForOtherChar, Guid, Parent);
+			await NetworkController.SendToClientsViewing(pdmForOtherChar, Guid, Parent);
 			if (drill.CanDrill && message.MiningPointID != null && Server.Instance.GetVessel(message.MiningPointID.VesselGUID) is Asteroid asteroid && asteroid.MiningPoints.TryGetValue(message.MiningPointID.InSceneID, out var miningPoint))
 			{
 				await drill.Battery.ChangeQuantity((0f - drill.BatteryUsage) * message.MiningTime * drill.TierMultiplier);
@@ -485,11 +481,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 			return;
 		}
 
-		MessagesReceivedWhileLoading = new ConcurrentQueue<ShipStatsMessage>();
-		foreach (SpaceObjectVessel ves in from m in _subscribedToSpaceObjects
-			select Server.Instance.GetSpaceObject(m) into m
-			where m is SpaceObjectVessel
-			select m as SpaceObjectVessel)
+		foreach (SpaceObjectVessel ves in KnownView.Select(Server.Instance.GetSpaceObject).OfType<SpaceObjectVessel>())
 		{
 			VesselObjects vesselObjects = ves.GetVesselObjects();
 			if (vesselObjects.SceneTriggerExecutors != null)
@@ -730,14 +722,6 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		}
 
 		SpaceObject oldParent = Parent;
-		foreach (Player pl in Server.Instance.AllPlayers)
-		{
-			if (pl.IsSubscribedTo(oldParent.Guid))
-			{
-				pl.SubscribeTo(newParent);
-			}
-		}
-
 		ReparentKeepingWorldPose(newParent);
 		LastReportedPosition = LocalPosition;
 		LastReportedVelocity = LocalVelocity;
@@ -999,77 +983,6 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		}
 	}
 
-	[Obsolete("This subscribe system needs to be replaced with a more permanent solution that works better with the new movement architecture.")]
-	public void SubscribeTo(SpaceObject spaceObject)
-	{
-		lock (_subscribedToSpaceObjects)
-		{
-			_subscribedToSpaceObjects.Add(spaceObject.Guid);
-			if (spaceObject is SpaceObjectVessel ves)
-			{
-				if (ves.IsDocked)
-				{
-					_subscribedToSpaceObjects.Add(ves.DockedToMainVessel.Guid);
-					{
-						foreach (SpaceObjectVessel obj2 in ves.DockedToMainVessel.AllDockedVessels)
-						{
-							_subscribedToSpaceObjects.Add(obj2.Guid);
-						}
-						return;
-					}
-				}
-				if (ves.AllDockedVessels is not { Count: > 0 })
-				{
-					return;
-				}
-				foreach (SpaceObjectVessel obj in ves.AllDockedVessels)
-				{
-					_subscribedToSpaceObjects.Add(obj.Guid);
-				}
-			}
-		}
-	}
-
-	[Obsolete("This subscribe system needs to be replaced with a more permanent solution that works better with the new movement architecture.")]
-	public void UnsubscribeFrom(SpaceObject spaceObject)
-	{
-		lock (_subscribedToSpaceObjects)
-		{
-			_subscribedToSpaceObjects.Remove(spaceObject.Guid);
-		}
-	}
-
-	[Obsolete("This subscribe system needs to be replaced with a more permanent solution that works better with the new movement architecture.")]
-	public void UnsubscribeFromAll()
-	{
-		lock (_subscribedToSpaceObjects)
-		{
-			_subscribedToSpaceObjects.Clear();
-		}
-	}
-
-	[Obsolete("This subscribe system needs to be replaced with a more permanent solution that works better with the new movement architecture.")]
-	public bool IsSubscribedTo(SpaceObject spaceObject, bool checkParent)
-	{
-		lock (_subscribedToSpaceObjects)
-		{
-			if (!checkParent)
-			{
-				return _subscribedToSpaceObjects.Contains(spaceObject.Guid);
-			}
-			return _subscribedToSpaceObjects.Contains(spaceObject.Guid) || (spaceObject.Parent != null && _subscribedToSpaceObjects.Contains(spaceObject.Parent.Guid));
-		}
-	}
-
-	[Obsolete("This subscribe system needs to be replaced with a more permanent solution that works better with the new movement architecture.")]
-	public bool IsSubscribedTo(long guid)
-	{
-		lock (_subscribedToSpaceObjects)
-		{
-			return _subscribedToSpaceObjects.Contains(guid);
-		}
-	}
-
 	public void PlayerRoomMessageListener(NetworkData data)
 	{
 		var message = data as PlayerRoomMessage;
@@ -1193,7 +1106,6 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 			}
 		}
 		PlayerInventory = new Inventory(this);
-		UnsubscribeFromAll();
 		Health = 100;
 		VesselDamageType vesselDamageType = VesselDamageType.None;
 		if (Parent is Ship)
@@ -1234,7 +1146,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		}
 		if (killParent != null)
 		{
-			await NetworkController.SendToClientsSubscribedToParents(killMsg, killParent, Guid);
+			await NetworkController.SendToClientsViewingParents(killMsg, killParent, Guid);
 		}
 		foreach (var q in Quests.Where(q => q.Status == QuestStatus.Active))
 		{
@@ -1291,13 +1203,11 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		{
 			(Parent as Ship).RemovePlayerFromExecutors(this);
 		}
-		UnsubscribeFromAll();
 		EnvironmentReady = false;
 		PlayerReady = false;
 		LastMovementMessageSolarSystemTime = -1.0;
 		_lastMoveRequestTime = -1.0;
 		_lastAnimationMessageTime = -1.0;
-		MessagesReceivedWhileLoading = new ConcurrentQueue<ShipStatsMessage>();
 		try
 		{
 			if (Parent is Ship ship && isOutsideRoom)

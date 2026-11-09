@@ -335,7 +335,7 @@ public class DynamicObject : SpaceObjectTransferable, IPersistantObject
 			vessel.RemoveMachineryPart(new VesselObjectID(location.ParentKey, location.SlotId));
 		}
 		Server.Instance.UnsubscribeFromTimer(UpdateTimer.TimerStep.Step_1_0_min, SelfDestructCheck);
-		await NetworkController.SendToClientsSubscribedToParents(new DestroyObjectMessage
+		await NetworkController.SendToClientsViewingParents(new DestroyObjectMessage
 		{
 			ID = Guid,
 			ObjectType = ObjectType

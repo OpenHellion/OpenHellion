@@ -196,11 +196,11 @@ public static class NetworkController
 	}
 
 	/// <summary>
-	/// 	Send a message to all clients subscribed to a space object.<br />
-	/// 	You can choose to skip one player.
+	/// 	Sends a provided network message to clients that have the provided space object in view.
 	/// </summary>
-	[Obsolete("This subscribe system needs to be replaced with a more permanent solution that works better with the new movement architecture.")]
-	public static async Task SendToClientsSubscribedTo(NetworkData data, long skipPlayerGuid = -1L, params SpaceObject[] spaceObjects)
+	/// <param name="spaceObjects">The clients that have this space object in view will receive the message.</param>
+	// TODO sending multiple spaceObjects might cause issues, and is only really used by SendToClientsViewingParents.
+	public static async Task SendToClientsViewing(NetworkData data, long skipPlayerGuid = -1L, params SpaceObject[] spaceObjects)
 	{
 		if (spaceObjects.Length == 0 || !HasConnectedClients)
 		{
@@ -208,22 +208,17 @@ public static class NetworkController
 		}
 		await Parallel.ForEachAsync(from m in GetAllConnectedPlayers() where m != null && m.Guid != skipPlayerGuid select m, async (player, ct) =>
 		{
-			if (player.IsAlive && player.EnvironmentReady)
+			HashSet<long> view = player.KnownView;
+			if (player.IsAlive && player.EnvironmentReady && spaceObjects.Any(m => m != null && view.Contains(m.Guid)))
 			{
-				if (spaceObjects.Any((SpaceObject m) => m != null && player.IsSubscribedTo(m, checkParent: false)))
-				{
-					await SendAsync(player.Guid, data);
-				}
-			}
-			else if (!player.EnvironmentReady && data is ShipStatsMessage message && player.IsSubscribedTo(message.Guid))
-			{
-				player.MessagesReceivedWhileLoading.Enqueue(message);
+				await SendAsync(player.Guid, data);
 			}
 		});
 	}
 
-	[Obsolete("This subscribe system needs to be replaced with a more permanent solution that works better with the new movement architecture.")]
-	public static async Task SendToClientsSubscribedToParents(NetworkData data, SpaceObject spaceObject, long skipPlayerGuid = -1L, int depth = 4)
+	[Obsolete("Probably a symptom of bad design")]
+	// TODO Will be made deprecated if space stations (now collections of ships), are added as its own space object type.
+	public static async Task SendToClientsViewingParents(NetworkData data, SpaceObject spaceObject, long skipPlayerGuid = -1L, int depth = 4)
 	{
 		List<SpaceObject> parents = new List<SpaceObject>
 		{
@@ -237,7 +232,7 @@ public static class NetworkController
 			parent = parent.Parent;
 			depth--;
 		}
-		await SendToClientsSubscribedTo(data, skipPlayerGuid, parents.ToArray());
+		await SendToClientsViewing(data, skipPlayerGuid, parents.ToArray());
 	}
 
 	/// <summary>

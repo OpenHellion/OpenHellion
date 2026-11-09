@@ -925,7 +925,6 @@ public sealed class Server
 			await foundSpawnPoint.SetExecutorOccupied(true);
 			pl.Parent = foundSpawnPoint.Ship;
 			pl.SetSpawnPoint(foundSpawnPoint);
-			pl.SubscribeTo(foundSpawnPoint.Ship.MainVessel);
 			return true;
 		}
 		return false;
@@ -2032,7 +2031,6 @@ public sealed class Server
 				return new PlayerSpawnResponse() { Status = NetworkData.MessageStatus.Failure };
 			}
 
-			pl.MessagesReceivedWhileLoading = new ConcurrentQueue<ShipStatsMessage>();
 			var spawnResponse = new PlayerSpawnResponse();
 
 			bool spawnSuccess;
@@ -2053,11 +2051,6 @@ public sealed class Server
 				{
 					await pivot.DisableStabilization(disableForChildren: false, updateBeforeDisable: true);
 				}
-				if (pl.Parent != null && !pl.IsSubscribedTo(pl.Parent.Guid))
-				{
-					pl.SubscribeTo(pl.Parent);
-				}
-
 				ArtificialBody parentBody = pl.Parent as ArtificialBody;
 
 				spawnResponse.ParentGuid = parentBody.Guid;
@@ -2410,7 +2403,7 @@ public sealed class Server
 			if (vesselExploded)
 			{
 				await ves.DamageVesselsInExplosionRadius();
-				await NetworkController.SendToClientsSubscribedTo(new DestroyVesselMessage
+				await NetworkController.SendToClientsViewing(new DestroyVesselMessage
 				{
 					GUID = ves.Guid
 				}, -1L, ves);
@@ -2836,7 +2829,7 @@ public sealed class Server
 	{
 		var message = data as NameTagMessage;
 		SpaceObjectVessel vessel = GetVessel(message.ID.VesselGUID);
-		await NetworkController.SendToClientsSubscribedTo(message, -1L, vessel);
+		await NetworkController.SendToClientsViewing(message, -1L, vessel);
 		try
 		{
 			vessel.NameTags.Find((NameTagData m) => m.InSceneID == message.ID.InSceneID).NameTagText = message.NameTagText;
@@ -3081,7 +3074,7 @@ public sealed class Server
 					ShipOne = parentVessel.Guid,
 					ShipTwo = -1L
 				};
-				await NetworkController.SendToClientsSubscribedTo(scm, -1L, parentVessel);
+				await NetworkController.SendToClientsViewing(scm, -1L, parentVessel);
 			}
 		}
 

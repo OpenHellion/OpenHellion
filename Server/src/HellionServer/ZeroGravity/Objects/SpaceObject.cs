@@ -92,7 +92,7 @@ public abstract class SpaceObject
 		}
 		else
 		{
-			await NetworkController.SendToClientsSubscribedToParents(message, this, -1L);
+			await NetworkController.SendToClientsViewingParents(message, this, -1L);
 		}
 
 		if (this is Player)

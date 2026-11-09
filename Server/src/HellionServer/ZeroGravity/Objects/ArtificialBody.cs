@@ -137,10 +137,6 @@ public class ArtificialBody : SpaceObject
 		await DisableStabilization(disableForChildren: true, updateBeforeDisable: false);
 		foreach (Player pl in Server.Instance.AllPlayers)
 		{
-			if (pl.IsSubscribedTo(Guid))
-			{
-				pl.UnsubscribeFrom(this);
-			}
 			if (pl.CurrentSpawnPoint != null && pl.CurrentSpawnPoint.Ship == this)
 			{
 				pl.SetSpawnPoint(null);

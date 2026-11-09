@@ -51,19 +51,19 @@ Movement:
 [x] Fix snap when flying back into range of a vessel
 [x] Fix gravity changing direction randomly on the client
 [x] Fix parent-change rubberbanding
-[ ] Send faraway "known" vessels to client, but only on map and radar position (subscibe objects and known vessels rewrite)
 [x] Fix changing parent deals damage
+[x] Fix turrets
+[x] Remove subscribe/unsubscribe, and only use player view
+[ ] Send faraway "known" vessels to client, but only on map and radar position (subscibe objects and known vessels rewrite)
 [ ] Fix items, corpses and other players sliding when the anchor changes (fixed for items)
 [ ] Moving from 0g to 1g fast making you fall out of the world (think is fixed, havent reproduced for a while)
 [ ] Landing and staying on asteroid is impossible (because object spins)
 [ ] Fix ship driving without power and engine
 [ ] Fix radar selection raycast not succeeding
-[x] Fix turrets
 [ ] Anchor onto moving platform
 [ ] Implement leasing of space objects (security against hacking a vessel, only one player may lease an object at a time)
 [ ] Fix parent flipping on border between two ships
 [ ] MovementMessages only for objects that have moved
-[ ] Remove subscribe/unsubscribe, and only use player view
 [ ] Harden collision damage
 [ ] Fix stabilising on hull of ship causing jumping around
 
@@ -122,6 +122,8 @@ Short-term:
 [ ] Fix docking panels are inaccessible
 [ ] Only use timeout for non-sensitive network messages (implement reliable/unreliable send mode in GameTransport)
 [ ] Fix health shader in helmet
+[ ] Fix refused state request echoing back same request instead of sending actual state or error
+[ ] See if we can merge tick and flush in GameTransport
 
 Server:
 [x] Remove VesselData
@@ -141,7 +143,7 @@ Server:
 Later:
 [x] Remove GameStarter.FixCryoPodState
 [ ] Find areas where risk of race conditions are high
-[ ] Make map support fuzzy objects
+[ ] Make map support fuzzy objects (objects where location is uncertain)
 [ ] Fix sounds playing based on selected target when EVAing
 [ ] Fix alarm not running and sounds playing in ships where they should not
 [ ] Sound does not mute when in 0G

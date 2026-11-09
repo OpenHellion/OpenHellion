@@ -699,7 +699,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		}
 		if (sendShipStatsMsg)
 		{
-			await NetworkController.SendToClientsSubscribedTo(retMsg, -1L, this);
+			await NetworkController.SendToClientsViewing(retMsg, -1L, this);
 		}
 	}
 
@@ -736,7 +736,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 				ShipOne = Guid,
 				ShipTwo = otherShipGUID
 			};
-			await NetworkController.SendToClientsSubscribedTo(scm, -1L, this, otherShipGUID != -1 ? Server.Instance.GetVessel(otherShipGUID) : null);
+			await NetworkController.SendToClientsViewing(scm, -1L, this, otherShipGUID != -1 ? Server.Instance.GetVessel(otherShipGUID) : null);
 		}
 	}
 
@@ -1329,7 +1329,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 				prevDestructionSolarSystemTime = SelfDestructTimer.DestructionSolarSystemTime;
 				ssm.SelfDestructTime = SelfDestructTimer?.Time;
 			}
-			await NetworkController.SendToClientsSubscribedTo(ssm, -1L, this);
+			await NetworkController.SendToClientsViewing(ssm, -1L, this);
 		}
 		foreach (DynamicObject dobj in Server.Instance.ItemsInSpaceObject(this))
 		{
@@ -2009,7 +2009,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		}
 		if (retMsg != null)
 		{
-			await NetworkController.SendToClientsSubscribedTo(retMsg, -1L, this);
+			await NetworkController.SendToClientsViewing(retMsg, -1L, this);
 		}
 	}
 

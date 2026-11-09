@@ -73,7 +73,7 @@ internal class PortableTurret : Item
 		if (message.TurretGUID == GUID && Server.Instance.GetPlayer(message.Sender) is { } sender && (!message.IsShooting || IsHostileTo(sender)))
 		{
 			targetPlayer = sender;
-			await NetworkController.SendToClientsSubscribedTo(message, -1L, targetPlayer.Parent);
+			await NetworkController.SendToClientsViewing(message, -1L, targetPlayer.Parent);
 			if (message.IsShooting)
 			{
 				Server.Instance.SubscribeToTimer(UpdateTimer.TimerStep.Step_0_1_sec, DamagePlayer);

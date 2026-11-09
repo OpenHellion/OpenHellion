@@ -52,7 +52,7 @@ public class ShipSpawnPoint
 		Executor.StateID = stateID;
 		Executor.PlayerThatActivated = occupied && Player != null ? Player.FakeGuid : 0L;
 		Debug.State($"spawn point {Ship.Guid}:{SpawnPointID} executor {Executor.InSceneID} {previousStateID} -> {stateID} owner {Player?.Guid}");
-		await NetworkController.SendToClientsSubscribedTo(new ShipStatsMessage
+		await NetworkController.SendToClientsViewing(new ShipStatsMessage
 		{
 			Guid = Ship.Guid,
 			VesselObjects = new VesselObjects
@@ -178,7 +178,7 @@ public class ShipSpawnPoint
 						},
 						SelfDestructTime = sender.AuthorizedSpawnPoint.Ship.SelfDestructTimer?.Time
 					};
-					await NetworkController.SendToClientsSubscribedTo(retMsg, -1L, sender.AuthorizedSpawnPoint.Ship);
+					await NetworkController.SendToClientsViewing(retMsg, -1L, sender.AuthorizedSpawnPoint.Ship);
 				}
 				State = SpawnPointState.Authorized;
 				Player = sender;
@@ -229,7 +229,7 @@ public class ShipSpawnPoint
 					},
 					SelfDestructTime = Ship.SelfDestructTimer?.Time
 				};
-				await NetworkController.SendToClientsSubscribedTo(retMsg, -1L, Ship);
+				await NetworkController.SendToClientsViewing(retMsg, -1L, Ship);
 			}
 		}
 	}
@@ -265,7 +265,7 @@ public class ShipSpawnPoint
 					},
 					SelfDestructTime = Ship.SelfDestructTimer?.Time
 				};
-				await NetworkController.SendToClientsSubscribedTo(retMsg, -1L, Ship);
+				await NetworkController.SendToClientsViewing(retMsg, -1L, Ship);
 			}
 		}
 	}

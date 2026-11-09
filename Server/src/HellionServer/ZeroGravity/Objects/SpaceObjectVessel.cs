@@ -737,7 +737,7 @@ public abstract class SpaceObjectVessel : ArtificialBody
 	{
 		if (HasSecuritySystem)
 		{
-			await NetworkController.SendToClientsSubscribedTo(new VesselSecurityResponse
+			await NetworkController.SendToClientsViewing(new VesselSecurityResponse
 			{
 				VesselGUID = Guid,
 				Data = GetVesselSecurityData(includeVesselName)

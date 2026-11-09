@@ -20,10 +20,6 @@ namespace ZeroGravity.Objects
 
 		public const double VisibilityLimitLoadSqr = 100000000.0; // 10km
 
-		public const double DetailsLimitUnsubscribe = 6250000.0;
-
-		public const double DetailsLimitSubscribe = 2250000.0;
-
 		public const double RadarVisibilityDistance = 1000000000000.0;
 
 		public const double SunScale = 149597870.7;

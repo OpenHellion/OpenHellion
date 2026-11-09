@@ -287,7 +287,7 @@ public class Asteroid : SpaceObjectVessel, IPersistantObject
 		{
 			if (amp.CheckGasBurst())
 			{
-				await NetworkController.SendToClientsSubscribedTo(new MiningPointStatsMessage
+				await NetworkController.SendToClientsViewing(new MiningPointStatsMessage
 				{
 					ID = amp.ID,
 					GasBurst = true
@@ -296,7 +296,7 @@ public class Asteroid : SpaceObjectVessel, IPersistantObject
 			}
 			if (amp.StatusChanged)
 			{
-				await NetworkController.SendToClientsSubscribedTo(new MiningPointStatsMessage
+				await NetworkController.SendToClientsViewing(new MiningPointStatsMessage
 				{
 					ID = amp.ID,
 					Quantity = amp.Quantity
