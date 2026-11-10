@@ -230,7 +230,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 
 	public bool GodMode { get; set; }
 
-	public bool IsPilotingVessel { get; private set; }
+	public bool IsDrivingShip { get; private set; }
 
 	public float? AmbientTemperature
 	{
@@ -382,7 +382,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 				message.AnimationStatesMask = AnimationStatsMask;
 			}
 			LockedToTriggerID = message.LockedToTriggerID;
-			IsPilotingVessel = message.IsPilotingVessel;
+			IsDrivingShip = message.IsDrivingShip;
 			await NetworkController.SendToClientsViewing(message, message.Sender, Parent);
 		}
 	}
@@ -650,12 +650,10 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 			if (message.TriggerID == null)
 			{
 				LockedToTriggerID = null;
-				IsPilotingVessel = message.IsPilotingVessel;
 			}
 			else if (Server.Instance.AllPlayers.FirstOrDefault((Player m) => m.Guid != Guid && m.LockedToTriggerID != null && m.LockedToTriggerID.Equals(message.TriggerID)) == null)
 			{
 				LockedToTriggerID = message.TriggerID;
-				IsPilotingVessel = message.IsPilotingVessel;
 				await NetworkController.SendAsync(message.Sender, message);
 			}
 		}

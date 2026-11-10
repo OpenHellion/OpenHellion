@@ -218,7 +218,7 @@ namespace ZeroGravity.Objects
 
 		public Vector3D DebrisFieldVelocityDirection = Vector3D.Zero;
 
-		public ShipControlMode ShipControlMode;
+		private ShipControlMode _shipControlMode;
 
 		private bool _sendStats;
 
@@ -294,7 +294,17 @@ namespace ZeroGravity.Objects
 
 		public MyCharacterController FpsController => characterController;
 
-		public bool IsDrivingShip => ShipControlMode == ShipControlMode.Piloting;
+		public bool IsDrivingShip => ShipControlMode is ShipControlMode.Piloting or ShipControlMode.Docking;
+
+		public ShipControlMode ShipControlMode
+		{
+			get => _shipControlMode;
+			set
+			{
+				_sendStats |= _shipControlMode != value;
+				_shipControlMode = value;
+			}
+		}
 
 		public override BaseSceneTrigger LockedToTrigger
 		{
@@ -304,6 +314,11 @@ namespace ZeroGravity.Objects
 				if (base.LockedToTrigger != value)
 				{
 					_sendStats = true;
+				}
+
+				if (value == null)
+				{
+					ShipControlMode = ShipControlMode.None;
 				}
 
 				base.LockedToTrigger = value;
@@ -380,15 +395,11 @@ namespace ZeroGravity.Objects
 		{
 			get
 			{
-				if (Parent is SpaceObjectVessel && (ShipControlMode == ShipControlMode.Docking ||
-													LockedToTrigger is SceneTriggerDockingPanel))
+				if (Parent is SpaceObjectVessel && ShipControlMode == ShipControlMode.Docking)
 				{
 					DockingPanel docking = World.InWorldPanels.Docking;
 					Transform cameraPosition = docking.DockingPort.CameraPosition;
-					SpaceObjectVessel mainVessel = (Parent as SpaceObjectVessel).MainVessel;
-					return mainVessel.transform.rotation *
-						   cameraPosition.rotation * Vector3.forward *
-						   docking.ThrustModifier;
+					return cameraPosition.forward * docking.ThrustModifier;
 				}
 
 				return Parent.transform.forward;
@@ -399,15 +410,11 @@ namespace ZeroGravity.Objects
 		{
 			get
 			{
-				if (Parent is SpaceObjectVessel && (ShipControlMode == ShipControlMode.Docking ||
-													LockedToTrigger is SceneTriggerDockingPanel))
+				if (Parent is SpaceObjectVessel && ShipControlMode == ShipControlMode.Docking)
 				{
 					DockingPanel docking = World.InWorldPanels.Docking;
 					Transform cameraPosition = docking.DockingPort.CameraPosition;
-					SpaceObjectVessel mainVessel = (Parent as SpaceObjectVessel).MainVessel;
-					return mainVessel.transform.rotation *
-						   cameraPosition.rotation * Vector3.up *
-						   docking.ThrustModifier;
+					return cameraPosition.up * docking.ThrustModifier;
 				}
 
 				return Parent.transform.up;
@@ -418,15 +425,11 @@ namespace ZeroGravity.Objects
 		{
 			get
 			{
-				if (Parent is SpaceObjectVessel && (ShipControlMode == ShipControlMode.Docking ||
-													LockedToTrigger is SceneTriggerDockingPanel))
+				if (Parent is SpaceObjectVessel && ShipControlMode == ShipControlMode.Docking)
 				{
 					DockingPanel docking = World.InWorldPanels.Docking;
 					Transform cameraPosition = docking.DockingPort.CameraPosition;
-					SpaceObjectVessel mainVessel = (Parent as SpaceObjectVessel).MainVessel;
-					return mainVessel.transform.rotation *
-						   cameraPosition.rotation *
-						   Vector3.Cross(-Vector3.forward, Vector3.up).normalized * docking.ThrustModifier;
+					return cameraPosition.right * docking.ThrustModifier;
 				}
 
 				return Parent.transform.right;
@@ -722,13 +725,13 @@ namespace ZeroGravity.Objects
 				if (LockedToTrigger != null)
 				{
 					playerStatsMessage.LockedToTriggerID = LockedToTrigger.GetID();
-					playerStatsMessage.IsPilotingVessel = LockedToTrigger.TriggerType == SceneTriggerType.ShipControl ||
-														  LockedToTrigger.TriggerType == SceneTriggerType.DockingPanel;
 				}
 				else
 				{
 					playerStatsMessage.LockedToTriggerID = null;
 				}
+
+				playerStatsMessage.IsDrivingShip = IsDrivingShip;
 
 				NetworkController.SendAndForget(playerStatsMessage);
 			}
@@ -1072,13 +1075,12 @@ namespace ZeroGravity.Objects
 			}
 
 			// Smooth, stabilise, and regulate docking and ship movements.
-			if ((ShipControlMode == ShipControlMode.Piloting || ShipControlMode == ShipControlMode.Docking ||
-				 LockedToTrigger is SceneTriggerDockingPanel) && Parent is SpaceObjectVessel)
+			if (IsDrivingShip && Parent is SpaceObjectVessel)
 			{
 				SpaceObjectVessel spaceObjectVessel =
 					LockedToTrigger == null ? Parent as SpaceObjectVessel : LockedToTrigger.ParentShip;
 				// Docking.
-				if (ShipControlMode == ShipControlMode.Docking || LockedToTrigger is SceneTriggerDockingPanel)
+				if (ShipControlMode == ShipControlMode.Docking)
 				{
 					if (LockedToTrigger is not SceneTriggerDockingPanel || (LockedToTrigger as SceneTriggerDockingPanel)
 						.MyDockingPanel.IsDockingEnabled)
@@ -1086,9 +1088,7 @@ namespace ZeroGravity.Objects
 						SceneDockingPort dockingPort = World.InWorldPanels.Docking.DockingPort;
 						if (dockingPort != null)
 						{
-							Quaternion quaternion =
-								Quaternion.LookRotation(Parent.transform.forward, Parent.transform.up).Inverse() *
-								Quaternion.LookRotation(dockingPort.transform.forward, dockingPort.transform.up);
+							Quaternion quaternion = spaceObjectVessel.MainVessel.transform.rotation.Inverse() * dockingPort.transform.rotation;
 							if (spaceObjectVessel is Ship dockingShip)
 							{
 								dockingShip.SetPilotInput(_shipThrust * _shipThrustStrength,
@@ -1652,9 +1652,7 @@ namespace ZeroGravity.Objects
 				{
 					NetworkController.SendAndForget(new LockToTriggerMessage
 					{
-						TriggerID = LookingAtTrigger.GetID(),
-						IsPilotingVessel = LookingAtTrigger.TriggerType == SceneTriggerType.ShipControl ||
-										   LookingAtTrigger.TriggerType == SceneTriggerType.DockingPanel
+						TriggerID = LookingAtTrigger.GetID()
 					});
 				}
 				else
@@ -2173,9 +2171,9 @@ namespace ZeroGravity.Objects
 			if (LockedToTrigger != null)
 			{
 				BaseSceneTrigger lockedToTrigger = LockedToTrigger;
-				bool isDrivingShip = IsDrivingShip;
+				bool isPiloting = ShipControlMode == ShipControlMode.Piloting;
 				LockedToTrigger.CancelInteract(this);
-				if (lockedToTrigger != null && CancelInteractExecutor != null && !isDrivingShip)
+				if (lockedToTrigger != null && CancelInteractExecutor != null && !isPiloting)
 				{
 					SceneTriggerExecutor cancelInteractExecutor = CancelInteractExecutor;
 					CancelInteractExecutor = null;

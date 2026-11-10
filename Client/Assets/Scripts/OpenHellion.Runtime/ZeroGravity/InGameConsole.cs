@@ -237,7 +237,7 @@ namespace ZeroGravity
 					                                                    m.PlayerGUID == MyPlayer.Instance.Guid) !=
 				                                                    null));
 			}
-			else if (MyPlayer.Instance.IsDrivingShip || MyPlayer.Instance.ShipControlMode == ShipControlMode.Docking)
+			else if (MyPlayer.Instance.IsDrivingShip)
 			{
 				Globals.ToggleCursor(false);
 			}

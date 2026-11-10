@@ -24,5 +24,5 @@ public class PlayerStatsMessage : NetworkData
 
 	public VesselObjectID LockedToTriggerID;
 
-	public bool IsPilotingVessel;
+	public bool IsDrivingShip;
 }

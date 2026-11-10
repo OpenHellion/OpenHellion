@@ -64,6 +64,7 @@ namespace ZeroGravity.LevelDesign
 				SceneTriggerHelper.InteractWithOverlappingTriggers(gameObject, this, player);
 			}
 
+			player.ShipControlMode = ShipControlMode.Docking;
 			MyDockingPanel.OnInteract(MyParentShip);
 			player.AttachToPanel(this, false);
 			return true;

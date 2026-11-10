@@ -348,19 +348,20 @@ public class SolarSystem
 	/// </summary>
 	public async Task SendPilotStateMessageToPlayer(Player player)
 	{
-		if (player.Parent is not Ship ship || !player.IsPilotingVessel)
+		if (player.Parent is not Ship ship || !player.IsDrivingShip)
 		{
 			return;
 		}
 
+		SpaceObjectVessel mainVessel = ship.MainVessel;
 		await NetworkController.SendAsync(player.Guid, new ShipThrustStateMessage
 		{
-			VesselGuid = ship.Guid,
+			VesselGuid = mainVessel.Guid,
 			LastProcessedInputSequence = ship.LastProcessedInputSequence,
-			WorldPosition = ship.Position.ToArray(),
-			Velocity = ship.Velocity.ToFloatArray(),
-			Rotation = ship.Rotation.ToFloatArray(),
-			AngularVelocity = (ship.AngularVelocity * (System.Math.PI / 180.0)).ToFloatArray(),
+			WorldPosition = mainVessel.Position.ToArray(),
+			Velocity = mainVessel.Velocity.ToFloatArray(),
+			Rotation = mainVessel.Rotation.ToFloatArray(),
+			AngularVelocity = (mainVessel.AngularVelocity * (System.Math.PI / 180.0)).ToFloatArray(),
 		});
 	}
 

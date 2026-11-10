@@ -276,7 +276,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 
 	public async Task<bool> CalculateAutoStabilizeRotation(double timeDelta)
 	{
-		if (AngularVelocity.IsNotEpsilonZero() && !AutoStabilizationDisabled && !AllVessels.Any((SpaceObjectVessel m) => m.VesselCrew.FirstOrDefault((Player n) => n.IsPilotingVessel) != null))
+		if (AngularVelocity.IsNotEpsilonZero() && !AutoStabilizationDisabled && !AllVessels.Any((SpaceObjectVessel m) => m.VesselCrew.FirstOrDefault((Player n) => n.IsDrivingShip) != null))
 		{
 			SpaceObjectVessel rcsVessel = null;
 			if (!IsPrefabStationVessel)
@@ -337,7 +337,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		}
 
 		Player pl = Server.Instance.GetPlayer(message.Sender);
-		if (pl == null || !pl.IsPilotingVessel || pl.Parent != this)
+		if (pl == null || !pl.IsDrivingShip || pl.Parent != this)
 		{
 			return;
 		}
@@ -350,9 +350,10 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 			Engine.ThrustActive = true;
 			updateDM = true;
 		}
-		if (RCS != null && RCS.Status != SystemStatus.OnLine)
+		Ship[] rcsShips = [.. MainVessel.AllVessels.OfType<Ship>().Where((Ship m) => m.RCS != null)];
+		foreach (Ship ship in rcsShips.Where((Ship m) => m.RCS.Status != SystemStatus.OnLine))
 		{
-			await RCS.GoOnLine();
+			await ship.RCS.GoOnLine();
 			updateDM = true;
 		}
 		if (updateDM)
@@ -367,51 +368,48 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 			Engine.ReverseThrust = _engineThrustPercentage < 0.0;
 		}
 
-		if (RCS is not { Status: SystemStatus.OnLine })
-		{
-			return;
-		}
-
 		Vector3D thrust = message.Thrust != null ? message.Thrust.ToVector3D() : Vector3D.Zero;
 		if (thrust.SqrMagnitude > 1.0)
 		{
 			thrust = thrust.Normalized;
 		}
-		RcsThrustDirection = thrust * RCS.MaxOperationRate;
-		float opRateThr = (float)RcsThrustDirection.Magnitude / RCS.MaxOperationRate;
-		_isRcsOnline = !RcsThrustDirection.IsEpsilonEqual(Vector3D.Zero, 0.0001);
-		if (_isRcsOnline)
+		bool steer = CurrentCourse == null || !CurrentCourse.IsInProgress;
+		Vector3D rotation = steer && message.Rotation != null ? message.Rotation.ToVector3D() : Vector3D.Zero;
+		if (rotation.SqrMagnitude > 1.0)
 		{
-			_rcsThrustResetTimer = 0.0;
+			rotation = rotation.Normalized;
 		}
 
-		float opRateRot = 0f;
-		if (CurrentCourse == null || !CurrentCourse.IsInProgress)
+		foreach (Ship ship in rcsShips.Where((Ship m) => m.RCS.Status == SystemStatus.OnLine))
 		{
-			Vector3D rotation = message.Rotation != null ? message.Rotation.ToVector3D() : Vector3D.Zero;
-			if (rotation.SqrMagnitude > 1.0)
+			ship.RcsThrustDirection = thrust * ship.RCS.MaxOperationRate;
+			ship._isRcsOnline = !ship.RcsThrustDirection.IsEpsilonEqual(Vector3D.Zero, 0.0001);
+			if (ship._isRcsOnline)
 			{
-				rotation = rotation.Normalized;
+				ship._rcsThrustResetTimer = 0.0;
 			}
-			RotationThrustDirection = rotation * RCS.MaxOperationRate;
-			opRateRot = (float)RotationThrustDirection.Magnitude / RCS.MaxOperationRate;
-			_isRotationOnline = !RotationThrustDirection.IsEpsilonEqual(Vector3D.Zero, 0.0001);
-			if (_isRotationOnline)
+
+			if (steer)
 			{
-				_rotationThrustResetTimer = 0.0;
+				ship.RotationThrustDirection = rotation * ship.RCS.MaxOperationRate;
+				ship._isRotationOnline = !ship.RotationThrustDirection.IsEpsilonEqual(Vector3D.Zero, 0.0001);
+				if (ship._isRotationOnline)
+				{
+					ship._rotationThrustResetTimer = 0.0;
+				}
 			}
-		}
 
-		if (message.AutoStabilise != null)
-		{
-			_stabilize = message.AutoStabilise.ToVector3D();
-			_stabilizeResetTimer = 0.0;
-			RCS.OperationRate = RCS.MaxOperationRate;
-		}
+			if (message.AutoStabilise != null)
+			{
+				ship._stabilize = message.AutoStabilise.ToVector3D();
+				ship._stabilizeResetTimer = 0.0;
+				ship.RCS.OperationRate = ship.RCS.MaxOperationRate;
+			}
 
-		if (RCS.OperationRate == 0f)
-		{
-			RCS.OperationRate = System.Math.Max(opRateThr, opRateRot);
+			if (ship.RCS.OperationRate == 0f)
+			{
+				ship.RCS.OperationRate = (float)System.Math.Max(thrust.Magnitude, rotation.Magnitude);
+			}
 		}
 	}
 

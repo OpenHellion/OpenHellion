@@ -54,6 +54,7 @@ Movement:
 [x] Fix changing parent deals damage
 [x] Fix turrets
 [x] Remove subscribe/unsubscribe, and only use player view
+[x] Fix docking mode ship piloting
 [ ] Send faraway "known" vessels to client, but only on map and radar position (subscibe objects and known vessels rewrite)
 [ ] Fix items, corpses and other players sliding when the anchor changes (fixed for items)
 [ ] Moving from 0g to 1g fast making you fall out of the world (think is fixed, havent reproduced for a while)
@@ -88,6 +89,7 @@ Graphics:
 [ ] Migrate HxVolumetricFog
 [ ] Fix planets on map having no texture
 [ ] Enable helmet shader
+[ ] Fix health shader in helmet
 
 Short-term:
 [x] Update to Unity 6.3
@@ -116,14 +118,14 @@ Short-term:
 [x] Fix switching to docking camera softlocking the game
 [x] Fix bug where direction of gravity in crew quarters module changes direction on entry at angle
 [x] Fix bug where direction of gravity in crew quarters module shifts by 90 degrees on an error causing ragdoll
+[x] Fix docking panels are inaccessible
 [ ] Move collections of all space objects into SolarSystem.cs on the server and only allow access trough getters and setters
 [ ] Test if new other character controller works
 [ ] Crashing into a planet when on a pivot does not kill the player
-[ ] Fix docking panels are inaccessible
 [ ] Only use timeout for non-sensitive network messages (implement reliable/unreliable send mode in GameTransport)
-[ ] Fix health shader in helmet
 [ ] Fix refused state request echoing back same request instead of sending actual state or error
 [ ] See if we can merge tick and flush in GameTransport
+[ ] Fix ship radar element under quest indicator (not selectable)
 
 Server:
 [x] Remove VesselData
@@ -177,3 +179,4 @@ Later:
 [ ] Add support for joining friends via Discord Social SDK
 [ ] Game transport has no encryption, so server passwords and player ids are sent insecure
 [ ] Deduce IsOffline from main server in cases where the server is connected to a main server (check if player id is same)
+[ ] Don't stop warp with movement, disable movement and add separate button to cancel warp

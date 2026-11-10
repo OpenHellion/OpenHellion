@@ -141,8 +141,7 @@ namespace ZeroGravity.ShipComponents
 
 		private void Update()
 		{
-			if ((MyPlayer.Instance.ShipControlMode != ShipControlMode.Docking &&
-			     !(MyPlayer.Instance.LockedToTrigger is SceneTriggerDockingPanel)))
+			if (MyPlayer.Instance.ShipControlMode != ShipControlMode.Docking)
 			{
 				return;
 			}

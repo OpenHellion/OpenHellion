@@ -2344,7 +2344,7 @@ public sealed class Server
 			_pilotStateTimer = _pilotStateTimer > PilotStateSendInterval * 2.0
 				? 0.0
 				: _pilotStateTimer - PilotStateSendInterval;
-			Player[] pilots = [.. AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive && m.IsPilotingVessel)];
+			Player[] pilots = [.. AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive && m.IsDrivingShip)];
 			if (pilots.Length > 0)
 			{
 				await Parallel.ForEachAsync(pilots, async (pl, ct) => await SolarSystem.SendPilotStateMessageToPlayer(pl)).WaitAsync(new TimeSpan(0, 0, 10));

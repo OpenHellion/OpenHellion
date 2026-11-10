@@ -180,27 +180,29 @@ namespace ZeroGravity.Objects
 					_sentEngineThrustPercentage = EngineThrustPercentage;
 				}
 
-				World.PilotedVesselGuid = Guid;
-				if (RCS != null)
+				World.PilotedVesselGuid = MainVessel.Guid;
+				double compoundMass = MainVessel.GetCompoundMass();
+				float acceleration = 0f;
+				float rotationAcceleration = 0f;
+				foreach (Ship ship in MainVessel.AllVessels.OfType<Ship>().Where(m => m.RCS != null))
 				{
-					double compoundMass = MainVessel.GetCompoundMass();
-					float massRatio = compoundMass > 0.0 ? (float)(Mass / compoundMass) : 1f;
-					float rate = RCS.MaxOperationRate * massRatio * Time.fixedDeltaTime;
+					float rate = ship.RCS.MaxOperationRate * (compoundMass > 0.0 ? (float)(ship.Mass / compoundMass) : 1f);
+					acceleration += ship.RCS.Acceleration * rate;
+					rotationAcceleration += ship.RCS.RotationAcceleration * rate;
 
-					World.AnchorThrustVelocity += thrust * (RCS.Acceleration * rate);
-					SetVelocity(Velocity, AngularVelocity + rotation * (RCS.RotationAcceleration * Mathf.Deg2Rad * rate));
+					// The pilot knows their own thrust, so the thruster effects need no round trip.
+					ship.CurrRcsMoveThrust = ship.RCS.Acceleration * ship.RCS.MaxOperationRate * thrust;
+					ship.CurrRcsRotationThrust = ship.RCS.RotationAcceleration * ship.RCS.MaxOperationRate * rotation;
+					ship.UpdateRcsThrusterEffects();
 				}
 
+				World.AnchorThrustVelocity += thrust * (acceleration * Time.fixedDeltaTime);
+				MainVessel.SetVelocity(MainVessel.Velocity, MainVessel.AngularVelocity + rotation * (rotationAcceleration * Mathf.Deg2Rad * Time.fixedDeltaTime));
 				World.AnchorOffset += World.AnchorThrustVelocity * Time.fixedDeltaTime;
-
-				// The pilot knows their own thrust, so the thruster effects need no round trip.
-				CurrRcsMoveThrust = RCS == null ? Vector3.zero : RCS.Acceleration * RCS.MaxOperationRate * thrust;
-				CurrRcsRotationThrust = RCS == null ? Vector3.zero : RCS.RotationAcceleration * RCS.MaxOperationRate * rotation;
-				UpdateRcsThrusterEffects();
 
 				_inputAutoStabilise = null;
 			}
-			else if (World.PilotedVesselGuid == Guid)
+			else if (World.PilotedVesselGuid == Guid && (!MyPlayer.Instance.IsDrivingShip || (MyPlayer.Instance.Parent as SpaceObjectVessel)?.MainVessel != this))
 			{
 				// Leaving the seat stops the ship control messages, so the prediction has to be released here or
 				// this vessel would keep spinning on with nothing left to correct it.

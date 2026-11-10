@@ -204,7 +204,7 @@ namespace OpenHellion
 			EventSystem.AddListener(typeof(LogOutResponse), LogOutResponseListener);
 			EventSystem.AddListener(typeof(DestroyObjectMessage), DestroyObjectMessageListener);
 			EventSystem.AddListener(typeof(MovementMessage), MovementMessageListener);
-			EventSystem.AddListener(typeof(ShipThrustStateMessage), PilotStateMessageListener);
+			EventSystem.AddListener(typeof(ShipThrustStateMessage), ShipThrustStateListener);
 			EventSystem.AddListener<PlayersOnServerResponse>(PlayersOnServerResponseListener);
 			EventSystem.AddListener(typeof(ShipCollisionMessage), ShipCollisionMessageListener);
 			EventSystem.AddListener(typeof(UpdateVesselDataMessage), UpdateVesselDataMessageListener);
@@ -310,7 +310,7 @@ namespace OpenHellion
 			EventSystem.RemoveListener(typeof(LogOutResponse), LogOutResponseListener);
 			EventSystem.RemoveListener(typeof(DestroyObjectMessage), DestroyObjectMessageListener);
 			EventSystem.RemoveListener(typeof(MovementMessage), MovementMessageListener);
-			EventSystem.RemoveListener(typeof(ShipThrustStateMessage), PilotStateMessageListener);
+			EventSystem.RemoveListener(typeof(ShipThrustStateMessage), ShipThrustStateListener);
 			EventSystem.RemoveListener<PlayersOnServerResponse>(PlayersOnServerResponseListener);
 			EventSystem.RemoveListener(typeof(ShipCollisionMessage), ShipCollisionMessageListener);
 			EventSystem.RemoveListener(typeof(UpdateVesselDataMessage), UpdateVesselDataMessageListener);
@@ -325,6 +325,10 @@ namespace OpenHellion
 			}
 
 			MyPlayer.Instance.IsAlive = false;
+			if (MyPlayer.Instance.LockedToTrigger != null)
+			{
+				MyPlayer.Instance.DetachFromPanel();
+			}
 			InGameGUI.ToggleDeadMsg(val: true);
 			if (message.CauseOfDeath == HurtType.Shipwreck && message.VesselDamageType != 0)
 			{
@@ -578,7 +582,7 @@ namespace OpenHellion
 		/// 	Authoritative state of the vessel the local player is flying, arriving far more often than a
 		/// 	movement message. It corrects the prediction rather than replacing it.
 		/// </summary>
-		private void PilotStateMessageListener(NetworkData data)
+		private void ShipThrustStateListener(NetworkData data)
 		{
 			if (data is not ShipThrustStateMessage message || MyPlayer.Instance == null ||
 				!MyPlayer.Instance.PlayerReady || !MyPlayer.Instance.IsDrivingShip ||
@@ -646,7 +650,7 @@ namespace OpenHellion
 					AnchorThrustVelocity = Vector3.zero;
 				}
 
-				Diagnostics.Assert(TryGetSpaceObject(movementMessage.ParentGuid, out SpaceObject _),
+				Diagnostics.Assert(!parentChanged || TryGetSpaceObject(movementMessage.ParentGuid, out SpaceObject _),
 					$"movement message puts the player on unknown parent {movementMessage.ParentGuid}");
 				MyPlayer.Instance.ProcessMovementMessage(
 					movementMessage.ParentGuid,

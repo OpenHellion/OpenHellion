@@ -6,7 +6,5 @@ namespace ZeroGravity.Network
 	public class LockToTriggerMessage : NetworkData
 	{
 		public VesselObjectID TriggerID;
-
-		public bool IsPilotingVessel;
 	}
 }

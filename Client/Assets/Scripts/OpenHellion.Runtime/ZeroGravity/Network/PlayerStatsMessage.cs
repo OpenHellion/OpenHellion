@@ -24,6 +24,6 @@ namespace ZeroGravity.Network
 
 		public VesselObjectID LockedToTriggerID;
 
-		public bool IsPilotingVessel;
+		public bool IsDrivingShip;
 	}
 }

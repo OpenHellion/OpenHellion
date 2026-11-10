@@ -112,15 +112,14 @@ namespace ZeroGravity.Objects
 				return;
 			}
 
-			bool flag = MyPlayer.Instance.LockedToTrigger is SceneTriggerDockingPanel ||
-			            MyPlayer.Instance.ShipControlMode == ShipControlMode.Docking;
+			bool inDockingMode = MyPlayer.Instance.ShipControlMode == ShipControlMode.Docking;
 			if (Light.GetComponent<Light>() != null)
 			{
-				if (Light.GetComponent<Light>().enabled && flag)
+				if (Light.GetComponent<Light>().enabled && inDockingMode)
 				{
 					Light.GetComponent<Light>().enabled = false;
 				}
-				else if (!Light.GetComponent<Light>().enabled && !flag)
+				else if (!Light.GetComponent<Light>().enabled && !inDockingMode)
 				{
 					Light.GetComponent<Light>().enabled = true;
 				}
