@@ -145,6 +145,7 @@ namespace ZeroGravity.UI
 			{
 				TargetObject targetObject = new TargetObject
 				{
+					Guid = item2.Guid,
 					ArtificialBody = item2
 				};
 				AllTargets.Add(targetObject);
@@ -160,7 +161,6 @@ namespace ZeroGravity.UI
 		public void CreateOverlayTargets(TargetObject target)
 		{
 			TargetOverlayUI targetOverlayUI = Instantiate(TargetOnScreen, OverlayTargets);
-			targetOverlayUI.AB = target.ArtificialBody;
 			targetOverlayUI.Target = target;
 			targetOverlayUI.Name.text = target.Name;
 		}

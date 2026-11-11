@@ -230,6 +230,22 @@ public abstract class SpaceObjectVessel : ArtificialBody
 		}
 	}
 
+	// If this is not a main vessel, derive velocity from parent, instead of using the last stored value. Fixes a bug killing the player.
+	// This probably covers over a more fundamental issue in how docking works. TODO docked ships should probably not have orbits
+	public override Vector3D Velocity => IsMainVessel
+		? base.Velocity
+		: MainVessel.Velocity + Vector3D.Cross(MainVessel.Rotation * MainVessel.AngularVelocity * (System.Math.PI / 180.0), Position - MainVessel.Position);
+
+	public override OrbitParameters Orbit
+	{
+		get
+		{
+			Debug.StateOncePerCaller(IsDocked, $"docked vessel {Guid} orbit read");
+			return base.Orbit;
+		}
+		set => base.Orbit = value;
+	}
+
 	public override QuaternionD Rotation
 	{
 		get

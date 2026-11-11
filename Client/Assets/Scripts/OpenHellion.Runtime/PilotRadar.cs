@@ -29,7 +29,6 @@ public class PilotRadar : MonoBehaviour
 			radarShipElement.gameObject.transform.localScale = Vector3.one;
 			radarShipElement.gameObject.SetActive(true);
 			radarShipElement.Target = target;
-			radarShipElement.ArtificialBody = target.ArtificialBody;
 			radarShipElement.Icon.sprite = target.Icon;
 		}
 	}
@@ -39,8 +38,7 @@ public class PilotRadar : MonoBehaviour
 		RadarShipElement[] radarElementsInChildren = Root.GetComponentsInChildren<RadarShipElement>(true);
 		foreach (RadarShipElement radarElement in radarElementsInChildren)
 		{
-			radarElement.Selected.SetActive(selectedTarget is { ArtificialBody: not null }
-			                                && selectedTarget.ArtificialBody == radarElement.ArtificialBody);
+			radarElement.Selected.SetActive(selectedTarget != null && selectedTarget == radarElement.Target);
 		}
 	}
 

@@ -55,7 +55,7 @@ Movement:
 [x] Fix turrets
 [x] Remove subscribe/unsubscribe, and only use player view
 [x] Fix docking mode ship piloting
-[ ] Send faraway "known" vessels to client, but only on map and radar position (subscibe objects and known vessels rewrite)
+[x] Send faraway "known" vessels to client, but only on map and radar position (subscibe objects and known vessels rewrite)
 [ ] Fix items, corpses and other players sliding when the anchor changes (fixed for items)
 [ ] Moving from 0g to 1g fast making you fall out of the world (think is fixed, havent reproduced for a while)
 [ ] Landing and staying on asteroid is impossible (because object spins)
@@ -67,6 +67,9 @@ Movement:
 [ ] MovementMessages only for objects that have moved
 [ ] Harden collision damage
 [ ] Fix stabilising on hull of ship causing jumping around
+[ ] Enable movement when hooked onto panel (so that you can't stop collision by opening the ship door panel)
+[ ] Make sure stabilisation doesn't make you immune to depressurisation movement
+[ ] Piloting on a laggy server is horrible
 
 Debugging/diagnostics:
 [x] Fix console (add errors and make player admin)
@@ -119,6 +122,8 @@ Short-term:
 [x] Fix bug where direction of gravity in crew quarters module changes direction on entry at angle
 [x] Fix bug where direction of gravity in crew quarters module shifts by 90 degrees on an error causing ragdoll
 [x] Fix docking panels are inaccessible
+[x] Implement the unfinished passive and active radars, and make them server-authoratative
+[ ] Make the ranges of scanning plausible, passive scanning other active ships and active scanning other unpowered/cold vessels
 [ ] Move collections of all space objects into SolarSystem.cs on the server and only allow access trough getters and setters
 [ ] Test if new other character controller works
 [ ] Crashing into a planet when on a pivot does not kill the player
@@ -126,6 +131,7 @@ Short-term:
 [ ] Fix refused state request echoing back same request instead of sending actual state or error
 [ ] See if we can merge tick and flush in GameTransport
 [ ] Fix ship radar element under quest indicator (not selectable)
+[ ] Fix breaking bug where docking a ship kills the player
 
 Server:
 [x] Remove VesselData
@@ -180,3 +186,4 @@ Later:
 [ ] Game transport has no encryption, so server passwords and player ids are sent insecure
 [ ] Deduce IsOffline from main server in cases where the server is connected to a main server (check if player id is same)
 [ ] Don't stop warp with movement, disable movement and add separate button to cancel warp
+[ ] Hide quest indicators when close to it

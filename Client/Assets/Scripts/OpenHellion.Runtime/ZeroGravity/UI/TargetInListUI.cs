@@ -6,7 +6,6 @@ namespace ZeroGravity.UI
 {
 	public class TargetInListUI : MonoBehaviour
 	{
-		public ArtificialBody AB;
 
 		public TargetObject Target;
 

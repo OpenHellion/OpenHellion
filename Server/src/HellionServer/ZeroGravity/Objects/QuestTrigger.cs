@@ -66,6 +66,8 @@ public class QuestTrigger
 
 	public Quest Quest;
 
+	public long SpawnedMainVesselGuid;
+
 	private QuestStatus _Status;
 
 	public QuestStatus Status
@@ -136,22 +138,31 @@ public class QuestTrigger
 	{
 		if (_Status != status)
 		{
+			QuestStatus oldStatus = _Status;
 			_Status = status;
 			if (_Status == QuestStatus.Active && !SpawnRuleName.IsNullOrEmpty())
 			{
-				await SpawnManager.SpawnQuestSetup(this);
+				SpawnedMainVesselGuid = (await SpawnManager.SpawnQuestSetup(this))?.Guid ?? 0;
 			}
+			Debug.State($"player {Quest.Player.Guid} quest {Quest.ID} trigger {ID} {oldStatus} -> {status} station '{Station}' tag '{Tag}' spawn rule '{SpawnRuleName}' spawned {SpawnedMainVesselGuid}");
 		}
 	}
 
 	public QuestTriggerDetails GetDetails()
 	{
-		long locGUID = SpawnManager.GetStationMainVesselGUID(Station);
+		SpaceObjectVessel target = !Station.IsNullOrEmpty()
+			? Server.Instance.GetVessel(SpawnManager.GetStationMainVesselGUID(Station))
+			: !SpawnRuleName.IsNullOrEmpty()
+				? Server.Instance.GetVessel(SpawnedMainVesselGuid)
+				: !Tag.IsNullOrEmpty()
+					? Quest.QuestTriggers.Select(m => Server.Instance.GetVessel(m.SpawnedMainVesselGuid))
+						.FirstOrDefault(m => m != null && m.AllVessels.Any(n => n.CheckTag(Tag)))
+					: null;
 		return new QuestTriggerDetails
 		{
 			ID = ID,
 			Status = Status,
-			StationMainVesselGUID = locGUID
+			StationMainVesselGUID = target?.MainVessel.Guid ?? 0
 		};
 	}
 

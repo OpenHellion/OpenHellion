@@ -25,7 +25,7 @@ using OpenHellion.Net.Message;
 namespace OpenHellion.Map
 {
 	/// <summary>
-	/// 	Client-side map model for a single vessel or asteroid, built from a <see cref="MapDetailsData"/>
+	/// 	Client-side map model for a single vessel or asteroid, built from a <see cref="KnownVesselsMessage.KnownVessel"/>
 	/// 	snapshot sent by the server.
 	/// </summary>
 	public class MapItemData : IMapMainObject
@@ -69,18 +69,11 @@ namespace OpenHellion.Map
 			}
 		}
 
-		public static MapItemData Create(World world, MapDataResponse.MapDetailsData data)
-		{
-			MapItemData item = new MapItemData();
-			item.UpdateFrom(world, data);
-			return item;
-		}
-
 		/// <summary>
 		/// 	Refreshes this item from a fresh server snapshot, reusing the existing orbit so it keeps
 		/// 	ticking and the map object keeps its identity between refreshes.
 		/// </summary>
-		public void UpdateFrom(World world, MapDataResponse.MapDetailsData data)
+		public void UpdateFrom(World world, KnownVesselsMessage.KnownVessel data)
 		{
 			Guid = data.Guid;
 			Type = data.Type;

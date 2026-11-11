@@ -11478,11 +11478,11 @@
         "AutoReactivate": true,
         "RadarSignature": 250.0,
         "AuxData": {
-          "ActiveScanSensitivity": 0.0,
-          "ActiveScanFuzzySensitivity": 0.0,
+          "ActiveScanSensitivity": 900.0,
+          "ActiveScanFuzzySensitivity": 2700.0,
           "ActiveScanDuration": 3.0,
-          "PassiveScanSensitivity": 0.0,
-          "WarpDetectionSensitivity": 0.0,
+          "PassiveScanSensitivity": 10.0,
+          "WarpDetectionSensitivity": 150.0,
           "AuxDataType": 16
         }
       }
@@ -36617,11 +36617,11 @@
         "AutoReactivate": true,
         "RadarSignature": 250.0,
         "AuxData": {
-          "ActiveScanSensitivity": 0.0,
-          "ActiveScanFuzzySensitivity": 0.0,
+          "ActiveScanSensitivity": 900.0,
+          "ActiveScanFuzzySensitivity": 2700.0,
           "ActiveScanDuration": 3.0,
-          "PassiveScanSensitivity": 0.0,
-          "WarpDetectionSensitivity": 0.0,
+          "PassiveScanSensitivity": 15.0,
+          "WarpDetectionSensitivity": 220.0,
           "AuxDataType": 16
         }
       }
@@ -73273,11 +73273,11 @@
         "AutoReactivate": false,
         "RadarSignature": 250.0,
         "AuxData": {
-          "ActiveScanSensitivity": 0.0,
-          "ActiveScanFuzzySensitivity": 0.0,
+          "ActiveScanSensitivity": 900.0,
+          "ActiveScanFuzzySensitivity": 2700.0,
           "ActiveScanDuration": 3.0,
-          "PassiveScanSensitivity": 0.0,
-          "WarpDetectionSensitivity": 0.0,
+          "PassiveScanSensitivity": 9.0,
+          "WarpDetectionSensitivity": 150.0,
           "AuxDataType": 16
         }
       },

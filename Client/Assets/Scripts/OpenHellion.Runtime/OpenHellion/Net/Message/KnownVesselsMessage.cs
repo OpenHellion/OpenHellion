@@ -1,4 +1,4 @@
-// MapDataResponse.cs
+// KnownVesselsMessage.cs
 //
 // Copyright (C) 2026, OpenHellion contributors
 //
@@ -23,18 +23,11 @@ using ZeroGravity.Objects;
 
 namespace OpenHellion.Net.Message
 {
-	/// <summary>
-	/// 	Snapshot of every object the player sees on the navigation map, in response to
-	/// 	a <see cref="MapDataRequest"/>.
-	/// </summary>
 	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-	public class MapDataResponse : NetworkData
+	public class KnownVesselsMessage : NetworkData
 	{
-		/// <summary>
-		/// 	A single object on the navigation map.
-		/// </summary>
 		[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-		public struct MapDetailsData
+		public struct KnownVessel
 		{
 			public long Guid;
 
@@ -55,6 +48,6 @@ namespace OpenHellion.Net.Message
 			public bool IsDistressSignalActive;
 		}
 
-		public MapDetailsData[] Objects;
+		public KnownVessel[] Vessels;
 	}
 }

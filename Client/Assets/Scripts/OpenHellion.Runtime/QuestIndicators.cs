@@ -61,6 +61,7 @@ public class QuestIndicators : MonoBehaviour
 			}
 
 			SceneQuestTriggers.Add(sceneQuestTrigger, component);
+			Diagnostics.Log($"quest indicator added in world: quest {sceneQuestTrigger.QuestTrigger.Quest.ID} trigger {sceneQuestTrigger.QuestTrigger.ID} '{component.TaskName.text}' on {sceneQuestTrigger.name} visibility {sceneQuestTrigger.Visibility}");
 		}
 	}
 
@@ -140,12 +141,13 @@ public class QuestIndicators : MonoBehaviour
 				continue;
 			}
 
-			if (trigger.TaskObject.Location != null)
+			if (trigger.StationMainVesselGUID != 0)
 			{
 				MapObject value = _world.Map.AllMapObjects.FirstOrDefault(
 						(KeyValuePair<IMapMainObject, MapObject> m) =>
-							m.Key is MapItemData item && item.Name == trigger.TaskObject.Location.Name)
+							m.Key is MapItemData item && item.Guid == trigger.StationMainVesselGUID)
 					.Value;
+				Diagnostics.Log($"quest map marker: quest {trigger.Quest.ID} trigger {trigger.ID} target {trigger.StationMainVesselGUID} map object {(value != null ? value.name + " at " + value.Position.transform.position : "none")} map open {_world.Map.gameObject.activeInHierarchy} existing {MapQuestIndicators.ContainsKey(trigger)}");
 				if (value != null && !MapQuestIndicators.ContainsKey(trigger))
 				{
 					QuestIndicatorUI component = Instantiate(MapQuestIndicatorPrefab, IndicatorParent)
@@ -171,35 +173,12 @@ public class QuestIndicators : MonoBehaviour
 					MapQuestIndicators[trigger] = value4;
 				}
 			}
-			else
-			{
-				if (trigger.TaskObject.Tags.Count <= 0 || trigger.TaskObject.SceneID == GameScenes.SceneId.None)
-				{
-					continue;
-				}
-
-				List<IMapMainObject> list = _world.Map.AllMapObjects.Keys.Where((IMapMainObject m) =>
-					m is SpaceObjectVessel && (m as SpaceObjectVessel).SceneId == trigger.TaskObject.SceneID &&
-					SceneHelper.CompareTags((m as SpaceObjectVessel).Tag, trigger.Tag)).ToList();
-				foreach (IMapMainObject item in list)
-				{
-					MapObject mapObject = _world.Map.AllMapObjects[item];
-					if (mapObject != null && !MapQuestIndicators.ContainsKey(trigger))
-					{
-						QuestIndicatorUI component3 = Instantiate(MapQuestIndicatorPrefab, IndicatorParent)
-							.GetComponent<QuestIndicatorUI>();
-						component3.TaskName.text = trigger.Name;
-						ZeroGravity.Helpers.Tuple<MapObject, QuestIndicatorUI> value5 =
-							new ZeroGravity.Helpers.Tuple<MapObject, QuestIndicatorUI>(mapObject, component3);
-						MapQuestIndicators[trigger] = value5;
-					}
-				}
-			}
 		}
 	}
 
 	public void RemoveMarkersOnMap()
 	{
+		Diagnostics.Log($"quest map markers removed: {MapQuestIndicators.Count}, in-world indicators remaining {SceneQuestTriggers.Count}");
 		foreach (QuestTrigger key in MapQuestIndicators.Keys)
 		{
 			Destroy(MapQuestIndicators[key].Item2.gameObject);

@@ -2,11 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using OpenHellion;
 using OpenHellion.Map;
-using OpenHellion.Net;
-using OpenHellion.Net.Message;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Scripting;
@@ -20,14 +17,9 @@ namespace ZeroGravity.ShipComponents
 {
 	public class Map : MonoBehaviour
 	{
-		private static readonly WaitForSeconds _waitForSeconds1 = new WaitForSeconds(1f);
 		[NonSerialized] public NavigationPanel NavPanel;
 
 		public Dictionary<IMapMainObject, MapObject> AllMapObjects = new Dictionary<IMapMainObject, MapObject>();
-
-		private readonly Dictionary<long, MapItemData> _mapItems = new Dictionary<long, MapItemData>();
-
-		private Coroutine _mapDataPoll;
 
 		[NonSerialized] public Ship ParentShip;
 
@@ -560,75 +552,26 @@ namespace ZeroGravity.ShipComponents
 			Globals.ToggleCursor(true);
 			_world.InGameGUI.OverlayCanvasIsOn = true;
 
-			// Ask the server to populate radar contacts, then begin polling the map snapshot.
-			NetworkController.SendAndForget(new ScanForObjectsRequest());
-
-			// Re-opening the map without detaching first would otherwise orphan the running poll.
-			if (_mapDataPoll != null)
-			{
-				StopCoroutine(_mapDataPoll);
-			}
-
-			_mapDataPoll = StartCoroutine(PollMapData());
+			InitialiseFocus();
 		}
 
-		/// <summary>
-		/// 	Polls the server for the map snapshot once immediately and then about once a second while
-		/// 	the map is open. Orbits tick locally between polls, so a low rate is enough.
-		/// </summary>
-		private IEnumerator PollMapData()
+		public void ApplyKnownVessels(Dictionary<long, MapItemData> knownVessels)
 		{
-			while (true)
+			foreach (MapItemData item in AllMapObjects.Keys.OfType<MapItemData>().Where((MapItemData m) => !knownVessels.ContainsKey(m.Guid)).ToList())
 			{
-				RefreshMapData().Forget();
-				yield return _waitForSeconds1;
+				RemoveMapObject(item);
 			}
-		}
 
-		private async UniTaskVoid RefreshMapData() // TODO: Rewrite this using UniTask.ToCouroutine (idk what it is called)
-		{
-			try
+			foreach (MapItemData item in knownVessels.Values)
 			{
-				if (await NetworkController.SendReceiveAsync(new MapDataRequest()) is MapDataResponse response)
+				if (AllMapObjects.TryGetValue(item, out MapObject mapObject))
 				{
-					ApplyMapData(response);
-				}
-			}
-			catch (TimeoutException)
-			{
-			}
-		}
-
-		/// <summary>
-		/// 	Reconciles the map model against a fresh server snapshot: updates known objects in place,
-		/// 	creates map objects for newly visible ones, and removes any that are no longer visible.
-		/// </summary>
-		public void ApplyMapData(MapDataResponse response)
-		{
-			HashSet<long> seen = new HashSet<long>();
-			foreach (MapDataResponse.MapDetailsData details in response.Objects ?? Array.Empty<MapDataResponse.MapDetailsData>())
-			{
-				seen.Add(details.Guid);
-				if (_mapItems.TryGetValue(details.Guid, out MapItemData item))
-				{
-					item.UpdateFrom(_world, details);
-					if (AllMapObjects.TryGetValue(item, out MapObject mapObject) && mapObject != null)
-					{
-						mapObject.SetOrbit();
-					}
+					mapObject.SetOrbit();
 				}
 				else
 				{
-					item = MapItemData.Create(_world, details);
-					_mapItems[details.Guid] = item;
 					InitialiseMapObject(item);
 				}
-			}
-
-			foreach (long guid in _mapItems.Keys.Where((long m) => !seen.Contains(m)).ToList())
-			{
-				RemoveMapObject(_mapItems[guid]);
-				_mapItems.Remove(guid);
 			}
 
 			InitialiseFocus();
@@ -676,12 +619,6 @@ namespace ZeroGravity.ShipComponents
 
 		public void OnDetach()
 		{
-			if (_mapDataPoll != null)
-			{
-				StopCoroutine(_mapDataPoll);
-				_mapDataPoll = null;
-			}
-
 			gameObject.SetActive(value: false);
 			MapCamera.enabled = false;
 			MyPlayer.Instance.FpsController.MainCamera.enabled = true;

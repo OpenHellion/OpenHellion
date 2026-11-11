@@ -31,7 +31,6 @@ public class PilotTargetList : MonoBehaviour
 		targetInListUI.gameObject.transform.localScale = Vector3.one;
 		targetInListUI.gameObject.SetActive(true);
 		targetInListUI.Target = target;
-		targetInListUI.AB = target.ArtificialBody;
 		targetInListUI.Name.text = target.Name;
 		targetInListUI.Icon.sprite = target.Icon;
 	}
@@ -49,7 +48,7 @@ public class PilotTargetList : MonoBehaviour
 		{
 			if (world.InWorldPanels.Pilot.SelectedTarget != null)
 			{
-				item2.Selected.SetActive(world.InWorldPanels.Pilot.SelectedTarget.ArtificialBody == item2.AB);
+				item2.Selected.SetActive(world.InWorldPanels.Pilot.SelectedTarget == item2.Target);
 			}
 
 			item2.Distance.text = FormatHelper.DistanceFormat(item2.Target.Distance);

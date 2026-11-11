@@ -1153,7 +1153,7 @@ namespace ZeroGravity.Objects
 					if (value.IsNotEpsilonZero())
 					{
 						if (ShipControlMode == ShipControlMode.Piloting &&
-							World.InWorldPanels.Pilot.SelectedTarget != null &&
+							World.InWorldPanels.Pilot.SelectedTarget is { ArtificialBody: not null } &&
 							Mathf.Abs(Vector3.Dot(_shipThrust.normalized, spaceObjectVessel.transform.forward)) > 0.9f &&
 							spaceObjectVessel.OffSpeedHelper)
 						{

@@ -8,6 +8,7 @@ using OpenHellion;
 using ZeroGravity.Data;
 using ZeroGravity.Math;
 using ZeroGravity.Network;
+using ZeroGravity.ShipComponents;
 using ZeroGravity.Spawn;
 using OpenHellion.Net.Message;
 
@@ -362,6 +363,53 @@ public class SolarSystem
 			Velocity = mainVessel.Velocity.ToFloatArray(),
 			Rotation = mainVessel.Rotation.ToFloatArray(),
 			AngularVelocity = (mainVessel.AngularVelocity * (System.Math.PI / 180.0)).ToFloatArray(),
+		});
+	}
+
+	public async Task SendKnownVesselsToPlayer(Player player)
+	{
+		SpaceObjectVessel current = (player.Parent as SpaceObjectVessel)?.MainVessel;
+		SubSystemRadar radar = current?.MainDistributionManager?.GetSubSystems().OfType<SubSystemRadar>().FirstOrDefault();
+		long home = player.AuthorizedSpawnPoint?.Ship.MainVessel.Guid ?? 0L;
+		long[] questStations = [.. player.Quests.SelectMany((Quest m) => m.QuestTriggers)
+			.Where((QuestTrigger m) => m.Status == QuestStatus.Active)
+			.Select((QuestTrigger m) => m.GetDetails().StationMainVesselGUID)];
+		List<KnownVesselsMessage.KnownVessel> known = [];
+		foreach (SpaceObjectVessel vessel in Server.Instance.AllVessels)
+		{
+			if (!vessel.IsMainVessel || vessel.IsDebrisFragment)
+			{
+				continue;
+			}
+
+			float signature = vessel.GetCompoundRadarSignature();
+			if (!(vessel.IsAlwaysVisible || vessel.IsDistressSignalActive || vessel == current || vessel.Guid == home
+				|| questStations.Contains(vessel.Guid) || player.DiscoveredVessels.Contains(vessel.Guid)
+				|| vessel.AllVessels.Any((SpaceObjectVessel m) => m.AuthorizedPersonel.Any((AuthorizedPerson n) => n.PlayerId == player.PlayerId))
+				|| (radar != null && (vessel.Position - current.Position).Magnitude <= radar.PassiveScanSensitivity * 1000.0 * signature)))
+			{
+				continue;
+			}
+
+			OrbitData orbit = new();
+			vessel.Orbit.FillOrbitData(ref orbit, vessel);
+			known.Add(new KnownVesselsMessage.KnownVessel
+			{
+				Guid = vessel.Guid,
+				Type = vessel is Asteroid ? SpaceObjectType.Asteroid : SpaceObjectType.Ship,
+				Name = vessel.VesselName,
+				Registration = vessel.VesselRegistration,
+				SpawnRuleId = vessel.SpawnRuleId,
+				Orbit = orbit,
+				RadarSignature = signature,
+				IsAlwaysVisible = vessel.IsAlwaysVisible,
+				IsDistressSignalActive = vessel.IsDistressSignalActive,
+			});
+		}
+
+		await NetworkController.SendAsync(player.Guid, new KnownVesselsMessage
+		{
+			Vessels = [.. known]
 		});
 	}
 

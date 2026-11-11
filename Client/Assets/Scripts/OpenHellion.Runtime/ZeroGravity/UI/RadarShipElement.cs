@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using ZeroGravity.Math;
 using ZeroGravity.Objects;
@@ -11,7 +10,6 @@ namespace ZeroGravity.UI
 	{
 		public TargetObject Target;
 
-		[FormerlySerializedAs("AB")] public ArtificialBody ArtificialBody;
 
 		public PilotOverlayUI PilotP;
 
@@ -27,10 +25,10 @@ namespace ZeroGravity.UI
 
 		private void Update()
 		{
-			if (ArtificialBody != null && Target != null)
+			if (Target != null)
 			{
 				Vector3 vector = PilotP.ParentShip.transform.rotation.Inverse() *
-				                 (ArtificialBody.transform.position - PilotP.ParentShip.transform.position);
+				                 (Target.Position - PilotP.ParentShip.transform.position);
 				Vector3 vec = Vector3.ProjectOnPlane(vector, Vector3.up);
 				float f = MathHelper.AngleSigned(Vector3.forward, vec, Vector3.up);
 				Vector3 vec2 = Vector3.ProjectOnPlane(vector, Vector3.right);

@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 public static class Debug
 {
@@ -45,6 +47,8 @@ public static class Debug
 
 	private static readonly object StateLogLock = new();
 
+	private static readonly HashSet<string> ReportedCallers = [];
+
 	[Conditional("DEBUG")]
 	public static void State(string message)
 	{
@@ -53,6 +57,30 @@ public static class Debug
 			_stateLog ??= new StreamWriter(OutputDir + "state.log", append: false) { AutoFlush = true };
 			_stateLog.WriteLine(DateTime.UtcNow.ToString(TimestampFormat) + " " + message);
 		}
+	}
+
+	[Conditional("DEBUG")]
+	public static void StateOncePerCaller(bool condition, string message)
+	{
+		if (!condition)
+		{
+			return;
+		}
+		string callers = Callers(2);
+		lock (StateLogLock)
+		{
+			if (!ReportedCallers.Add(callers))
+			{
+				return;
+			}
+		}
+		State(message + " by " + callers);
+	}
+
+	public static string Callers(int skipFrames)
+	{
+		return string.Join(" < ", new StackTrace(skipFrames + 1).GetFrames().Take(4)
+			.Select(m => m.GetMethod() is { Name: "MoveNext" } method ? method.DeclaringType?.Name : m.GetMethod()?.Name));
 	}
 
 	public static void Destroy()

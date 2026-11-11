@@ -114,6 +114,8 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 
 	public Vector3D? LastReportedVelocity;
 
+	private SpaceObject _parentBeforeChange;
+
 	private const double MaxResimDeltaTime = 0.5;
 
 	private const double ResimPositionSlack = 2.0;
@@ -214,7 +216,9 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		{
 			if (_parent != value)
 			{
-				Debug.State($"player {Guid} parent {_parent?.Guid ?? 0} -> {value?.Guid ?? 0} {value?.GetType().Name}");
+				Debug.State($"player {Guid} parent {_parent?.Guid ?? 0} -> {value?.Guid ?? 0} {value?.GetType().Name}" +
+					$" old parent velocity {_parent?.Velocity} new parent velocity {value?.Velocity} by {Debug.Callers(1)}");
+				_parentBeforeChange = _parent;
 			}
 			if (_parent is SpaceObjectVessel vessel)
 			{
@@ -746,6 +750,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		LocalPosition = Parent is SpaceObjectVessel vessel ? vessel.LocalToStructurePosition(localPosition) : localPosition;
 		LocalRotation = parentRotationInverse * worldRotation;
 		LocalVelocity = parentRotationInverse * (worldVelocity - Parent.Velocity);
+		Debug.State($"player {Guid} reparented keeping world pose: world velocity {worldVelocity} local velocity {LocalVelocity}");
 	}
 
 	/// <summary>
@@ -857,9 +862,17 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 				float impactSpeed = (float)(newVelocity - LocalVelocity).Magnitude;
 				if (impactSpeed > 0f)
 				{
+					if (impactSpeed >= 6.5f)
+					{
+						Debug.State(_parentBeforeChange != null
+							? $"player {Guid} desync {impactSpeed:F2} on first move after parent change {_parentBeforeChange.Guid} {_parentBeforeChange.GetType().Name} -> {Parent.Guid} {Parent.GetType().Name}: reported velocity {newVelocity} server velocity {LocalVelocity} old parent velocity {_parentBeforeChange.Velocity} new parent velocity {Parent.Velocity} dt {deltaTime:F3}"
+							: $"player {Guid} move-impact {impactSpeed:F2}: reported velocity {newVelocity} server velocity {LocalVelocity} parent {Parent.Guid} {Parent.GetType().Name} parent velocity {Parent.Velocity} dt {deltaTime:F3}");
+					}
+
 					await DoCollisionDamage(impactSpeed, "move-impact");
 				}
 			}
+			_parentBeforeChange = null;
 
 			double acceptedJump = (reportedPosition - LocalPosition).Magnitude;
 			if (acceptedJump > AcceptedJumpWarningDistance)
@@ -1350,6 +1363,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 					QuestTrigger questTrigger = quest.QuestTriggers.FirstOrDefault((QuestTrigger m) => m.ID == qtDet.ID);
 					if (questTrigger != null)
 					{
+						questTrigger.SpawnedMainVesselGuid = questTrigger.SpawnRuleName.IsNullOrEmpty() ? 0 : qtDet.StationMainVesselGUID;
 						await questTrigger.SetQuestStatusAsync(qtDet.Status);
 					}
 				}
@@ -1402,27 +1416,28 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 
 		SubSystemRadar radar = (Parent as SpaceObjectVessel)?.MainVessel.MainDistributionManager?.GetSubSystems()
 			.OfType<SubSystemRadar>().FirstOrDefault();
-		if (radar == null)
+		if (radar == null || request.ScanDirection == null)
 		{
+			Debug.State($"player {Guid} active scan ignored: parent {Parent?.Guid} {Parent?.GetType().Name} radar {radar != null} direction {request.ScanDirection != null}");
 			return;
 		}
 
-		List<long> detected;
-		if (request.ScanDirection != null)
-		{
-			// Directional active scan: power the radar (this starts the active-scan cooldown) and sweep the cone.
-			await radar.GoOnLine();
-			detected = radar.ActiveScan(request.ScanDirection.ToVector3D(), request.ScanAngle);
-		}
-		else
-		{
-			detected = radar.PassiveScan();
-		}
-
-		foreach (long guid in detected)
+		await radar.GoOnLine();
+		Vector3D direction = request.ScanDirection.ToVector3D();
+		List<long> hits = radar.ActiveScan(direction, request.ScanAngle);
+		foreach (long guid in hits)
 		{
 			DiscoveredVessels.Add(guid);
 		}
+
+		Debug.State($"player {Guid} active scan from {radar.ParentVessel.Guid} status {radar.Status} passive {radar.PassiveScanSensitivity} active {radar.ActiveScanSensitivity}" +
+			$" direction {direction} angle {request.ScanAngle} hits [{string.Join(", ", hits)}] nearest in cone: " +
+			string.Join("; ", Server.Instance.AllVessels
+				.Where(m => m.IsMainVessel && m != radar.ParentVessel.MainVessel && Vector3D.Angle(direction, (m.Position - radar.ParentVessel.Position).Normalized) <= request.ScanAngle / 2f)
+				.OrderBy(m => (m.Position - radar.ParentVessel.Position).Magnitude).Take(10)
+				.Select(m => $"{m.Guid} {(m.Position - radar.ParentVessel.Position).Magnitude / 1000.0:F0} km signature {m.GetCompoundRadarSignature():F0}")));
+
+		await Server.Instance.SolarSystem.SendKnownVesselsToPlayer(this);
 	}
 
 	public Task TakeDamage(HurtType hurtType, float amount, string source = null)

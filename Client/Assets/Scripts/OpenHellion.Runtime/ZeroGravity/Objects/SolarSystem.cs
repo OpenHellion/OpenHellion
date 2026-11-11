@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using OpenHellion;
 using OpenHellion.IO;
+using OpenHellion.Map;
 using OpenHellion.Net;
 using OpenHellion.Net.Message;
 using UnityEngine;
@@ -44,16 +46,20 @@ namespace ZeroGravity.Objects
 
 		private readonly List<CelestialBody> _celestialBodyReferences = new List<CelestialBody>();
 
+		public readonly Dictionary<long, MapItemData> KnownVessels = new Dictionary<long, MapItemData>();
+
 		public double CurrentTime => _currentTime;
 
 		private void Awake()
 		{
 			EventSystem.AddListener<StateUpdateMessage>(StateUpdateMessageListener);
+			EventSystem.AddListener<KnownVesselsMessage>(KnownVesselsMessageListener);
 		}
 
 		private void OnDestroy()
 		{
 			EventSystem.RemoveListener<StateUpdateMessage>(StateUpdateMessageListener);
+			EventSystem.RemoveListener<KnownVesselsMessage>(KnownVesselsMessageListener);
 		}
 
 		private void StateUpdateMessageListener(NetworkData data)
@@ -62,6 +68,27 @@ namespace ZeroGravity.Objects
 			{
 				_world.GetDynamicObject(info.GUID)?.ApplyState(info.Stats, info.AttachData);
 			}
+		}
+
+		private void KnownVesselsMessageListener(NetworkData data)
+		{
+			KnownVesselsMessage.KnownVessel[] vessels = ((KnownVesselsMessage)data).Vessels ?? Array.Empty<KnownVesselsMessage.KnownVessel>();
+			foreach (long guid in KnownVessels.Keys.Where((long m) => vessels.All((KnownVesselsMessage.KnownVessel n) => n.Guid != m)).ToList())
+			{
+				KnownVessels.Remove(guid);
+			}
+
+			foreach (KnownVesselsMessage.KnownVessel vessel in vessels)
+			{
+				if (!KnownVessels.TryGetValue(vessel.Guid, out MapItemData item))
+				{
+					item = KnownVessels[vessel.Guid] = new MapItemData();
+				}
+
+				item.UpdateFrom(_world, vessel);
+			}
+
+			_map.ApplyKnownVessels(KnownVessels);
 		}
 
 		public void SendCommand(StateUpdateRequest.CommandType type, long subject, long target = 0, short slot = 0,
@@ -168,6 +195,11 @@ namespace ZeroGravity.Objects
 			{
 				celestialBody.UpdatePlanetSpacePosition((float)deltaTime);
 				celestialBody.UpdatePosition(this, deltaTime);
+			}
+
+			foreach (MapItemData vessel in KnownVessels.Values)
+			{
+				vessel.Orbit.UpdateOrbit(deltaTime);
 			}
 		}
 

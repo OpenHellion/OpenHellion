@@ -1,4 +1,4 @@
-// MapDataRequest.cs
+// KnownVesselsMessage.cs
 //
 // Copyright (C) 2026, OpenHellion contributors
 //
@@ -19,14 +19,34 @@
 
 using ProtoBuf;
 using ZeroGravity.Network;
+using ZeroGravity.Objects;
 
 namespace OpenHellion.Net.Message;
 
-/// <summary>
-/// 	Polled by the client (~1s) while the navigation map is open. The server replies with a
-/// 	<see cref="MapDataResponse"/>.
-/// </summary>
 [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-public class MapDataRequest : NetworkData
+public class KnownVesselsMessage : NetworkData
 {
+	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+	public struct KnownVessel
+	{
+		public long Guid;
+
+		public SpaceObjectType Type;
+
+		public string Name;
+
+		public string Registration;
+
+		public long SpawnRuleId;
+
+		public OrbitData Orbit;
+
+		public double RadarSignature;
+
+		public bool IsAlwaysVisible;
+
+		public bool IsDistressSignalActive;
+	}
+
+	public KnownVessel[] Vessels;
 }

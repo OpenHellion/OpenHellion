@@ -70,27 +70,6 @@ public class SubSystemRadar : SubSystem
 	}
 
 	/// <summary>
-	/// 	Returns the guids of all vessels this radar passively detects from its parent vessel,
-	/// 	based on distance versus each vessel's compound radar signature.
-	/// </summary>
-	public List<long> PassiveScan()
-	{
-		ConcurrentBag<long> detected = new ConcurrentBag<long>();
-		List<SpaceObjectVessel> vessels = (from m in Server.Instance.SolarSystem.GetArtificialBodies()
-			where m is SpaceObjectVessel
-			select m as SpaceObjectVessel).ToList();
-		Parallel.ForEach(vessels, delegate(SpaceObjectVessel vessel)
-		{
-			double magnitude = (ParentVessel.Position - vessel.Position).Magnitude;
-			if (magnitude <= PassiveScanSensitivity * 1000.0 * vessel.GetCompoundRadarSignature())
-			{
-				detected.Add(vessel.Guid);
-			}
-		});
-		return detected.ToList();
-	}
-
-	/// <summary>
 	/// 	Returns the guids of all vessels detected within the active-scan cone (<paramref name="direction"/>
 	/// 	with full opening <paramref name="angle"/> degrees), out to the radar's active-scan range.
 	/// </summary>

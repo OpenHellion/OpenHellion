@@ -395,11 +395,15 @@ public sealed class Server
 
 	private const double PilotStateSendInterval = 1.0 / 30.0;
 
+	private const double KnownVesselsSendInterval = 5.0;
+
 	private const double ShipSystemSweepSeconds = 1.0;
 
 	private static double _pilotStateTimer;
 
 	private static double _movementMessageTimer;
+
+	private static double _knownVesselsTimer;
 
 	public readonly BulletPhysicsController PhysicsController;
 
@@ -986,7 +990,6 @@ public sealed class Server
 		EventSystem.AddSyncRequestListener<AvailableSpawnPointsRequest>(AvailableSpawnPointsRequestListener);
 		EventSystem.AddSyncRequestListener<ObjectsInfoRequest>(ObjectsInfoRequestListener);
 		EventSystem.AddListener<StateUpdateRequest>(SolarSystem.StateUpdateRequestListener);
-		EventSystem.AddSyncRequestListener<MapDataRequest>(MapDataRequestListener);
 		EventSystem.AddListener<TextChatMessage>(TextChatMessageListener);
 		EventSystem.AddListener<TransferResourceMessage>(TransferResourcesMessageListener);
 		EventSystem.AddListener<FabricateItemMessage>(FabricateItemMessageListener);
@@ -2189,52 +2192,6 @@ public sealed class Server
 		return Task.FromResult<NetworkData>(response);
 	}
 
-	private Task<NetworkData> MapDataRequestListener(NetworkData data)
-	{
-		var response = new MapDataResponse { Objects = [] };
-		Player pl = GetPlayer((data as MapDataRequest).Sender);
-		if (pl == null)
-		{
-			return Task.FromResult<NetworkData>(response);
-		}
-
-		long parentGuid = (pl.Parent as SpaceObjectVessel)?.MainVessel.Guid ?? 0L;
-		List<MapDataResponse.MapDetailsData> mapDetails = [];
-		foreach (SpaceObjectVessel vessel in AllVessels)
-		{
-			if (!vessel.IsMainVessel || vessel.IsDebrisFragment)
-			{
-				continue;
-			}
-
-			bool visible = vessel.IsAlwaysVisible || vessel.IsDistressSignalActive
-				|| vessel.Guid == parentGuid || pl.DiscoveredVessels.Contains(vessel.Guid);
-			if (!visible)
-			{
-				continue;
-			}
-
-			OrbitData orbit = new();
-			vessel.Orbit.FillOrbitData(ref orbit, vessel);
-
-			mapDetails.Add(new MapDataResponse.MapDetailsData
-			{
-				Guid = vessel.Guid,
-				Type = vessel is Asteroid ? SpaceObjectType.Asteroid : SpaceObjectType.Ship,
-				Name = vessel.VesselName,
-				Registration = vessel.VesselRegistration,
-				SpawnRuleId = vessel.SpawnRuleId,
-				Orbit = orbit,
-				RadarSignature = vessel.GetCompoundRadarSignature(),
-				IsAlwaysVisible = vessel.IsAlwaysVisible,
-				IsDistressSignalActive = vessel.IsDistressSignalActive,
-			});
-		}
-
-		response.Objects = [.. mapDetails];
-		return Task.FromResult<NetworkData>(response);
-	}
-
 	private async Task UpdateDynamicObjectsRespawnTimers(double deltaTime)
 	{
 		List<DynamicObjectsRespawn> toRemove = new List<DynamicObjectsRespawn>();
@@ -2369,6 +2326,16 @@ public sealed class Server
 				Debug.LogError("Solar system state is inconsistent", broken);
 			}
 #endif
+		}
+
+		_knownVesselsTimer += deltaTime;
+		if (_knownVesselsTimer >= KnownVesselsSendInterval)
+		{
+			_knownVesselsTimer = 0.0;
+			foreach (Player player in AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive))
+			{
+				await SolarSystem.SendKnownVesselsToPlayer(player);
+			}
 		}
 
 		if (!VesselsDataUpdate.IsEmpty)

@@ -320,6 +320,7 @@ public class SpawnRule
 			List<SpaceObjectVessel> mainVessels = await Data.StationBlueprint.AssembleStation(StationBlueprint, StationName, LocationTag, Orbit, null, AsteroidResourcesMultiplier);
 			if (mainVessels != null)
 			{
+				Debug.State($"player {questTrigger.Quest.Player.Guid} quest {questTrigger.Quest.ID} trigger {questTrigger.ID} spawned '{StationName}' main vessels [{string.Join(", ", mainVessels.Select(m => $"{m.Guid} '{m.VesselName}'"))}]");
 				AuthorizedPerson ap = new AuthorizedPerson
 				{
 					Name = questTrigger.Quest.Player.Name,

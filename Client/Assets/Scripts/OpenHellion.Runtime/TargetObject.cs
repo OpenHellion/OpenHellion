@@ -1,17 +1,28 @@
 using UnityEngine;
 using OpenHellion;
+using OpenHellion.Map;
 using ZeroGravity;
+using ZeroGravity.Math;
 using ZeroGravity.Objects;
 using ZeroGravity.UI;
 
 public class TargetObject
 {
+	public long Guid;
+
 	public ArtificialBody ArtificialBody;
+
+	public MapItemData KnownVessel;
 
 	public string Name
 	{
 		get
 		{
+			if (ArtificialBody == null)
+			{
+				return KnownVessel.Name;
+			}
+
 			if (ArtificialBody is Asteroid)
 			{
 				return (ArtificialBody as Asteroid).Name;
@@ -35,6 +46,11 @@ public class TargetObject
 	{
 		get
 		{
+			if (ArtificialBody == null)
+			{
+				return SpriteManager.Instance.GetSprite(KnownVessel.Type);
+			}
+
 			if (ArtificialBody is Asteroid)
 			{
 				return SpriteManager.Instance.GetSprite((ArtificialBody as Asteroid).Type);
@@ -54,7 +70,11 @@ public class TargetObject
 		}
 	}
 
-	public float Distance => (float)(MyPlayer.Instance.Parent.transform.position - ArtificialBody.transform.position).magnitude;
+	public Vector3 Position => ArtificialBody != null
+		? ArtificialBody.transform.position
+		: (KnownVessel.Position - MyPlayer.Instance.World.OriginWorldPosition).ToVector3();
+
+	public float Distance => (MyPlayer.Instance.Parent.transform.position - Position).magnitude;
 
 	public float AngleFromCameraForward
 	{
@@ -62,7 +82,7 @@ public class TargetObject
 		{
 			Vector3 to = MyPlayer.Instance.transform.rotation * MyPlayer.Instance.FpsController.MainCamera.transform.forward;
 			return Vector3.Angle(
-				(ArtificialBody.transform.position - MyPlayer.Instance.transform.rotation * MyPlayer.Instance.FpsController.MainCamera.transform.position).normalized, to);
+				(Position - MyPlayer.Instance.transform.rotation * MyPlayer.Instance.FpsController.MainCamera.transform.position).normalized, to);
 		}
 	}
 }
