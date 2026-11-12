@@ -147,7 +147,7 @@ public class Asteroid : SpaceObjectVessel, IPersistantObject
 	{
 		CelestialSceneData asd = StaticData.AsteroidDataList.Find((CelestialSceneData x) => x.ItemID == (short)SceneId);
 		Radius = asd.Radius;
-		RadarSignature = asd.RadarSignature;
+		RadarCrossSection = asd.RadarCrossSection;
 		foreach (AsteroidMiningPointData ampd in asd.MiningPoints)
 		{
 			MiningPoints[ampd.InSceneID] = new AsteroidMiningPoint(this, ampd);

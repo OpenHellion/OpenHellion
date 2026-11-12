@@ -40,7 +40,7 @@ namespace OpenHellion.Map
 
 		public long SpawnRuleId { get; private set; }
 
-		public double RadarSignature { get; private set; }
+		public double CrossSection { get; private set; }
 
 		public bool IsAlwaysVisible { get; private set; }
 
@@ -80,7 +80,7 @@ namespace OpenHellion.Map
 			Name = data.Name;
 			Registration = data.Registration;
 			SpawnRuleId = data.SpawnRuleId;
-			RadarSignature = data.RadarSignature;
+			CrossSection = data.CrossSection;
 			IsAlwaysVisible = data.IsAlwaysVisible;
 			IsDistressSignalActive = data.IsDistressSignalActive;
 			Orbit ??= new OrbitParameters();

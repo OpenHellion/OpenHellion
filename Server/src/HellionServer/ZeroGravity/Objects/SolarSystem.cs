@@ -369,7 +369,8 @@ public class SolarSystem
 	public async Task SendKnownVesselsToPlayer(Player player)
 	{
 		SpaceObjectVessel current = (player.Parent as SpaceObjectVessel)?.MainVessel;
-		SubSystemRadar radar = current?.MainDistributionManager?.GetSubSystems().OfType<SubSystemRadar>().FirstOrDefault();
+		SubSystemRadar radar = SubSystemRadar.FindUsable(player.Parent);
+		double noise = radar?.GetNoise() ?? 0.0;
 		long home = player.AuthorizedSpawnPoint?.Ship.MainVessel.Guid ?? 0L;
 		long[] questStations = [.. player.Quests.SelectMany((Quest m) => m.QuestTriggers)
 			.Where((QuestTrigger m) => m.Status == QuestStatus.Active)
@@ -382,11 +383,10 @@ public class SolarSystem
 				continue;
 			}
 
-			float signature = vessel.GetCompoundRadarSignature();
 			if (!(vessel.IsAlwaysVisible || vessel.IsDistressSignalActive || vessel == current || vessel.Guid == home
 				|| questStations.Contains(vessel.Guid) || player.DiscoveredVessels.Contains(vessel.Guid)
 				|| vessel.AllVessels.Any((SpaceObjectVessel m) => m.AuthorizedPersonel.Any((AuthorizedPerson n) => n.PlayerId == player.PlayerId))
-				|| (radar != null && (vessel.Position - current.Position).Magnitude <= radar.PassiveScanSensitivity * 1000.0 * signature)))
+				|| (radar != null && radar.DetectsPassively(vessel, noise))))
 			{
 				continue;
 			}
@@ -401,7 +401,7 @@ public class SolarSystem
 				Registration = vessel.VesselRegistration,
 				SpawnRuleId = vessel.SpawnRuleId,
 				Orbit = orbit,
-				RadarSignature = signature,
+				CrossSection = vessel.GetCompoundCrossSection(),
 				IsAlwaysVisible = vessel.IsAlwaysVisible,
 				IsDistressSignalActive = vessel.IsDistressSignalActive,
 			});
@@ -569,6 +569,7 @@ public class SolarSystem
 			newBody.AsteroidGasBurstTimeMin = cbd.AsteroidGasBurstTimeMin;
 			newBody.AsteroidGasBurstTimeMax = cbd.AsteroidGasBurstTimeMax;
 			newBody.AsteroidResources = cbd.AsteroidResources.ToList();
+			newBody.NoiseRadius = cbd.NoiseRadius;
 			_celestialBodies.Add(newBody);
 		}
 	}

@@ -41,7 +41,7 @@ namespace OpenHellion.Net.Message
 
 			public OrbitData Orbit;
 
-			public double RadarSignature;
+			public double CrossSection;
 
 			public bool IsAlwaysVisible;
 

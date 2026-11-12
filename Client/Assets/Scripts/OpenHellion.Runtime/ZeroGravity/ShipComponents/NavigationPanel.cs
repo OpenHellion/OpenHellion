@@ -581,7 +581,7 @@ namespace ZeroGravity.ShipComponents
 			string empty = string.Empty;
 			string text3 = ((!(Map.SelectedObject is MapObjectVessel))
 				? "-"
-				: (Map.SelectedObject as MapObjectVessel).RadarSignature.ToString("0"));
+				: (Map.SelectedObject as MapObjectVessel).CrossSection.ToString("0"));
 			RadiationInfo.Activate(value: true);
 			if (Map.SelectedObject is MapObjectCustomOrbit)
 			{
@@ -593,11 +593,7 @@ namespace ZeroGravity.ShipComponents
 			else if (Map.SelectedObject is MapObjectFuzzyScan)
 			{
 				MapObjectFuzzyScan mapObjectFuzzyScan = Map.SelectedObject as MapObjectFuzzyScan;
-				text3 = mapObjectFuzzyScan.Vessels.Count <= 1
-					? mapObjectFuzzyScan.Vessels[0].RadarSignature.ToString("0")
-					: (mapObjectFuzzyScan.Vessels.Min((SpaceObjectVessel m) => m.RadarSignature).ToString("0") +
-					   " to " + mapObjectFuzzyScan.Vessels.Max((SpaceObjectVessel m) => m.RadarSignature)
-						   .ToString("0"));
+				text3 = "-";
 				text2 = Localization.PossibleContacts + ": " + mapObjectFuzzyScan.Vessels.Count;
 				empty = "-";
 				RadiationInfo.Activate(value: false);
@@ -617,13 +613,12 @@ namespace ZeroGravity.ShipComponents
 			if (ToScan)
 			{
 				SelectedDetails.Activate(value: true);
-				double sensitivityMultiplier = ParentVessel.RadarSystem.GetSensitivityMultiplier();
-				ActiveSens.text =
-					(ParentVessel.RadarSystem.ActiveScanSensitivity * sensitivityMultiplier).ToString("0.0");
-				PassiveSens.text =
-					(ParentVessel.RadarSystem.PassiveScanSensitivity * sensitivityMultiplier).ToString("0.0");
-				WarpSens.text =
-					(ParentVessel.RadarSystem.WarpDetectionSensitivity * sensitivityMultiplier).ToString("0.0");
+				SubSystemRadar radar = ParentVessel.RadarSystem;
+				double noise = radar.GetNoise();
+				ActiveSens.text = (radar.GetActiveRange(SubSystemRadar.ReferenceCrossSection, _scanAngle,
+					SubSystemRadar.ActiveThreshold, noise) / 1000.0).ToString("0");
+				PassiveSens.text = (radar.GetPassiveRange(SubSystemRadar.ReferenceEmission, noise) / 1000.0).ToString("0");
+				WarpSens.text = (radar.GetPassiveRange(SubSystemRadar.WarpingReferenceEmission, noise) / 1000.0).ToString("0");
 				ScanPowerConsumption.text = FormatHelper.FormatValue(
 					ParentVessel.RadarSystem.GetPowerConsumption(true) * ParentVessel.RadarSystem.ActiveScanDuration);
 				SignalAmplificationValue.text = ((!(ParentVessel.RadarSystem.SignalAmplification > 1f))
@@ -1200,22 +1195,7 @@ namespace ZeroGravity.ShipComponents
 			if (mapObjects[0] is MapObjectFuzzyScan)
 			{
 				MapObjectFuzzyScan mapObjectFuzzyScan = mapObjects[0] as MapObjectFuzzyScan;
-				HoverObjectName.text = Localization.PossibleContacts + ": " + mapObjectFuzzyScan.Vessels.Count + "\n" +
-				                       Localization.RadarSignature + ": ";
-				if (mapObjectFuzzyScan.Vessels.Count > 1)
-				{
-					Text hoverObjectName = HoverObjectName;
-					string text = hoverObjectName.text;
-					hoverObjectName.text = text +
-					                       mapObjectFuzzyScan.Vessels.Min((SpaceObjectVessel m) => m.RadarSignature)
-						                       .ToString("0") + " " + Localization.To.ToLower() + " " +
-					                       mapObjectFuzzyScan.Vessels.Max((SpaceObjectVessel m) => m.RadarSignature)
-						                       .ToString("0");
-				}
-				else
-				{
-					HoverObjectName.text += mapObjectFuzzyScan.Vessels[0].RadarSignature.ToString("0");
-				}
+				HoverObjectName.text = Localization.PossibleContacts + ": " + mapObjectFuzzyScan.Vessels.Count;
 			}
 			else
 			{

@@ -39,8 +39,6 @@ namespace ZeroGravity.Objects
 
 		public virtual bool IsAlwaysVisible { get; internal set; }
 
-		public virtual double RadarSignature { get; set; } = 0.0;
-
 		public bool IsStabilized => StabilizeToTargetObj != null;
 
 		// Called by the Ship, Asteroid, and Pivot classes by their Create methods.

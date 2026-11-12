@@ -263,7 +263,6 @@ namespace ZeroGravity.ShipComponents
 			generatorData.ResourceContainers = list2;
 			generatorData.OutputRate = OutputRate;
 			generatorData.RoomID = ((!(Room == null)) ? Room.InSceneID : (-1));
-			generatorData.RadarSignature = RadarSignature;
 			generatorData.AuxData = GetAuxData();
 			return generatorData;
 		}

@@ -109,7 +109,7 @@ namespace ZeroGravity.Objects
 		public bool IsThrusting => _inputThrust.IsNotEpsilonZero() || _inputRotation.IsNotEpsilonZero();
 
 		public static async UniTask<Ship> Create(World world, long guid, Vector3 position, Quaternion rotation, string vesselRegistration, string vesselName, string tag, GameScenes.SceneId sceneId,
-			float[] collidersCenterOffset, bool isDebrisFragment, double radarSignature, bool isDistressSignalActive, bool isAlwaysVisible,
+			float[] collidersCenterOffset, bool isDebrisFragment, bool isDistressSignalActive, bool isAlwaysVisible,
 			bool dockingControlsDisabled, bool securityPanelLocked, VesselObjects vesselObjects, DockedVesselData[] dockedVessels, bool isMainObject)
 		{
 			Ship ship = InitialiseArtificialBody(world, guid, SpaceObjectType.Ship, position, rotation) as Ship;
@@ -119,7 +119,6 @@ namespace ZeroGravity.Objects
 			ship.SceneId = sceneId;
 			ship.CollidersCenterOffset = collidersCenterOffset;
 			ship.IsDebrisFragment = isDebrisFragment;
-			ship.RadarSignature = radarSignature;
 			ship.IsDistressSignalActive = isDistressSignalActive;
 			ship.IsAlwaysVisible = isAlwaysVisible;
 			ship.DockingControlsDisabled = dockingControlsDisabled;
@@ -1201,7 +1200,6 @@ namespace ZeroGravity.Objects
 			childShip.SceneId = dockedVessel.SceneId;
 			childShip.CollidersCenterOffset = dockedVessel.CollidersCenterOffset;
 			childShip.IsDebrisFragment = dockedVessel.IsDebrisFragment;
-			childShip.RadarSignature = dockedVessel.RadarSignature;
 			childShip.IsDistressSignalActive = dockedVessel.IsDistressSignalActive;
 			childShip.IsAlwaysVisible = dockedVessel.IsAlwaysVisible;
 			childShip.DockingControlsDisabled = dockedVessel.DockingControlsDisabled;

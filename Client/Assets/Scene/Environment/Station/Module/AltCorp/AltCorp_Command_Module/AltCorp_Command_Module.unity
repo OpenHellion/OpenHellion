@@ -590991,13 +590991,10 @@ MonoBehaviour:
   DebugInfo: 
   _ResourceRequirements:
   - ResourceType: 1
-    Nominal: 0
+    Nominal: 4000
     Standby: 0
-  ActiveScanSensitivity: 900
-  ActiveScanFuzzySensitivity: 2700
   ActiveScanDuration: 3
-  PassiveScanSensitivity: 15
-  WarpDetectionSensitivity: 220
+  PassiveThreshold: 1.119e-9
 --- !u!114 &11851
 MonoBehaviour:
   m_ObjectHideFlags: 0

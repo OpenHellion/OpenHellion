@@ -36,8 +36,6 @@ namespace ZeroGravity.Data
 
 		public List<int> ResourceContainers;
 
-		public float RadarSignature;
-
 		public SystemAuxData AuxData;
 	}
 }

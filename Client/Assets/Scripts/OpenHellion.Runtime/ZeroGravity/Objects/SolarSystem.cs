@@ -304,8 +304,7 @@ namespace ZeroGravity.Objects
 				}
 
 				celestialBody.AsteroidGasBurstDmgMultiplier = data.AsteroidGasBurstDmgMultiplier;
-				celestialBody.ScanningSensitivityModifierValues = data.ScanningSensitivityModifierValues;
-				celestialBody.RadarSignatureModifierValues = data.RadarSignatureModifierValues;
+				celestialBody.NoiseRadius = data.NoiseRadius;
 				AddCelestialBody(celestialBody);
 			}
 

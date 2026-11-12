@@ -12,8 +12,6 @@ namespace ZeroGravity.ShipComponents
 	{
 		public GameObject ScanningCone;
 
-		public float ReferentRadarSignature = 50f;
-
 		public GameObject ScanningEffectCone;
 
 		public float ScanningEffectConeScaleMultiplier;
@@ -92,14 +90,8 @@ namespace ZeroGravity.ShipComponents
 					ScanningConeAngle = 1f;
 				}
 
-				double num = MyRadar.SignalAmplification * MyRadar.GetCelestialSensitivityModifier();
-				if (MyPlayer.Instance.InDebrisField != null)
-				{
-					num *= MyPlayer.Instance.InDebrisField.ScanningSensitivityMultiplier;
-				}
-
-				float num2 = (float)(MyRadar.ActiveScanFuzzySensitivity * 1000.0 /
-					ScanningConeAngle * ReferentRadarSignature * num);
+				float num2 = (float)MyRadar.GetActiveRange(SubSystemRadar.ReferenceCrossSection, ScanningConeAngle,
+					SubSystemRadar.FuzzyThreshold, MyRadar.GetNoise());
 				float num3 = (float)(2.0 * System.Math.Tan(ScanningConeAngle * (System.Math.PI / 180.0) / 2.0));
 				ScanningCone.transform.localScale =
 					new Vector3(num3 * num2, num3 * num2, num2) * (float)ObjectScale;

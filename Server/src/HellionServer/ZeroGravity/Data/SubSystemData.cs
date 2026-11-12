@@ -32,7 +32,5 @@ public class SubSystemData : ISceneData
 
 	public bool AutoReactivate;
 
-	public float RadarSignature;
-
 	public SystemAuxData AuxData;
 }

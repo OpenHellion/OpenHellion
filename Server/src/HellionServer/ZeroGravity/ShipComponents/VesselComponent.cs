@@ -41,10 +41,6 @@ public abstract class VesselComponent : IResourceConsumer, IResourceUser, IPersi
 
 	protected float _OperationRate;
 
-	protected float baseRadarSignature = 0f;
-
-	protected float radarSignatureMultiplier = 1f;
-
 	private Dictionary<DistributionSystemType, SortedSet<IResourceProvider>> _ConnectedProviders = new Dictionary<DistributionSystemType, SortedSet<IResourceProvider>>();
 
 	private Dictionary<DistributionSystemType, ResourceRequirement> _ResourcesConsumption = new Dictionary<DistributionSystemType, ResourceRequirement>();
@@ -74,18 +70,6 @@ public abstract class VesselComponent : IResourceConsumer, IResourceUser, IPersi
 	public virtual bool FixedConsumption => true;
 
 	public virtual bool CanBlueprintForceState => true;
-
-	public float RadarSignature
-	{
-		get
-		{
-			if (_Status is SystemStatus.OnLine or SystemStatus.CoolDown)
-			{
-				return baseRadarSignature * radarSignatureMultiplier;
-			}
-			return 0f;
-		}
-	}
 
 	public bool Defective
 	{
@@ -602,14 +586,6 @@ public abstract class VesselComponent : IResourceConsumer, IResourceUser, IPersi
 				_SecondaryStatus = SystemSecondaryStatus.Idle;
 			}
 			ParentVessel.RepairPoints.FirstOrDefault((VesselRepairPoint m) => m.AffectedSystem == this)?.Update();
-			if (baseRadarSignature != 0f)
-			{
-				ParentVessel.MainVessel.UpdateVesselData();
-			}
-		}
-		else if (Status == SystemStatus.OffLine && baseRadarSignature != 0f)
-		{
-			ParentVessel.MainVessel.UpdateVesselData();
 		}
 		StatusChanged = true;
 
@@ -634,14 +610,6 @@ public abstract class VesselComponent : IResourceConsumer, IResourceUser, IPersi
 				_SecondaryStatus = SystemSecondaryStatus.Idle;
 			}
 			ParentVessel.RepairPoints.FirstOrDefault((VesselRepairPoint m) => m.AffectedSystem == this)?.Update();
-			if (baseRadarSignature != 0f)
-			{
-				ParentVessel.MainVessel.UpdateVesselData();
-			}
-		}
-		else if (Status == SystemStatus.OffLine && baseRadarSignature != 0f)
-		{
-			ParentVessel.MainVessel.UpdateVesselData();
 		}
 		StatusChanged = true;
 	}

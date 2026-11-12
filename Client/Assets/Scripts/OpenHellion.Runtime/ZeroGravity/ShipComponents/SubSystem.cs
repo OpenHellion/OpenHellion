@@ -213,7 +213,6 @@ namespace ZeroGravity.ShipComponents
 				CoolDownTime = CoolDownTime,
 				PowerUpTime = PowerUpTime,
 				AuxData = GetAuxData(),
-				RadarSignature = RadarSignature,
 				RoomID = (!(Room == null)) ? Room.InSceneID : (-1)
 			};
 			return subSystemData;

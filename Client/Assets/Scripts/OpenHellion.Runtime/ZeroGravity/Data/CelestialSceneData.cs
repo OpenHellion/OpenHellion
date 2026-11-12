@@ -14,7 +14,7 @@ namespace ZeroGravity.Data
 
 		public float Radius;
 
-		public float RadarSignature;
+		public float RadarCrossSection;
 
 		public List<AsteroidMiningPointData> MiningPoints;
 

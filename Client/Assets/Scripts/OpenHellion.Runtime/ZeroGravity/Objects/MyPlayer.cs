@@ -2539,12 +2539,6 @@ namespace ZeroGravity.Objects
 				GUI.Label(new Rect(250f, 15f, 200f, 30f), "NO PARENT");
 			}
 
-			if (Parent is SpaceObjectVessel)
-			{
-				GUI.Label(new Rect(750f, 15f, 1000f, 30f),
-					"Rad.sig.: " + (Parent as SpaceObjectVessel).MainVessel.RadarSignature);
-			}
-
 			GUI.color = Color.green;
 			if (LockedToTrigger != null)
 			{

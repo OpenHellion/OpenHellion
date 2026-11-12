@@ -134,6 +134,14 @@ public class DebrisField
 		return details;
 	}
 
+	public bool Contains(Vector3D position)
+	{
+		Orbit.GetOrbitPlaneData(out var planeRot, out var planeCenter);
+		Vector3D relPos = position - (Orbit.Parent.Position + planeCenter);
+		Vector3D posOnOrbit = Vector3D.ProjectOnPlane(relPos, planeRot * Vector3D.Up).Normalized * Orbit.SemiMajorAxis;
+		return (posOnOrbit - relPos).SqrMagnitude <= radiusSq;
+	}
+
 	public async Task CheckVessels(double time)
 	{
 		HashSet<SpaceObjectVessel> damageVessel = new HashSet<SpaceObjectVessel>();
@@ -144,12 +152,10 @@ public class DebrisField
 			{
 				continue;
 			}
-			Orbit.GetOrbitPlaneData(out var planeRot, out var planeCenter);
-			Vector3D relPos = ab.Position - (Orbit.Parent.Position + planeCenter);
-			Vector3D proj = Vector3D.ProjectOnPlane(relPos, planeRot * Vector3D.Up);
-			Vector3D posOnOrbit = proj.Normalized * Orbit.SemiMajorAxis;
-			if ((posOnOrbit - relPos).SqrMagnitude <= radiusSq)
+			if (Contains(ab.Position))
 			{
+				Orbit.GetOrbitPlaneData(out var planeRot, out var planeCenter);
+				Vector3D proj = Vector3D.ProjectOnPlane(ab.Position - (Orbit.Parent.Position + planeCenter), planeRot * Vector3D.Up);
 				if (Data.DamageVesselChance >= MathHelper.RandomNextDouble() && ab is SpaceObjectVessel vessel)
 				{
 					damageVessel.Add(vessel);
