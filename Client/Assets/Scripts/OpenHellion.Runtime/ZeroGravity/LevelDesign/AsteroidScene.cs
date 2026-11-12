@@ -14,8 +14,6 @@ namespace ZeroGravity.LevelDesign
 
 		[Tooltip("Scene mass in tons")] public float Mass;
 
-		[Tooltip("Object radar signature")] public float RadarSignature = 250000000f;
-
 		private float _radius;
 
 		public GameObject ExteriorObject;

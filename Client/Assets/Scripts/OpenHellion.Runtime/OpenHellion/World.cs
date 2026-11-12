@@ -977,7 +977,7 @@ namespace OpenHellion
 					try
 					{
 						await Ship.Create(this, shipData.Guid, shipData.Position.ToVector3(), shipData.Rotation.ToQuaternion(), shipData.VesselRegistration, shipData.VesselName,
-							shipData.Tag,shipData.SceneId, shipData.CollidersCenterOffset, shipData.IsDebrisFragment, shipData.RadarSignature, shipData.IsDistressSignalActive,
+							shipData.Tag,shipData.SceneId, shipData.CollidersCenterOffset, shipData.IsDebrisFragment, shipData.IsDistressSignalActive,
 							shipData.IsAlwaysVisible, shipData.DockingControlsDisabled, shipData.SecurityPanelsLocked, shipData.VesselObjects, shipData.DockedVessels,
 							shipData.Guid == mainObjectGuid || (shipData.DockedVessels != null && shipData.DockedVessels.Any(m => m.Guid == mainObjectGuid)));
 					}
@@ -1187,11 +1187,6 @@ namespace OpenHellion
 					if (item.VesselRegistration is not null)
 					{
 						spaceObjectVessel.VesselRegistration = item.VesselRegistration;
-					}
-
-					if (item.RadarSignature.HasValue)
-					{
-						spaceObjectVessel.RadarSignature = item.RadarSignature.Value;
 					}
 
 					if (item.IsAlwaysVisible.HasValue)

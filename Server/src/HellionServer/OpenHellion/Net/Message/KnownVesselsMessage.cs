@@ -41,7 +41,7 @@ public class KnownVesselsMessage : NetworkData
 
 		public OrbitData Orbit;
 
-		public double RadarSignature;
+		public double CrossSection;
 
 		public bool IsAlwaysVisible;
 

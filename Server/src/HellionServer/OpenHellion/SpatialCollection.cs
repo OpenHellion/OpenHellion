@@ -216,6 +216,41 @@ public class SpatialCollection<TValue>
 	}
 
 	/// <summary>
+	/// 	The occupied cells within <paramref name="extent"/> cells of <paramref name="centerCell"/>. Walks the cube of
+	/// 	candidate cells when it is smaller than the set of occupied cells, so very large radii cost no more than a pass
+	/// 	over what actually exists.
+	/// </summary>
+	private IEnumerable<ConcurrentDictionary<long, Vector3D>> CellsWithin(Cell centerCell, int extent)
+	{
+		long side = 2L * extent + 1;
+		if (side * side * side > _grid.Count)
+		{
+			foreach ((Cell cell, ConcurrentDictionary<long, Vector3D> cellContents) in _grid)
+			{
+				if (Math.Abs(cell.X - centerCell.X) <= extent && Math.Abs(cell.Y - centerCell.Y) <= extent && Math.Abs(cell.Z - centerCell.Z) <= extent)
+				{
+					yield return cellContents;
+				}
+			}
+			yield break;
+		}
+
+		for (int dx = -extent; dx <= extent; dx++)
+		{
+			for (int dy = -extent; dy <= extent; dy++)
+			{
+				for (int dz = -extent; dz <= extent; dz++)
+				{
+					if (_grid.TryGetValue(new Cell(centerCell.X + dx, centerCell.Y + dy, centerCell.Z + dz), out ConcurrentDictionary<long, Vector3D> cellContents))
+					{
+						yield return cellContents;
+					}
+				}
+			}
+		}
+	}
+
+	/// <summary>
 	/// 	Search for objects within a sphere.
 	/// </summary>
 	/// <param name="centre">Centre of sphere to search.</param>
@@ -234,28 +269,18 @@ public class SpatialCollection<TValue>
 		Cell centerCell = new Cell(centre, _inverseCellSize);
 		double radiusSquared = radius * radius;
 
-		for (int dx = -extent; dx <= extent; dx++)
+		foreach (ConcurrentDictionary<long, Vector3D> cellContents in CellsWithin(centerCell, extent))
 		{
-			for (int dy = -extent; dy <= extent; dy++)
+			foreach ((long id, Vector3D pos) in cellContents)
 			{
-				for (int dz = -extent; dz <= extent; dz++)
+				if ((ignoreId.HasValue && id == ignoreId.Value) || Vector3D.DistanceSquared(centre, pos) > radiusSquared)
 				{
-					Cell cell = new Cell(centerCell.X + dx, centerCell.Y + dy, centerCell.Z + dz);
-					if (_grid.TryGetValue(cell, out ConcurrentDictionary<long, Vector3D> cellContents))
-					{
-						foreach ((long id, Vector3D pos) in cellContents)
-						{
-							if ((ignoreId.HasValue && id == ignoreId.Value) || Vector3D.DistanceSquared(centre, pos) > radiusSquared)
-							{
-								continue;
-							}
+					continue;
+				}
 
-							if (_storage.TryGetValue(id, out TValue output))
-							{
-								results.Add(output);
-							}
-						}
-					}
+				if (_storage.TryGetValue(id, out TValue output))
+				{
+					results.Add(output);
 				}
 			}
 		}
@@ -283,28 +308,18 @@ public class SpatialCollection<TValue>
 		Cell centerCell = new Cell(centre, _inverseCellSize);
 		double radiusSquared = radius * radius;
 
-		for (int dx = -extent; dx <= extent; dx++)
+		foreach (ConcurrentDictionary<long, Vector3D> cellContents in CellsWithin(centerCell, extent))
 		{
-			for (int dy = -extent; dy <= extent; dy++)
+			foreach ((long id, Vector3D pos) in cellContents)
 			{
-				for (int dz = -extent; dz <= extent; dz++)
+				if ((ignoreId.HasValue && id == ignoreId.Value) || Vector3D.DistanceSquared(centre, pos) > radiusSquared)
 				{
-					Cell cell = new Cell(centerCell.X + dx, centerCell.Y + dy, centerCell.Z + dz);
-					if (_grid.TryGetValue(cell, out ConcurrentDictionary<long, Vector3D> cellContents))
-					{
-						foreach ((long id, Vector3D pos) in cellContents)
-						{
-							if ((ignoreId.HasValue && id == ignoreId.Value) || Vector3D.DistanceSquared(centre, pos) > radiusSquared)
-							{
-								continue;
-							}
+					continue;
+				}
 
-							if (_storage.TryGetValue(id, out TValue output) && output is TFilter typed)
-							{
-								results.Add(typed);
-							}
-						}
-					}
+				if (_storage.TryGetValue(id, out TValue output) && output is TFilter typed)
+				{
+					results.Add(typed);
 				}
 			}
 		}

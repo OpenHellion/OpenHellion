@@ -97,8 +97,6 @@ namespace OpenHellion
 				SceneName = scene.name,
 				GameName = structure.GameName,
 				Mass = structure.Mass * 1000f,
-				RadarSignature = structure.RadarSignature,
-				RadarSignatureHealthMultipliers = SampleCurve(structure.RadarSignatureHealthMultiplier),
 				HeatCollectionFactor = structure.HeatCollectionFactor,
 				HeatDissipationFactor = structure.HeatDissipationFactor,
 				StructureConnections = new List<StructureSceneConnectionData>(),
@@ -570,17 +568,6 @@ namespace OpenHellion
 			}
 
 			return list;
-		}
-
-		private static float[] SampleCurve(AnimationCurve curve)
-		{
-			float[] samples = new float[10];
-			for (int i = 0; i < samples.Length; i++)
-			{
-				samples[i] = curve.Evaluate(i / (samples.Length - 1f));
-			}
-
-			return samples;
 		}
 	}
 }

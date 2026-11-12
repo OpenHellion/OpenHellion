@@ -508219,11 +508219,8 @@ MonoBehaviour:
   - ResourceType: 1
     Nominal: 1000
     Standby: 0
-  ActiveScanSensitivity: 900
-  ActiveScanFuzzySensitivity: 2700
   ActiveScanDuration: 3
-  PassiveScanSensitivity: 9
-  WarpDetectionSensitivity: 150
+  PassiveThreshold: 4.476e-9
 --- !u!114 &11843
 MonoBehaviour:
   m_ObjectHideFlags: 0

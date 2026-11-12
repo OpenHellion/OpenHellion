@@ -36,7 +36,5 @@ public class GeneratorData : ISceneData
 
 	public List<int> ResourceContainers;
 
-	public float RadarSignature;
-
 	public SystemAuxData AuxData;
 }

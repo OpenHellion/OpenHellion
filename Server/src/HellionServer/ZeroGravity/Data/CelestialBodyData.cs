@@ -40,7 +40,6 @@ public class CelestialBodyData : ISceneData
 
 	public List<ResourceMinMax> AsteroidResources;
 
-	public float[] ScanningSensitivityModifierValues;
+	public double NoiseRadius;
 
-	public float[] RadarSignatureModifierValues;
 }

@@ -24,8 +24,6 @@ namespace ZeroGravity.Network
 
 		public double CreationSolarSystemTime;
 
-		public double RadarSignature;
-
 		public bool IsDistressSignalActive;
 
 		public bool IsAlwaysVisible;

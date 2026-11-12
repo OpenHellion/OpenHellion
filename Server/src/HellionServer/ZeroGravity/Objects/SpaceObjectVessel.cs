@@ -30,6 +30,8 @@ public abstract class SpaceObjectVessel : ArtificialBody
 
 	public List<VesselMeshColliderData> MeshCollidersData = new List<VesselMeshColliderData>();
 
+	public float RadarCrossSection;
+
 	public RigidBody RigidBody;
 
 	public static double ArenaRescueTime = TimeSpan.FromMinutes(30.0).TotalSeconds;
@@ -72,8 +74,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 
 	public bool IsDebrisFragment { get; protected set; }
 
-	public virtual float RadarSignature { get; protected set; }
-
 	public bool IsDistressSignalActive { get; protected set; }
 
 	public bool IsAlwaysVisible { get; internal set; }
@@ -82,9 +82,44 @@ public abstract class SpaceObjectVessel : ArtificialBody
 
 	public double CreationSolarSystemTime { get; protected set; }
 
-	public float GetCompoundRadarSignature()
+	/// <summary>
+	/// 	Heat and radio the structure gives off, in watts. Every watt its running systems draw ends up radiated, so
+	/// 	engines, warp drives and transmitting radars make a vessel loud and a powered-down one silent.
+	/// </summary>
+	public double Emission
 	{
-		return AllVessels.Sum((SpaceObjectVessel m) => m.RadarSignature);
+		get
+		{
+			double kilowatts = 0.0;
+			foreach (VesselComponent component in Systems)
+			{
+				if (component is SubSystem { Status: SystemStatus.OnLine } subSystem && subSystem.ResourceRequirements.TryGetValue(DistributionSystemType.Power, out ResourceRequirement power))
+				{
+					kilowatts += power.Nominal * subSystem.PowerInputFactor * (subSystem.FixedConsumption ? 1f : subSystem.OperationRate);
+				}
+			}
+			return kilowatts * 1000.0;
+		}
+	}
+
+	public double GetCompoundCrossSection()
+	{
+		double crossSection = MainVessel.RadarCrossSection;
+		foreach (SpaceObjectVessel docked in MainVessel.AllDockedVessels)
+		{
+			crossSection += docked.RadarCrossSection;
+		}
+		return crossSection;
+	}
+
+	public double GetCompoundEmission()
+	{
+		double emission = MainVessel.Emission;
+		foreach (SpaceObjectVessel docked in MainVessel.AllDockedVessels)
+		{
+			emission += docked.Emission;
+		}
+		return emission;
 	}
 
 	public List<SpawnObjectsWithChance> SpawnChance = new List<SpawnObjectsWithChance>();
@@ -1593,7 +1628,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 			Guid = Guid,
 			VesselName = vesselName,
 			VesselRegistration = vesselRegistration,
-			RadarSignature = GetCompoundRadarSignature(),
 			IsAlwaysVisible = IsAlwaysVisible,
 			IsDistressSignalActive = IsDistressSignalActive
 		};

@@ -51,8 +51,6 @@ public class ObjectsInfoResponse : NetworkData
 
 		public bool IsDebrisFragment;
 
-		public double RadarSignature;
-
 		public bool IsDistressSignalActive;
 
 		public bool IsAlwaysVisible;

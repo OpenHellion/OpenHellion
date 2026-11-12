@@ -15,9 +15,9 @@ namespace ZeroGravity.ShipComponents
 			}
 		}
 
-		public virtual double RadarSignature
+		public virtual double CrossSection
 		{
-			get { return (MainObject as MapItemData)?.RadarSignature ?? 0.0; }
+			get { return (MainObject as MapItemData)?.CrossSection ?? 0.0; }
 		}
 
 		public override void UpdateVisibility()

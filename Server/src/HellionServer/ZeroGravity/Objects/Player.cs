@@ -1414,28 +1414,28 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 			return;
 		}
 
-		SubSystemRadar radar = (Parent as SpaceObjectVessel)?.MainVessel.MainDistributionManager?.GetSubSystems()
-			.OfType<SubSystemRadar>().FirstOrDefault();
+		SubSystemRadar radar = SubSystemRadar.FindUsable(Parent);
 		if (radar == null || request.ScanDirection == null)
 		{
-			Debug.State($"player {Guid} active scan ignored: parent {Parent?.Guid} {Parent?.GetType().Name} radar {radar != null} direction {request.ScanDirection != null}");
+			Debug.State($"player {Guid} active scan ignored: parent {Parent?.Guid} {Parent?.GetType().Name} radar {radar != null} direction {request.ScanDirection != null} warping {(Parent as SpaceObjectVessel)?.MainVessel.IsWarping} base {(Parent as SpaceObjectVessel)?.MainVessel.VesselBaseSystem?.Status}");
 			return;
 		}
 
 		await radar.GoOnLine();
 		Vector3D direction = request.ScanDirection.ToVector3D();
-		List<long> hits = radar.ActiveScan(direction, request.ScanAngle);
+		List<long> fuzzy = [];
+		List<long> hits = radar.ActiveScan(direction, request.ScanAngle, fuzzy);
 		foreach (long guid in hits)
 		{
 			DiscoveredVessels.Add(guid);
 		}
 
-		Debug.State($"player {Guid} active scan from {radar.ParentVessel.Guid} status {radar.Status} passive {radar.PassiveScanSensitivity} active {radar.ActiveScanSensitivity}" +
-			$" direction {direction} angle {request.ScanAngle} hits [{string.Join(", ", hits)}] nearest in cone: " +
+		Debug.State($"player {Guid} active scan from {radar.ParentVessel.Guid} status {radar.Status} transmit {radar.TransmitPower / 1000.0:F0} kW noise {radar.GetNoise():F2}" +
+			$" direction {direction} angle {request.ScanAngle} hits [{string.Join(", ", hits)}] fuzzy [{string.Join(", ", fuzzy)}] nearest in cone: " +
 			string.Join("; ", Server.Instance.AllVessels
 				.Where(m => m.IsMainVessel && m != radar.ParentVessel.MainVessel && Vector3D.Angle(direction, (m.Position - radar.ParentVessel.Position).Normalized) <= request.ScanAngle / 2f)
 				.OrderBy(m => (m.Position - radar.ParentVessel.Position).Magnitude).Take(10)
-				.Select(m => $"{m.Guid} {(m.Position - radar.ParentVessel.Position).Magnitude / 1000.0:F0} km signature {m.GetCompoundRadarSignature():F0}")));
+				.Select(m => $"{m.Guid} {(m.Position - radar.ParentVessel.Position).Magnitude / 1000.0:F0} km cross-section {m.GetCompoundCrossSection():F0} m2 emission {m.GetCompoundEmission() / 1000.0:F0} kW")));
 
 		await Server.Instance.SolarSystem.SendKnownVesselsToPlayer(this);
 	}
