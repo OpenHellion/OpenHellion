@@ -70,6 +70,7 @@ Movement:
 [ ] Enable movement when hooked onto panel (so that you can't stop collision by opening the ship door panel)
 [ ] Make sure stabilisation doesn't make you immune to depressurisation movement
 [ ] Piloting on a laggy server is horrible
+[ ] Rip out bullet physics and only rely on local client-side micro-level physics simulation and orbital calculations on the server
 
 Debugging/diagnostics:
 [x] Fix console (add errors and make player admin)
@@ -131,7 +132,8 @@ Short-term:
 [ ] Fix refused state request echoing back same request instead of sending actual state or error
 [ ] See if we can merge tick and flush in GameTransport
 [ ] Fix ship radar element under quest indicator (not selectable)
-[ ] Fix breaking bug where docking a ship kills the player
+[x] Fix breaking bug where docking a ship kills the player
+[ ] Fix names and icons not showing on radar GUI elements on map and ship lists
 
 Server:
 [x] Remove VesselData

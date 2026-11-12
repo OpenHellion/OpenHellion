@@ -236,16 +236,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 		? base.Velocity
 		: MainVessel.Velocity + Vector3D.Cross(MainVessel.Rotation * MainVessel.AngularVelocity * (System.Math.PI / 180.0), Position - MainVessel.Position);
 
-	public override OrbitParameters Orbit
-	{
-		get
-		{
-			Debug.StateOncePerCaller(IsDocked, $"docked vessel {Guid} orbit read");
-			return base.Orbit;
-		}
-		set => base.Orbit = value;
-	}
-
 	public override QuaternionD Rotation
 	{
 		get

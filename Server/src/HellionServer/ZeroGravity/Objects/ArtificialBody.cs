@@ -11,7 +11,7 @@ public class ArtificialBody : SpaceObject
 {
 	private double _prevUpdatePositionTime = Server.SolarSystemTime;
 
-	public virtual OrbitParameters Orbit { get; set; } = new OrbitParameters();
+	public OrbitParameters Orbit { get; set; } = new OrbitParameters();
 
 	private ManeuverCourse _currentCourse;
 
