@@ -969,6 +969,7 @@ namespace OpenHellion
 				Debug.LogWarning($"Attempted to spawn objects {string.Join(",", guids)} but got no response.");
 				return;
 			}
+			Diagnostics.Log($"mass spawn: objects info received for {guids.Length} objects, {response.ShipObjects?.Length} ships, {response.AsteroidObjects?.Length} asteroids, {response.DynamicObjects?.Length} dynamic objects");
 
 			if (response.ShipObjects != null)
 			{
@@ -980,6 +981,7 @@ namespace OpenHellion
 							shipData.Tag,shipData.SceneId, shipData.CollidersCenterOffset, shipData.IsDebrisFragment, shipData.RadarSignature, shipData.IsDistressSignalActive,
 							shipData.IsAlwaysVisible, shipData.DockingControlsDisabled, shipData.SecurityPanelsLocked, shipData.VesselObjects, shipData.DockedVessels,
 							shipData.Guid == mainObjectGuid || (shipData.DockedVessels != null && shipData.DockedVessels.Any(m => m.Guid == mainObjectGuid)));
+						Diagnostics.Log($"mass spawn: ship '{shipData.VesselRegistration}' ({shipData.Guid}) scene {shipData.SceneId} with {shipData.DockedVessels?.Length ?? 0} docked created");
 					}
 					catch (Exception ex)
 					{
@@ -997,6 +999,7 @@ namespace OpenHellion
 						await Asteroid.Create(this, asteroidData.Guid, asteroidData.Position.ToVector3(), asteroidData.Rotation.ToQuaternion(), asteroidData.VesselRegistration,
 							asteroidData.VesselName, asteroidData.Tag, asteroidData.SceneId, asteroidData.IsDebrisFragment, asteroidData.IsAlwaysVisible, asteroidData.Radius,
 							asteroidData.MiningPoints, asteroidData.Guid == mainObjectGuid);
+						Diagnostics.Log($"mass spawn: asteroid '{asteroidData.VesselRegistration}' ({asteroidData.Guid}) scene {asteroidData.SceneId} created");
 					}
 					catch (Exception ex)
 					{
@@ -1064,6 +1067,7 @@ namespace OpenHellion
 					}
 				}
 			}
+			Diagnostics.Log("mass spawn: done");
 		}
 
 
@@ -1222,12 +1226,14 @@ namespace OpenHellion
 			SolarSystem.Set(this, GameObject.Find("/SolarSystemRoot/SunRoot").transform,
 				GameObject.Find("/SolarSystemRoot/PlanetsRoot").transform, logInResponse.ServerTime);
 			SolarSystem.LoadDataFromResources();
+			Diagnostics.Log("login: solar system data loaded");
 
 			_pendingSpawn.Clear();
 			_spawnInFlight.Clear();
 			_failedSpawnTimes.Clear();
 
 			await MyPlayer.SpawnMyPlayer(this, logInResponse);
+			Diagnostics.Log("login: my player spawned");
 
 			foreach (DebrisFieldDetails debrisField in logInResponse.DebrisFields)
 			{
@@ -1277,7 +1283,9 @@ namespace OpenHellion
 
 			try
 			{
+				Diagnostics.Log("login: spawn request sent");
 				var spawnResponse = await NetworkController.SendReceiveAsync(playerSpawnRequest, 10000) as PlayerSpawnResponse;
+				Diagnostics.Log($"login: spawn response received, {spawnResponse.AllNearbySpaceObjects?.Length} nearby objects");
 
 				if (spawnResponse.Status != NetworkData.MessageStatus.Success)
 				{
@@ -1307,6 +1315,7 @@ namespace OpenHellion
 				}
 
 				await MassSpawn(spawnResponse.AllNearbySpaceObjects, spawnResponse.ParentGuid);
+				Diagnostics.Log("login: mass spawn done");
 
 				if (TryGetSpaceObject(spawnResponse.ParentGuid, out SpaceObject parent))
 				{

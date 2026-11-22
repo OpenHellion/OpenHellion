@@ -399,6 +399,10 @@ public sealed class Server
 
 	private const double ShipSystemSweepSeconds = 1.0;
 
+	private const int InactiveShipSystemSweepInterval = 30;
+
+	private const double ActiveVesselKeepRadius = SolarSystem.ViewRadius * 1.5;
+
 	private static double _pilotStateTimer;
 
 	private static double _movementMessageTimer;
@@ -430,6 +434,8 @@ public sealed class Server
 	private double _shipSystemSweepTime;
 
 	private double _shipSystemSweepSeconds = ShipSystemSweepSeconds;
+
+	private int _shipSystemSweepCount;
 
 	public readonly ConcurrentDictionary<long, VesselDataUpdate> VesselsDataUpdate = new ConcurrentDictionary<long, VesselDataUpdate>();
 
@@ -2269,18 +2275,27 @@ public sealed class Server
 			{
 				continue;
 			}
+			double sweepSeconds = _shipSystemSweepSeconds;
+			if (vessel.MainVessel.RigidBody is null)
+			{
+				if ((vessel.Guid + _shipSystemSweepCount) % InactiveShipSystemSweepInterval != 0)
+				{
+					continue;
+				}
+				sweepSeconds *= InactiveShipSystemSweepInterval;
+			}
 			vessel.RefreshSunlightExposure();
 			foreach (SpaceObjectVessel dockedVessel in vessel.AllDockedVessels)
 			{
 				dockedVessel.RefreshSunlightExposure();
 			}
 			await vessel.UpdateVesselSystems();
-			vessel.DecayGraceTimer = MathHelper.Clamp(vessel.DecayGraceTimer - _shipSystemSweepSeconds, 0.0, double.MaxValue);
+			vessel.DecayGraceTimer = MathHelper.Clamp(vessel.DecayGraceTimer - sweepSeconds, 0.0, double.MaxValue);
 			if (vessel.DecayGraceTimer <= double.Epsilon)
 			{
 				await vessel.ChangeHealthBy(
-					(float)((0f - vessel.ExposureDamage) * VesselDecayRateMultiplier * _shipSystemSweepSeconds), null,
-					VesselRepairPoint.Priority.Internal, force: false, VesselDamageType.Decay, _shipSystemSweepSeconds);
+					(float)((0f - vessel.ExposureDamage) * VesselDecayRateMultiplier * sweepSeconds), null,
+					VesselRepairPoint.Priority.Internal, force: false, VesselDamageType.Decay, sweepSeconds);
 			}
 		}
 		if (_shipSystemCursor >= _shipSystemSweep.Length && _shipSystemSweepTime >= ShipSystemSweepSeconds)
@@ -2291,6 +2306,7 @@ public sealed class Server
 			}
 			_shipSystemSweepSeconds = _shipSystemSweepTime;
 			_shipSystemSweep = [.. _vessels.Values];
+			_shipSystemSweepCount++;
 			_shipSystemCursor = 0;
 			_shipSystemSweepTime = 0.0;
 		}
@@ -2301,10 +2317,9 @@ public sealed class Server
 			_pilotStateTimer = _pilotStateTimer > PilotStateSendInterval * 2.0
 				? 0.0
 				: _pilotStateTimer - PilotStateSendInterval;
-			Player[] pilots = [.. AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive && m.IsDrivingShip)];
-			if (pilots.Length > 0)
+			foreach (Player pilot in AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive && m.IsDrivingShip))
 			{
-				await Parallel.ForEachAsync(pilots, async (pl, ct) => await SolarSystem.SendPilotStateMessageToPlayer(pl)).WaitAsync(new TimeSpan(0, 0, 10));
+				await SolarSystem.SendPilotStateMessageToPlayer(pilot);
 			}
 		}
 
@@ -2315,11 +2330,29 @@ public sealed class Server
 				? 0.0
 				: _movementMessageTimer - MovementMessageSendInterval;
 			Player[] players = [.. AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive)];
-			if (players.Length > 0)
+			foreach (Player player in players)
 			{
-				await Parallel.ForEachAsync(players, async (pl, ct) => await SolarSystem.SendMovementMessageToPlayer(pl)).WaitAsync(new TimeSpan(0, 0, 10));
+				await SolarSystem.SendMovementMessageToPlayer(player);
 			}
 			await SolarSystem.SendStateMessages(players);
+
+			HashSet<long> keepActive = [.. players.SelectMany(player => SpaceObjects.QueryRadius<SpaceObjectVessel>(player.Position, ActiveVesselKeepRadius)).Select(vessel => vessel.Guid)];
+			foreach (SpaceObjectVessel vessel in _vessels.Values)
+			{
+				if (!vessel.IsMainVessel)
+				{
+					continue;
+				}
+				if (vessel.RigidBody is null && players.Any(player => player.KnownView.Contains(vessel.Guid)))
+				{
+					PhysicsController.CreateAndAddRigidBody(vessel);
+					vessel.SetPhysicsParameters();
+				}
+				else if (vessel.RigidBody is not null && !keepActive.Contains(vessel.Guid))
+				{
+					PhysicsController.RemoveRigidBody(vessel);
+				}
+			}
 #if DEBUG
 			if (SolarSystem.State.ValidateInvariants() is { } broken)
 			{
@@ -2554,9 +2587,9 @@ public sealed class Server
 			}
 
 			tickDeadline += tickPeriod;
-			if (tickDeadline < Stopwatch.GetTimestamp())
+			if (tickDeadline < Stopwatch.GetTimestamp() - tickPeriod)
 			{
-				tickDeadline = Stopwatch.GetTimestamp() + tickPeriod;
+				tickDeadline = Stopwatch.GetTimestamp();
 			}
 		}
 

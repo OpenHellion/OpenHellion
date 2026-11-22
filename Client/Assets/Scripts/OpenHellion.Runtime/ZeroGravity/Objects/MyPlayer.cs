@@ -2363,8 +2363,10 @@ namespace ZeroGravity.Objects
 		/// </summary>
 		public static async UniTask SpawnMyPlayer(World world, LogInResponse res)
 		{
+			Diagnostics.Log("spawn my player: instantiating character");
 			GameObject characterObject = Instantiate(Resources.Load("Models/Units/Characters/FirstPersonCharacter")) as GameObject;
 			characterObject.SetActive(false);
+			Diagnostics.Log("spawn my player: character instantiated");
 
 			GenderSettings genderSettings = characterObject.GetComponent<GenderSettings>();
 			GenderSettings.GenderItem genderItem = null;
@@ -2396,6 +2398,7 @@ namespace ZeroGravity.Objects
 			headObject.transform.localPosition = new Vector3(0f, -1.34f, 0f);
 			headObject.transform.localRotation = Quaternion.identity;
 			headObject.transform.localScale = Vector3.one;
+			Diagnostics.Log("spawn my player: head instantiated");
 
 			AnimatorHelper animatorHelper = genderItem.Outfit.GetComponent<AnimatorHelper>();
 			myPlayer.FpsController.AnimatorHelper = animatorHelper;
@@ -2431,6 +2434,7 @@ namespace ZeroGravity.Objects
 			myPlayer.rigidBody.isKinematic = true;
 			AkSoundEngine.SetRTPCValue(SoundManager.InGameVolume, 0f);
 			world.InGameGUI.Console.CheckIfGodAndUpdate();
+			Diagnostics.Log("spawn my player: done");
 
 			Debug.Log("Successfully spawned player.");
 		}

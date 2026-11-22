@@ -44,7 +44,7 @@ public class Asteroid : SpaceObjectVessel, IPersistantObject
 			CreationSolarSystemTime = Server.SolarSystemTime
 		};
 		asteroid.ReadInfoFromJson();
-		Server.Instance.PhysicsController.CreateAndAddRigidBody(asteroid);
+		asteroid.RecalculateCenter();
 		Server.Instance.SolarSystem.GetSpawnPosition(asteroid.Radius, checkPosition, out astPos, out astVel, out astRotation, nearArtificialBodyGUIDs, celestialBodyGUIDs, positionOffset, velocityAtPosition, localRotation, distanceFromSurfacePercMin, distanceFromSurfacePercMax, spawnRuleOrbit, celestialBodyDeathDistanceMultiplier, artificialBodyDistanceCheck, out orbit);
 		asteroid.InitializeOrbit(astPos, astVel, astRotation, orbit);
 		if (registration.IsNullOrEmpty())
@@ -104,7 +104,6 @@ public class Asteroid : SpaceObjectVessel, IPersistantObject
 			}
 		}
 		Server.Instance.Add(asteroid);
-		asteroid.SetPhysicsParameters();
 		return asteroid;
 	}
 
@@ -259,7 +258,8 @@ public class Asteroid : SpaceObjectVessel, IPersistantObject
 		SceneId = data.SceneID;
 		IsAlwaysVisible = data.IsAlwaysVisible;
 		ReadInfoFromJson();
-		Server.Instance.PhysicsController.CreateAndAddRigidBody(this);
+		RecalculateCenter();
+		CreationSolarSystemTime = Server.SolarSystemTime;
 		InitializeOrbit(Vector3D.Zero, Vector3D.One, data.Rotation.ToQuaternionD());
 		if (data.OrbitData != null)
 		{

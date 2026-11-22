@@ -1192,7 +1192,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		};
 		await newShip.CreateShipData(registration, vesselTag, sceneID, loadDynamicObjects: true, health);
 		newShip.DistributionManager = new DistributionManager(newShip);
-		Server.Instance.PhysicsController.CreateAndAddRigidBody(newShip);
 		Server.Instance.SolarSystem.GetSpawnPosition(newShip.Radius, checkPosition, out shipPos, out shipVel, out shipRotation, nearArtificialBodyGUIDs, celestialBodyGUIDs, positionOffset, velocityAtPosition, localRotation, distanceFromSurfacePercMin, distanceFromSurfacePercMax, spawnRuleOrbit, celestialBodyDeathDistanceMultiplier, artificialBodyDistanceCheck, out OrbitParameters orbit);
 		newShip.InitializeOrbit(shipPos, shipVel, shipRotation, orbit);
 		if (registration.IsNullOrEmpty())
@@ -1212,7 +1211,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		}
 		await newShip.MainDistributionManager.UpdateSystems();
 		Server.Instance.Add(newShip);
-		newShip.SetPhysicsParameters();
 		return newShip;
 	}
 
@@ -1520,7 +1518,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		LoadShipRequestPersistance(data.timePassedSinceShipCall);
 		DistributionManager = new DistributionManager(this);
 		InitializeOrbit(Vector3D.Zero, Vector3D.One, data.Rotation.ToQuaternionD());
-		Server.Instance.PhysicsController.CreateAndAddRigidBody(this);
 		AngularVelocity = data.AngularVelocity.ToVector3D();
 		await SetHealthAsync(data.Health);
 		IsInvulnerable = data.IsInvulnerable;
@@ -1617,7 +1614,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 			Orbit.ParseNetworkData(data.OrbitData, resetOrbit: true);
 		}
 		Server.Instance.Add(this);
-		SetPhysicsParameters();
 		if (data.timePassedSinceShipCall > 0.0)
 		{
 			LoadShipRequestPersistance(data.timePassedSinceShipCall);

@@ -112,6 +112,14 @@ public class SolarSystem
 			}
 			else
 			{
+#if DEBUG
+				if (ab is SpaceObjectVessel vessel && Server.SolarSystemTime - vessel.CreationSolarSystemTime > 5.0 && Server.Instance.SpaceObjects.TryGetPosition(ab.Guid, out Vector3D previous)
+					&& (ab.Position - previous - ab.Velocity * Server.Instance.DeltaTime).Magnitude is var jump and > 10000.0)
+				{
+					Debug.State($"vessel {vessel.Guid} '{vessel.VesselRegistration}' jumped {jump / 1000.0:F0} km in one tick; dt {Server.Instance.DeltaTime:F3}, " +
+						$"time since periapsis {ab.Orbit.TimeSincePeriapsis:F1} of period {ab.Orbit.OrbitalPeriod:F1}, course {ab.CurrentCourse != null}, stabilised to {ab.StabilizeToTargetObj?.Guid}, physics body {vessel.RigidBody != null}");
+				}
+#endif
 				Server.Instance.SpaceObjects.SetPosition(ab.Guid, ab.Position);
 			}
 		}

@@ -114,7 +114,9 @@ namespace OpenHellion
 		{
 			GlobalGUI.ShowLoadingScreen(GlobalGUI.LoadingScreenType.ConnectingToGame);
 
+			Diagnostics.Log("login: loading world scene");
 			await SceneManager.LoadSceneAsync("WorldScene", LoadSceneMode.Single);
+			Diagnostics.Log("login: world scene loaded");
 
 			_world = GameObject.Find("/World").GetComponent<World>();
 			Debug.Assert(_world != null);
@@ -125,6 +127,7 @@ namespace OpenHellion
 				Globals.LastConnectedServer = server;
 
 				Debug.Log("Successfully established connection with server.");
+				Diagnostics.Log("login: connected");
 
 				LogInRequest logInRequest = new LogInRequest
 				{
@@ -136,6 +139,7 @@ namespace OpenHellion
 				};
 
 				var response = await NetworkController.SendReceiveAsync(logInRequest, 10000) as LogInResponse;
+				Diagnostics.Log("login: log in response received");
 
 				if (response != null && response.Status == NetworkData.MessageStatus.Success)
 				{
@@ -144,6 +148,7 @@ namespace OpenHellion
 					GlobalGUI.ShowLoadingScreen(GlobalGUI.LoadingScreenType.LoadWorld);
 
 					bool wasLoginSuccessful = await _world.OnLogin(response, _spawn, _inviteMessage?.SpawnPointId);
+					Diagnostics.Log($"login: world loaded, success {wasLoginSuccessful}");
 
 					if (wasLoginSuccessful)
 					{
@@ -158,6 +163,7 @@ namespace OpenHellion
 
 						_world.InGameGUI.HelmetHud.gameObject.Activate(true);
 						GlobalGUI.CloseLoadingScreen();
+						Diagnostics.Log("login: done, loading screen closed");
 					}
 
 					Destroy(gameObject);

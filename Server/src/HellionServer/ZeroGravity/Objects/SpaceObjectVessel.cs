@@ -471,11 +471,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 		DistributionManager.GetVesselComponentByPartSlot(slotID)?.RemovePartFromSlot(slotID);
 	}
 
-	public virtual void SetRadius(double radius)
-	{
-		Radius = radius;
-	}
-
 	public List<PairedDoorsDetails> GetPairedDoors(VesselDockingPort port)
 	{
 		List<PairedDoorsDetails> list = new List<PairedDoorsDetails>();
@@ -1115,14 +1110,18 @@ public abstract class SpaceObjectVessel : ArtificialBody
 		DockedToMainVessel.ConnectionsChanged = true;
 		dockedToMainVessel.ResetRelativePositionAndRotations();
 		dockedToMainVessel.RecalculateRelativeTransforms(null);
+		bool simulated = rBodyRemoveOld.RigidBody is not null || rBodyRemoveNew.RigidBody is not null;
 		Server.Instance.PhysicsController.RemoveRigidBody(rBodyRemoveOld);
 		Server.Instance.PhysicsController.RemoveRigidBody(rBodyRemoveNew);
 		Vector3D oldCenterOffset = DockedToMainVessel.CollidersCenterOffset.ToVector3D();
 		dockedToMainVessel.RecalculateCenter();
 		DockedToMainVessel.Orbit.RelativePosition -= DockedToMainVessel.Rotation * (oldCenterOffset - DockedToMainVessel.CollidersCenterOffset.ToVector3D());
 		DockedToMainVessel.Orbit.InitFromCurrentStateVectors(useCurrentSolarSystemTime ? Server.SolarSystemTime : 0.0);
-		Server.Instance.PhysicsController.CreateAndAddRigidBody(DockedToMainVessel);
-		DockedToMainVessel.SetPhysicsParameters();
+		if (simulated)
+		{
+			Server.Instance.PhysicsController.CreateAndAddRigidBody(DockedToMainVessel);
+			DockedToMainVessel.SetPhysicsParameters();
+		}
 		SceneTriggerExecutor closestExecutor = null;
 		if (port.MergeExecutors != null && dockToPort.MergeExecutors != null)
 		{
@@ -1252,6 +1251,7 @@ public abstract class SpaceObjectVessel : ArtificialBody
 		}
 		resultVesselMine.RecreateDockedVesselsTree();
 		resultVesselOther.RecreateDockedVesselsTree();
+		bool simulated = oldMainVessel.RigidBody is not null;
 		Server.Instance.PhysicsController.RemoveRigidBody(oldMainVessel);
 		resultVesselMine.ResetRelativePositionAndRotations();
 		resultVesselOther.ResetRelativePositionAndRotations();
@@ -1269,10 +1269,13 @@ public abstract class SpaceObjectVessel : ArtificialBody
 		resultVesselOther.Orbit.RelativeVelocity += (resultVesselOther.Orbit.RelativePosition - resultVesselMine.Orbit.RelativePosition).Normalized * 0.15;
 		resultVesselMine.Orbit.InitFromCurrentStateVectors(Server.SolarSystemTime);
 		resultVesselOther.Orbit.InitFromCurrentStateVectors(Server.SolarSystemTime);
-		Server.Instance.PhysicsController.CreateAndAddRigidBody(resultVesselMine);
-		resultVesselMine.SetPhysicsParameters();
-		Server.Instance.PhysicsController.CreateAndAddRigidBody(resultVesselOther);
-		resultVesselOther.SetPhysicsParameters();
+		if (simulated)
+		{
+			Server.Instance.PhysicsController.CreateAndAddRigidBody(resultVesselMine);
+			resultVesselMine.SetPhysicsParameters();
+			Server.Instance.PhysicsController.CreateAndAddRigidBody(resultVesselOther);
+			resultVesselOther.SetPhysicsParameters();
+		}
 		oldMainVessel.CompoundDistributionManager.UnpairAllDoors();
 		oldMainVessel.CompoundDistributionManager = null;
 		if (resultVesselMine.AllDockedVessels.Count > 0)
@@ -1406,15 +1409,82 @@ public abstract class SpaceObjectVessel : ArtificialBody
 			return;
 		}
 
-		Vector3 maxValue;
-		Vector3 minValue;
-		BulletPhysicsController.ComplexBoundCalculation(this, out minValue, out maxValue);
-		Vector3D collidersCenterOffset = (minValue + maxValue).ToVector3D() / 2.0;
-		CollidersCenterOffset = collidersCenterOffset.ToFloatArray();
-		if (AllDockedVessels.Count <= 0)
+		static void GrowBounds(ref Vector3D min, ref Vector3D max, Vector3D boxMin, Vector3D boxMax, QuaternionD rotation, Vector3D translation)
+		{
+			for (int corner = 0; corner < 8; corner++)
+			{
+				Vector3D point = translation + rotation * new Vector3D((corner & 1) == 0 ? boxMin.X : boxMax.X, (corner & 2) == 0 ? boxMin.Y : boxMax.Y, (corner & 4) == 0 ? boxMin.Z : boxMax.Z);
+				min = Vector3D.Min(min, point);
+				max = Vector3D.Max(max, point);
+			}
+		}
+
+		Vector3D empty = new Vector3D(double.MaxValue, double.MaxValue, double.MaxValue);
+		Vector3D centerMin = empty, centerMax = -empty, boundsMin = empty, boundsMax = -empty;
+		foreach (SpaceObjectVessel member in AllDockedVessels.Prepend(this))
+		{
+			Vector3D memberMin = empty, memberMax = -empty;
+			foreach (VesselColliderData collider in member.PrimitiveCollidersData.Concat<VesselColliderData>(member.MeshCollidersData))
+			{
+				Vector3D colliderMin = empty, colliderMax = -empty;
+				if (collider is VesselMeshColliderData mesh)
+				{
+					Vector3D meshMin = empty, meshMax = -empty;
+					foreach (Vector3 vertex in mesh.Vertices)
+					{
+						Vector3D point = Vector3D.Scale(vertex.ToVector3D(), mesh.Scale);
+						meshMin = Vector3D.Min(meshMin, point);
+						meshMax = Vector3D.Max(meshMax, point);
+					}
+					GrowBounds(ref colliderMin, ref colliderMax, meshMin, meshMax, mesh.Rotation, mesh.CenterPosition);
+				}
+				else if (collider is VesselPrimitiveColliderData { Type: ColliderDataType.Box or ColliderDataType.Sphere } primitive)
+				{
+					Vector3D extent = primitive.Type == ColliderDataType.Box ? primitive.Bounds / 2.0 : Vector3D.One * primitive.Bounds.X;
+					colliderMin = primitive.CenterPosition - extent;
+					colliderMax = primitive.CenterPosition + extent;
+				}
+				else
+				{
+					continue;
+				}
+
+				if (member != this)
+				{
+					memberMin = Vector3D.Min(memberMin, colliderMin);
+					memberMax = Vector3D.Max(memberMax, colliderMax);
+					continue;
+				}
+				boundsMin = Vector3D.Min(boundsMin, colliderMin);
+				boundsMax = Vector3D.Max(boundsMax, colliderMax);
+				if (collider.AffectingCenterOfMass)
+				{
+					centerMin = Vector3D.Min(centerMin, colliderMin);
+					centerMax = Vector3D.Max(centerMax, colliderMax);
+				}
+			}
+			if (member == this)
+			{
+				if (boundsMin.X > boundsMax.X)
+				{
+					boundsMin = boundsMax = Vector3D.Zero;
+				}
+				continue;
+			}
+			if (memberMin.X > memberMax.X)
+			{
+				memberMin = memberMax = Vector3D.Zero;
+			}
+			GrowBounds(ref boundsMin, ref boundsMax, memberMin, memberMax, member.RelativeRotationFromMainParent, member.RelativePositionFromMainParent);
+			GrowBounds(ref centerMin, ref centerMax, memberMin, memberMax, member.RelativeRotationFromMainParent, member.RelativePositionFromMainParent);
+		}
+
+		Radius = (boundsMax - boundsMin).Magnitude / 2.0;
+		if (this is Asteroid)
 		{
 			return;
 		}
+		CollidersCenterOffset = ((centerMin + centerMax) / 2.0).ToFloatArray();
 		foreach (SpaceObjectVessel vess in AllDockedVessels)
 		{
 			vess.CollidersCenterOffset = Vector3D.Zero.ToFloatArray();

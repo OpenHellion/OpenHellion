@@ -71,6 +71,7 @@ Movement:
 [ ] Make sure stabilisation doesn't make you immune to depressurisation movement
 [ ] Piloting on a laggy server is horrible
 [ ] Rip out bullet physics and only rely on local client-side micro-level physics simulation and orbital calculations on the server
+[ ] Fix vessels jump along their orbit (position discontinuity) as quest ships around Haven moved 80,000 kmDo (surfaced after save and load)
 
 Debugging/diagnostics:
 [x] Fix console (add errors and make player admin)
@@ -134,6 +135,8 @@ Short-term:
 [ ] Fix ship radar element under quest indicator (not selectable)
 [x] Fix breaking bug where docking a ship kills the player
 [ ] Fix names and icons not showing on radar GUI elements on map and ship lists
+[ ] Fix quests not comtinuing properly from save (lost progress, no current quest log in top right)
+[ ] Fix deleting character logging into game
 
 Server:
 [x] Remove VesselData
@@ -148,7 +151,7 @@ Server:
 [x] Collect all network messages and flush on tick
 [ ] Respawn command does not work
 [ ] Fix Euler - Radians conversion
-[ ] Fix server constantly being over tick time budget
+[x] Fix server constantly being over tick time budget
 
 Later:
 [x] Remove GameStarter.FixCryoPodState
