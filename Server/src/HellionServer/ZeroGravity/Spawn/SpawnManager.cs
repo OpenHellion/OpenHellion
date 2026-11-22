@@ -295,14 +295,6 @@ public static class SpawnManager
 				dat4.IsOn = data.IsActive.Value;
 			}
 		}
-		else if (defAuxData is PortableTurretData dat3)
-		{
-			if (data.IsActive.HasValue)
-			{
-				dat3.IsActive = data.IsActive.Value;
-				dat3.Damage = dat3.Damage;
-			}
-		}
 		else if (defAuxData is GenericItemData dat && data.Look is { Count: > 0 })
 		{
 			dat.Look = data.Look[MathHelper.RandomRange(0, data.Look.Count)];

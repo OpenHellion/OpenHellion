@@ -10,11 +10,7 @@ namespace ZeroGravity.Objects;
 
 internal class PortableTurret : Item
 {
-	public bool IsActive
-	{
-		get => State.Active(Row);
-		set => State.SetActive(Row, value);
-	}
+	public bool IsActive => AttachPointType == AttachPointType.Active;
 
 	public float Damage;
 
@@ -39,7 +35,6 @@ internal class PortableTurret : Item
 		FillPersistenceData(data);
 		data.PortableTurretData = new PortableTurretData();
 		FillBaseAuxData(data.PortableTurretData);
-		data.PortableTurretData.IsActive = IsActive;
 		data.PortableTurretData.Damage = Damage;
 		return data;
 	}
@@ -62,7 +57,6 @@ internal class PortableTurret : Item
 	{
 		await base.SetData(data);
 		PortableTurretData ptd = data as PortableTurretData;
-		IsActive = ptd.IsActive;
 		Damage = ptd.Damage;
 		ApplyTierMultiplier();
 	}
@@ -70,6 +64,13 @@ internal class PortableTurret : Item
 	private async void PortableTurretShootingMessageListener(NetworkData data)
 	{
 		var message = data as PortableTurretShootingMessage;
+		if (message.TurretGUID == GUID)
+		{
+			SpaceObjectVessel vessel = AttachPointID is { } attachPoint ? Server.Instance.GetVessel(attachPoint.VesselGUID) : null;
+			Player shooter = Server.Instance.GetPlayer(message.Sender);
+			Debug.State($"turret {GUID} shooting request {message.IsShooting} from {message.Sender}: active {IsActive} stunned {isStunned} health {Health:F0}" +
+				$" vessel {vessel?.Guid ?? 0} base system {vessel?.VesselBaseSystem?.Status.ToString() ?? "none"} hostile {shooter != null && IsHostileTo(shooter)}");
+		}
 		if (message.TurretGUID == GUID && Server.Instance.GetPlayer(message.Sender) is { } sender && (!message.IsShooting || IsHostileTo(sender)))
 		{
 			targetPlayer = sender;
@@ -151,10 +152,6 @@ internal class PortableTurret : Item
 	{
 		base.FillStats(stats, fields);
 		PortableTurretStats turret = (PortableTurretStats)stats;
-		if ((fields & ItemChanges.Active) != 0)
-		{
-			turret.IsActive = IsActive;
-		}
 		if ((fields & ItemChanges.Stunned) != 0)
 		{
 			turret.IsStunned = isStunned;

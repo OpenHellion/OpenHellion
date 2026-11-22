@@ -108,6 +108,17 @@ public class Persistence
 			if (!ves.IsDocked && ves.StabilizeToTargetObj == null && ves.ObjectType is SpaceObjectType.Ship or SpaceObjectType.Asteroid)
 			{
 				SaveVesselPersistence(ref per, ves);
+#if DEBUG
+				OrbitData saved = new OrbitData();
+				ves.Orbit.FillOrbitData(ref saved);
+				OrbitParameters reloaded = new OrbitParameters();
+				reloaded.ParseNetworkData(saved, resetOrbit: true);
+				if ((reloaded.Position - ves.Position).Magnitude is var error and > 10000.0)
+				{
+					Debug.State($"save round trip moves vessel {ves.Guid} '{ves.VesselRegistration}' by {error / 1000.0:F0} km; " +
+						$"saved time since periapsis {saved.TimeSincePeriapsis:F1}, reloaded {reloaded.TimeSincePeriapsis:F1}, period {ves.Orbit.OrbitalPeriod:F1}");
+				}
+#endif
 			}
 		}
 
@@ -278,6 +289,22 @@ public class Persistence
 					Ship sh = Server.Instance.GetVessel(shipData.GUID) as Ship;
 					await sh.RestoreDocking(shipData);
 				}
+#if DEBUG
+				foreach (PersistenceObjectDataShip shipData in persistence.Ships.Cast<PersistenceObjectDataShip>())
+				{
+					if (shipData.OrbitData == null || Server.Instance.GetVessel(shipData.GUID) is not { IsDocked: false } vessel)
+					{
+						continue;
+					}
+					OrbitParameters saved = new OrbitParameters();
+					saved.ParseNetworkData(shipData.OrbitData, resetOrbit: true);
+					if ((saved.Position - vessel.Position).Magnitude is var error and > 10000.0)
+					{
+						Debug.State($"load moved vessel {vessel.Guid} '{vessel.VesselRegistration}' {error / 1000.0:F0} km from its saved orbit; docked vessels {vessel.AllDockedVessels.Count}, " +
+							$"saved time since periapsis {saved.TimeSincePeriapsis:F1}, loaded {vessel.Orbit.TimeSincePeriapsis:F1}, period {saved.OrbitalPeriod:F1}");
+					}
+				}
+#endif
 			}
 			if (persistence.Players != null)
 			{

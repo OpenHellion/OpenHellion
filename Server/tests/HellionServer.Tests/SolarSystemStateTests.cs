@@ -120,6 +120,7 @@ public class SolarSystemStateTests
 	{
 		SolarSystemState state = new();
 		ItemId item = state.CreateItem(1001, 10);
+		state.AddAttachPoint(Vessel, 7, AttachPointType.Simple);
 		state.TryMoveItem(item, new ItemLocation(LocationKind.AttachPoint, Vessel, 7));
 		state.SetResource(item, 0, 3, 50f);
 
@@ -134,6 +135,28 @@ public class SolarSystemStateTests
 		Assert.That(reused.Row, Is.EqualTo(item.Row));
 		Assert.That(state.FirstResource(reused), Is.LessThan(0));
 		Assert.That(state.ValidateInvariants(), Is.Null);
+	}
+
+	[Test]
+	public void AttachPointsMustBeRegisteredAndKnowTheirType()
+	{
+		SolarSystemState state = new();
+		ItemId turret = state.CreateItem(1001, 10);
+		ItemLocation activePoint = new(LocationKind.AttachPoint, Vessel, 4);
+
+		Assert.That(state.TryMoveItem(turret, activePoint), Is.False);
+		Assert.That(state.AttachPointTypeAt(activePoint), Is.EqualTo(AttachPointType.None));
+
+		state.AddAttachPoint(Vessel, 4, AttachPointType.Active);
+
+		Assert.That(state.TryMoveItem(turret, activePoint), Is.True);
+		Assert.That(state.AttachPointTypeAt(state.Location(turret)), Is.EqualTo(AttachPointType.Active));
+		Assert.That(state.ValidateInvariants(), Is.Null);
+
+		state.RemoveAttachPoints(Vessel);
+
+		Assert.That(state.AttachPointTypeAt(activePoint), Is.EqualTo(AttachPointType.None));
+		Assert.That(state.ValidateInvariants(), Is.Not.Null);
 	}
 
 	[Test]

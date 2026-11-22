@@ -129,8 +129,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 
 	public DistributionManager CompoundDistributionManager;
 
-	public Dictionary<VesselObjectID, AttachPointType> AttachPointsTypes = [];
-
 	public Dictionary<int, VesselAttachPoint> AttachPoints = [];
 
 	public bool IsPrefabStationVessel;

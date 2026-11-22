@@ -117,10 +117,6 @@ public class DynamicObject : SpaceObjectTransferable, IPersistantObject
 		{
 			Item.AttachmentChangeTime = Server.SolarSystemTime;
 		}
-		if (Item is PortableTurret turret)
-		{
-			turret.IsActive = turret.AttachPointType == AttachPointType.Active;
-		}
 		if (previousParent is Corpse corpse && previousParent != Parent)
 		{
 			corpse.CheckInventoryDestroy();

@@ -13,8 +13,10 @@ namespace ZeroGravity.Objects
 {
 	public class PortableTurret : Item, IVesselSystemAccessory
 	{
-		private bool _isActive;
-
+		private static readonly int CanTargetHash = Animator.StringToHash("CanTarget");
+		private static readonly int IsDestroyedHash = Animator.StringToHash("IsDestroyed");
+		private static readonly int IsStunnedHash = Animator.StringToHash("IsStunned");
+		private static readonly int IsActiveHash = Animator.StringToHash("IsActive");
 		private Animator turretAnimator;
 
 		[SerializeField] private PortableTurretTargettingHelper targettingHelper;
@@ -63,8 +65,6 @@ namespace ZeroGravity.Objects
 
 		private float LookAtTime = 2f;
 
-		private bool canTarget;
-
 		private bool isDestroyed;
 
 		private bool isStunned;
@@ -95,7 +95,9 @@ namespace ZeroGravity.Objects
 
 		public override EquipType EquipTo => EquipType.Hands;
 
-		public bool IsActive => _isActive && !isStunned && !isDestroyed;
+		public bool IsActive => AttachPoint is ActiveSceneAttachPoint && !isStunned && !isDestroyed;
+
+		public bool CanTarget => IsActive && BaseVesselSystem is { Status: SystemStatus.Online };
 
 		public TargetingPoint CurrentTarget
 		{
@@ -146,7 +148,6 @@ namespace ZeroGravity.Objects
 		public override DynamicObjectAuxData GetAuxData()
 		{
 			PortableTurretData baseAuxData = GetBaseAuxData<PortableTurretData>();
-			baseAuxData.IsActive = _isActive;
 			baseAuxData.Damage = Damage;
 			return baseAuxData;
 		}
@@ -171,19 +172,12 @@ namespace ZeroGravity.Objects
 			if (portableTurretStats.IsStunned.HasValue)
 			{
 				isStunned = portableTurretStats.IsStunned.Value;
-				turretAnimator.SetBool("IsStunned", isStunned);
-				canTarget = false;
 				ShootingEffect.Stop();
 				isShooting = false;
 				animationPercentage_Horizontal = 0f;
 				animationPercentage_Vertical = 0f;
 				oldPercentage_Horizontal = 0f;
 				oldPercentage_Vertical = 0f;
-			}
-
-			if (portableTurretStats.IsActive.HasValue)
-			{
-				_isActive = portableTurretStats.IsActive.Value;
 			}
 		}
 
@@ -192,16 +186,13 @@ namespace ZeroGravity.Objects
 			isDestroyed = false;
 			if (AttachPoint != null)
 			{
-				turretAnimator.SetBool("IsDestroyed", value: false);
 				OnEnable();
-				canTarget = UnfoldedItem.activeInHierarchy && !isStunned;
 			}
 		}
 
 		private void DestroyTurret()
 		{
 			isDestroyed = true;
-			turretAnimator.SetBool("IsDestroyed", value: true);
 			StopShooting();
 		}
 
@@ -224,15 +215,7 @@ namespace ZeroGravity.Objects
 				ShootingEffect.Stop();
 				if (!isOnPlayer && !isDestroyed)
 				{
-					turretAnimator.SetBool("IsActive",
-						!flag && BaseVesselSystem != null && BaseVesselSystem.Status == SystemStatus.Online);
 					targettingHelper.gameObject.SetActive(!flag);
-				}
-				else if (flag && !isDestroyed)
-				{
-					turretAnimator.SetBool("IsActive",
-						!flag && BaseVesselSystem != null && BaseVesselSystem.Status == SystemStatus.Online);
-					canTarget = !flag;
 				}
 
 				Collider[] unfoldedColliders = UnfoldedColliders;
@@ -253,7 +236,18 @@ namespace ZeroGravity.Objects
 
 		private void Update()
 		{
-			if (IsActive && canTarget)
+			if (turretAnimator.isActiveAndEnabled && turretAnimator.isInitialized)
+			{
+				turretAnimator.SetBool(IsActiveHash, AttachPoint is ActiveSceneAttachPoint && BaseVesselSystem is { Status: SystemStatus.Online });
+				turretAnimator.SetBool(IsStunnedHash, isStunned);
+				turretAnimator.SetBool(IsDestroyedHash, isDestroyed);
+				if (!CanTarget)
+				{
+					turretAnimator.SetBool(CanTargetHash, false);
+				}
+			}
+
+			if (CanTarget)
 			{
 				DoTurretRotation();
 				DoTargetting();
@@ -293,6 +287,7 @@ namespace ZeroGravity.Objects
 			}
 			else
 			{
+				StopShooting();
 				TurretSound.Play(5);
 			}
 		}
@@ -301,6 +296,7 @@ namespace ZeroGravity.Objects
 		{
 			if (!isShooting)
 			{
+				OpenHellion.Diagnostics.Log($"turret {GUID} start shooting at {CurrentTarget?.MainObject?.GetType().Name}");
 				NetworkController.SendAndForget(new PortableTurretShootingMessage
 				{
 					IsShooting = true,
@@ -538,12 +534,6 @@ namespace ZeroGravity.Objects
 			}
 		}
 
-		public void ToggleTargettingSphere(bool status)
-		{
-			targettingHelper.gameObject.SetActive(status);
-			canTarget = status;
-		}
-
 		private bool ShouldShootAtPlayer(Player pl)
 		{
 			if (DynamicObj.Parent is SpaceObjectVessel && AttachPoint != null &&
@@ -557,7 +547,7 @@ namespace ZeroGravity.Objects
 
 		public override bool CanPlayerPickUp(Player pl)
 		{
-			return !IsActive || isStunned || isDestroyed || BaseVesselSystem == null || BaseVesselSystem.Status != SystemStatus.Online || !ShouldShootAtPlayer(MyPlayer.Instance);
+			return !CanTarget || !ShouldShootAtPlayer(MyPlayer.Instance);
 		}
 
 		private void PortableTurretShootingMessageListener(NetworkData data)
@@ -588,18 +578,6 @@ namespace ZeroGravity.Objects
 
 		public void BaseVesselSystemUpdated()
 		{
-			if (BaseVesselSystem.Status == SystemStatus.Online)
-			{
-				turretAnimator.SetBool("IsActive", value: true);
-			}
-			else if (BaseVesselSystem.Status != SystemStatus.Online)
-			{
-				ShootingEffect.Stop();
-				canTarget = false;
-				turretAnimator.SetBool("IsActive", value: false);
-				turretAnimator.SetBool("CanTarget", value: false);
-				turretAnimator.SetBool("IsShooting", value: false);
-			}
 		}
 	}
 }

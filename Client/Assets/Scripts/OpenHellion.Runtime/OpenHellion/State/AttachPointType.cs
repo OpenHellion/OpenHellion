@@ -1,4 +1,4 @@
-namespace ZeroGravity.Data
+namespace OpenHellion.State
 {
 	public enum AttachPointType
 	{

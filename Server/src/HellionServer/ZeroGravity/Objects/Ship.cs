@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OpenHellion.Net;
 using OpenHellion.Net.Message;
+using OpenHellion.State;
 using ZeroGravity.BulletPhysics;
 using ZeroGravity.Data;
 using ZeroGravity.Math;
@@ -997,7 +998,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		{
 			foreach (BaseAttachPointData apd2 in data.AttachPoints)
 			{
-				AttachPointsTypes[new VesselObjectID(Guid, apd2.InSceneID)] = apd2.AttachPointType;
+				Server.Instance.SolarSystem.State.AddAttachPoint(Guid, (short)apd2.InSceneID, apd2.AttachPointType);
 				AttachPoints.Add(apd2.InSceneID, new VesselAttachPoint
 				{
 					Vessel = this,
@@ -1342,6 +1343,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		Server.Instance.Remove(this);
 		DisconectListener();
 		await base.Destroy();
+		Server.Instance.SolarSystem.State.RemoveAttachPoints(Guid);
 	}
 
 	private void DisconectListener()
