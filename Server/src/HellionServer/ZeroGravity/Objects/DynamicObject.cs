@@ -51,7 +51,7 @@ public class DynamicObject : SpaceObjectTransferable, IPersistantObject
 
 	public short InvSlotID => State.Location(Row) is { Kind: LocationKind.Inventory } location ? location.SlotId : InventorySlot.NoneSlotID;
 
-	public double LastChangeTime { get; private set; }
+	public double LastChangeTime;
 
 	public override SpaceObject Parent
 	{
@@ -73,12 +73,12 @@ public class DynamicObject : SpaceObjectTransferable, IPersistantObject
 	}
 
 	/// <summary>
-	/// 	The only way an item changes location. Leaving a pivot, a machinery slot or a corpse is handled here.
+	/// 	The only way an item changes location. Consequences of the move are derived from state, or applied by
+	/// 	SolarSystem.ApplyLocationChanges.
 	/// </summary>
 	public bool MoveTo(ItemLocation location)
 	{
 		ItemLocation previous = State.Location(Row);
-		SpaceObject previousParent = Parent;
 		if (previous.Equals(location))
 		{
 			return true;
@@ -87,45 +87,7 @@ public class DynamicObject : SpaceObjectTransferable, IPersistantObject
 		{
 			return false;
 		}
-		if (previous is { Kind: LocationKind.Inventory, SlotId: InventorySlot.OutfitSlotID } && Item is Outfit)
-		{
-			((previousParent as Player)?.PlayerInventory ?? (previousParent as Corpse)?.CorpseInventory)?.ReleaseOutfit();
-		}
-		if (!State.TryMoveItem(Row, location))
-		{
-			return false;
-		}
-
-		if (previous.Kind == LocationKind.AttachPoint && Item is MachineryPart && Server.Instance.GetVessel(previous.ParentKey) is { } vessel)
-		{
-			vessel.RemoveMachineryPart(new VesselObjectID(previous.ParentKey, previous.SlotId));
-		}
-		if (previousParent is Pivot pivot && location.Kind != LocationKind.Floating)
-		{
-			Server.Instance.SolarSystem.RemoveArtificialBody(pivot);
-		}
-		LastChangeTime = Server.SolarSystemTime;
-		if (location.Kind == LocationKind.Floating)
-		{
-			Server.Instance.SubscribeToTimer(UpdateTimer.TimerStep.Step_1_0_min, SelfDestructCheck);
-		}
-		else
-		{
-			Server.Instance.UnsubscribeFromTimer(UpdateTimer.TimerStep.Step_1_0_min, SelfDestructCheck);
-		}
-		if (Item != null)
-		{
-			Item.AttachmentChangeTime = Server.SolarSystemTime;
-		}
-		if (Item is PortableTurret turret)
-		{
-			turret.IsActive = turret.AttachPointType == AttachPointType.Active;
-		}
-		if (previousParent is Corpse corpse && previousParent != Parent)
-		{
-			corpse.CheckInventoryDestroy();
-		}
-		return true;
+		return State.TryMoveItem(Row, location);
 	}
 
 	public void Float(ArtificialBody reference)
@@ -236,12 +198,14 @@ public class DynamicObject : SpaceObjectTransferable, IPersistantObject
 		return dynamicObject;
 	}
 
-	private async Task SelfDestructCheck(double dbl)
+	public static async Task DestroyAbandonedFloatingItems(double deltaTime)
 	{
-		if (Parent is Pivot && (DateTime.UtcNow - lastSenderTime).TotalSeconds >= 300.0)
+		foreach (Pivot pivot in Server.Instance.ArtificialBodies.OfType<Pivot>().ToArray())
 		{
-			Server.Instance.UnsubscribeFromTimer(UpdateTimer.TimerStep.Step_1_0_min, SelfDestructCheck);
-			await Destroy();
+			if (pivot.Child is DynamicObject dynamicObject && (DateTime.UtcNow - dynamicObject.lastSenderTime).TotalSeconds >= 300.0)
+			{
+				await dynamicObject.Destroy();
+			}
 		}
 	}
 
@@ -284,31 +248,18 @@ public class DynamicObject : SpaceObjectTransferable, IPersistantObject
 
 	public bool IsVisibleTo(Player viewer)
 	{
-		return Parent is not Player owner || owner == viewer || InvSlotID is InventorySlot.HandsSlotID or InventorySlot.OutfitSlotID || Item?.Slot?.SlotType == InventorySlot.Type.Equip;
+		return Parent is not DynamicObject holder
+			|| (holder is not { Item: Outfit outfit, Parent: Player wearer } || wearer == viewer || outfit.InventorySlots.GetValueOrDefault(InvSlotID)?.SlotType != InventorySlot.Type.General) && holder.IsVisibleTo(viewer);
 	}
 
 	/// <summary>
-	/// 	What a player or corpse carries, as far as the viewer may see it, parents before their contents and
-	/// 	the outfit before the items in its slots.
+	/// 	What a player or corpse carries, as far as the viewer may see it, parents before their contents.
 	/// </summary>
 	public static DynamicObjectDetails[] GetCarriedDetails(SpaceObject owner, Player viewer)
 	{
-		List<DynamicObject> carried = [];
-		for (ItemId child = State.FirstChild(owner.Key); child.IsValid; child = State.NextSibling(child))
-		{
-			if (Server.Instance.GetDynamicObject(State.Guid(child)) is { } dynamicObject && dynamicObject.IsVisibleTo(viewer))
-			{
-				carried.Add(dynamicObject);
-			}
-		}
-
 		List<ItemId> items = [];
-		foreach (DynamicObject dynamicObject in carried.OrderBy(m => m.InvSlotID == InventorySlot.OutfitSlotID ? 0 : 1))
-		{
-			items.Add(dynamicObject.Row);
-			State.AddDescendants(dynamicObject.Guid, items);
-		}
-		return [.. items.Select(m => Server.Instance.GetDynamicObject(State.Guid(m)).GetDetails())];
+		State.AddDescendants(owner.Key, items);
+		return [.. items.Select(m => Server.Instance.GetDynamicObject(State.Guid(m))).Where(m => m.IsVisibleTo(viewer)).Select(m => m.GetDetails())];
 	}
 
 	public override async Task Destroy()
@@ -328,13 +279,7 @@ public class DynamicObject : SpaceObjectTransferable, IPersistantObject
 
 	private async Task Release()
 	{
-		ItemLocation location = State.Location(Row);
 		Pivot pivot = Parent as Pivot;
-		if (location.Kind == LocationKind.AttachPoint && Item is MachineryPart && Server.Instance.GetVessel(location.ParentKey) is { } vessel)
-		{
-			vessel.RemoveMachineryPart(new VesselObjectID(location.ParentKey, location.SlotId));
-		}
-		Server.Instance.UnsubscribeFromTimer(UpdateTimer.TimerStep.Step_1_0_min, SelfDestructCheck);
 		await NetworkController.SendToClientsViewingParents(new DestroyObjectMessage
 		{
 			ID = Guid,

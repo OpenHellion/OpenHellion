@@ -50,8 +50,6 @@ public class OrbitParameters
 
 	private double solarSystemTimeAtPeriapsis;
 
-	private double lastChangeTime;
-
 	private Vector3D _relativePosition = Vector3D.Zero;
 
 	private Vector3D _relativeVelocity = Vector3D.Zero;
@@ -115,8 +113,6 @@ public class OrbitParameters
 
 	public double GravityInfluenceRadiusSquared => gravityInfluenceRadiusSquared;
 
-	public double LastChangeTime => lastChangeTime;
-
 	public OrbitParameters Parent => parent;
 
 	public bool IsOrbitValid => semiMajorAxis != 0.0 && semiMinorAxis != 0.0;
@@ -166,6 +162,7 @@ public class OrbitParameters
 	public void InitFromElements(OrbitParameters parent, double mass, double radius, double rotationPeriod, double eccentricity, double semiMajorAxis, double inclination, double argumentOfPeriapsis, double longitudeOfAscendingNode, double timeSincePeriapsis, double solarSystemTime)
 	{
 		FixEccentricity(ref eccentricity);
+		Debug.Assert(eccentricity < 1.0, $"Orbit of {GUID} initialised as escape trajectory with eccentricity {eccentricity}.");
 		this.parent = parent;
 		if (mass > 0.0)
 		{
@@ -184,9 +181,7 @@ public class OrbitParameters
 		this.inclination = inclination;
 		this.argumentOfPeriapsis = argumentOfPeriapsis;
 		this.longitudeOfAscendingNode = longitudeOfAscendingNode;
-		this.timeSincePeriapsis = timeSincePeriapsis;
 		solarSystemTimeAtPeriapsis = solarSystemTime - timeSincePeriapsis;
-		lastChangeTime = Server.SolarSystemTime;
 		gravParameter = 6.67384E-11 * this.mass;
 		if (parent != null)
 		{
@@ -198,10 +193,6 @@ public class OrbitParameters
 			{
 				orbitalPeriod = System.Math.PI * 2.0 * System.Math.Sqrt(System.Math.Pow(0.0 - semiMajorAxis, 3.0) / parent.gravParameter);
 			}
-			while (this.timeSincePeriapsis < 0.0 - orbitalPeriod)
-			{
-				this.timeSincePeriapsis += orbitalPeriod;
-			}
 			if (eccentricity < 1.0)
 			{
 				semiMinorAxis = semiMajorAxis * System.Math.Sqrt(1.0 - eccentricity * eccentricity);
@@ -210,9 +201,7 @@ public class OrbitParameters
 			{
 				semiMinorAxis = semiMajorAxis * System.Math.Sqrt(eccentricity * eccentricity - 1.0);
 			}
-			double trueAnomaly = CalculateTrueAnomaly(this, timeSincePeriapsis);
-			_relativePosition = PositionAtTrueAnomaly(trueAnomaly, getRelativePosition: true);
-			RelativeVelocity = VelocityAtTrueAnomaly(trueAnomaly, getRelativeVelocity: true);
+			UpdateOrbit(solarSystemTime);
 			gravityInfluenceRadius = semiMajorAxis * (1.0 - eccentricity) * System.Math.Pow(mass / (3.0 * parent.mass), 1.0 / 3.0);
 			gravityInfluenceRadiusSquared = gravityInfluenceRadius * gravityInfluenceRadius;
 		}
@@ -275,26 +264,27 @@ public class OrbitParameters
 			RelativeVelocity -= parent.Velocity;
 		}
 		double rMag = RelativePosition.Magnitude;
+		if (rMag < 1.0)
+		{
+			Debug.Assert(false, $"Orbit of {GUID} created at the centre of its parent {parent.GUID}.");
+			return;
+		}
+		double minimumTangentialSpeed = 1E-4 * System.Math.Sqrt(parent.gravParameter / rMag);
 		Vector3D h = Vector3D.Cross(RelativePosition, RelativeVelocity);
-		Vector3D an = Vector3D.Right;
-		if (h.SqrMagnitude.IsEpsilonEqualD(0.0))
+		if (h.Magnitude / rMag < minimumTangentialSpeed)
 		{
-			inclination = 180.0 - System.Math.Acos(RelativePosition.Y / rMag) * (180.0 / System.Math.PI);
-			an = Vector3D.Cross(RelativePosition, Vector3D.Up);
-			if (an.SqrMagnitude.IsEpsilonEqualD(0.0))
-			{
-				an = Vector3D.Right;
-			}
+			Debug.Assert(false, $"Orbit of {GUID} created as degenerate straight-line trajectory at speed {RelativeVelocity.Magnitude:F1} m/s, distance {rMag / 1000.0:F0} km.");
+			Vector3D axis = h.SqrMagnitude > 0.0 ? h : Vector3D.Cross(RelativePosition, System.Math.Abs(RelativePosition.Y / rMag) < 0.9 ? Vector3D.Up : Vector3D.Right);
+			RelativeVelocity += Vector3D.Cross(axis, RelativePosition).Normalized * (minimumTangentialSpeed - h.Magnitude / rMag);
+			h = Vector3D.Cross(RelativePosition, RelativeVelocity);
 		}
-		else
-		{
-			inclination = 180.0 - System.Math.Acos(h.Y / h.Magnitude) * (180.0 / System.Math.PI);
-			an = Vector3D.Cross(Vector3D.Up, h);
-		}
+		inclination = 180.0 - System.Math.Acos(h.Y / h.Magnitude) * (180.0 / System.Math.PI);
+		Vector3D an = Vector3D.Cross(Vector3D.Up, h);
 		double anMag = an.Magnitude;
 		Vector3D eccentricityVec = Vector3D.Cross(RelativeVelocity, h) / parent.gravParameter - RelativePosition / rMag;
 		eccentricity = eccentricityVec.Magnitude;
 		FixEccentricity(ref eccentricity);
+		Debug.Assert(eccentricity < 1.0, $"Orbit of {GUID} entered escape trajectory with eccentricity {eccentricity} at speed {RelativeVelocity.Magnitude:F0} m/s, distance {rMag / 1000.0:F0} km.");
 		double orbitalEnergy = RelativeVelocity.SqrMagnitude / 2.0 - parent.gravParameter / rMag;
 		if (eccentricity < 1.0)
 		{
@@ -347,7 +337,6 @@ public class OrbitParameters
 		}
 		timeSincePeriapsis = CalculateTimeSincePeriapsis(this, RelativePosition, RelativeVelocity);
 		solarSystemTimeAtPeriapsis = solarSystemTime - timeSincePeriapsis;
-		lastChangeTime = Server.SolarSystemTime;
 	}
 
 	public void InitFromCurrentStateVectors(double solarSystemTime)
@@ -379,6 +368,10 @@ public class OrbitParameters
 		double trueAnomaly;
 		if (o.eccentricity < 1.0)
 		{
+			if (tsp < 0.0)
+			{
+				tsp += o.orbitalPeriod;
+			}
 			double meanAnomaly2 = tsp / o.orbitalPeriod * 2.0 * System.Math.PI;
 			double eccentricAnomaly2 = CalculateEccentricAnomaly(o, meanAnomaly2);
 			trueAnomaly = System.Math.Acos((System.Math.Cos(eccentricAnomaly2) - o.eccentricity) / (1.0 - o.eccentricity * System.Math.Cos(eccentricAnomaly2)));
@@ -675,22 +668,19 @@ public class OrbitParameters
 		return 360.0 * (solarSystemTime % rotationPeriod / rotationPeriod);
 	}
 
-	public void UpdateOrbit()
+	public void UpdateOrbit(double solarSystemTime)
 	{
 		if (parent == null)
 		{
 			return;
 		}
+		Debug.Assert(IsOrbitValid, $"Updating degenerate orbit of {GUID} with semi-major axis {semiMajorAxis} and semi-minor axis {semiMinorAxis}.");
 		if (IsOrbitValid)
 		{
-			timeSincePeriapsis = Server.SolarSystemTime - solarSystemTimeAtPeriapsis;
-			if (eccentricity < 1.0 && timeSincePeriapsis > orbitalPeriod)
-			{
-				solarSystemTimeAtPeriapsis += orbitalPeriod;
-				timeSincePeriapsis %= orbitalPeriod;
-			}
+			timeSincePeriapsis = solarSystemTime - solarSystemTimeAtPeriapsis;
 			if (eccentricity < 1.0)
 			{
+				timeSincePeriapsis -= System.Math.Floor(timeSincePeriapsis / orbitalPeriod) * orbitalPeriod;
 				double trueAnomaly = CalculateTrueAnomaly(this, timeSincePeriapsis);
 				RelativePosition = PositionAtTrueAnomaly(trueAnomaly, getRelativePosition: true);
 				RelativeVelocity = VelocityAtTrueAnomaly(trueAnomaly, getRelativeVelocity: true);
@@ -712,41 +702,8 @@ public class OrbitParameters
 				lastValidTimeSincePeriapsis = timeSincePeriapsis;
 			}
 		}
-		else
-		{
-			Debug.LogWarning("ATTEMPTED TO UPDATE INVALID ORBIT");
-		}
 	}
 
-	public void ResetOrbit(double solarSystemTime)
-	{
-		if (!IsOrbitValid)
-		{
-			return;
-		}
-		if (eccentricity < 1.0)
-		{
-			timeSincePeriapsis = solarSystemTime - solarSystemTimeAtPeriapsis;
-			if (orbitalPeriod > 0)
-			{
-				double n = System.Math.Ceiling(( -orbitalPeriod - timeSincePeriapsis) / orbitalPeriod);
-				timeSincePeriapsis += n * orbitalPeriod;
-			}
-			if (timeSincePeriapsis > orbitalPeriod)
-			{
-				timeSincePeriapsis %= orbitalPeriod;
-				solarSystemTimeAtPeriapsis = solarSystemTime - timeSincePeriapsis;
-			}
-		}
-		else
-		{
-			timeSincePeriapsis = solarSystemTime - solarSystemTimeAtPeriapsis;
-		}
-		double trueAnomaly = CalculateTrueAnomaly(this, timeSincePeriapsis);
-		RelativePosition = PositionAtTrueAnomaly(trueAnomaly, getRelativePosition: true);
-		RelativeVelocity = VelocityAtTrueAnomaly(trueAnomaly, getRelativeVelocity: true);
-		lastChangeTime = Server.SolarSystemTime;
-	}
 
 	public List<Vector3D> GetOrbitPositions(int numberOfPositions, double timeStep)
 	{
@@ -854,7 +811,6 @@ public class OrbitParameters
 		data.Inclination = inclination;
 		data.ArgumentOfPeriapsis = argumentOfPeriapsis;
 		data.LongitudeOfAscendingNode = longitudeOfAscendingNode;
-		data.TimeSincePeriapsis = timeSincePeriapsis;
 		data.SolarSystemPeriapsisTime = solarSystemTimeAtPeriapsis;
 	}
 
@@ -866,17 +822,11 @@ public class OrbitParameters
 		}
 	}
 
-	public void ParseNetworkData(OrbitData data, bool resetOrbit = false)
+	public void ParseNetworkData(OrbitData data)
 	{
 		CheckParent(data.ParentGUID);
-		solarSystemTimeAtPeriapsis = data.SolarSystemPeriapsisTime;
 		double currTime = Server.Instance.SolarSystem.CurrentTime;
-		timeSincePeriapsis = currTime - solarSystemTimeAtPeriapsis;
-		InitFromElements(parent, -1.0, -1.0, -1.0, data.Eccentricity, data.SemiMajorAxis, data.Inclination, data.ArgumentOfPeriapsis, data.LongitudeOfAscendingNode, timeSincePeriapsis, currTime);
-		if (resetOrbit)
-		{
-			ResetOrbit(currTime);
-		}
+		InitFromElements(parent, -1.0, -1.0, -1.0, data.Eccentricity, data.SemiMajorAxis, data.Inclination, data.ArgumentOfPeriapsis, data.LongitudeOfAscendingNode, currTime - data.SolarSystemPeriapsisTime, currTime);
 	}
 
 	private static bool AreAnglesEqualDeg(double angle1, double angle2, double anglePrecissionDeg)
@@ -931,22 +881,13 @@ public class OrbitParameters
 		if (exactCopy)
 		{
 			timeSincePeriapsis = orbit.timeSincePeriapsis;
-			if (lastChangeTime < orbit.lastChangeTime)
-			{
-				lastChangeTime = orbit.lastChangeTime;
-			}
 			RelativePosition = orbit.RelativePosition;
 			RelativeVelocity = orbit.RelativeVelocity;
 		}
 		else
 		{
-			ResetOrbit(solarSystemTime);
+			UpdateOrbit(solarSystemTime);
 		}
-	}
-
-	public void SetLastChangeTime(double time)
-	{
-		lastChangeTime = time;
 	}
 
 	public double CircularOrbitVelocityMagnitudeAtDistance(double distance)

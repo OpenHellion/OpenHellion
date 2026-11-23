@@ -39,6 +39,7 @@ namespace OpenHellion.State
 		private long[] _guid;
 		private short[] _dataId;
 		private ItemLocation[] _location;
+		private ItemLocation[] _previousLocation;
 		private int[] _nextSibling;
 		private int[] _prevSibling;
 		private float[] _health;
@@ -67,6 +68,7 @@ namespace OpenHellion.State
 		private readonly Dictionary<long, int> _rowByGuid = new();
 		private readonly Dictionary<long, int> _firstChild = new();
 		private readonly Dictionary<(long Parent, LocationKind Kind, short Slot), int> _slots = new();
+		private readonly Dictionary<(long Vessel, short Slot), AttachPointType> _attachPoints = new();
 
 		private int _resourceCapacity;
 		private int _resourceRows;
@@ -104,6 +106,32 @@ namespace OpenHellion.State
 		public short DataId(ItemId item) => _dataId[item.Row];
 
 		public ItemLocation Location(ItemId item) => _location[item.Row];
+
+		public ItemLocation PreviousLocation(ItemId item) => _previousLocation[item.Row];
+
+		public AttachPointType AttachPointTypeAt(ItemLocation location) =>
+			location.Kind == LocationKind.AttachPoint && _attachPoints.TryGetValue((location.ParentKey, location.SlotId), out AttachPointType type) ? type : AttachPointType.None;
+
+		public void AddAttachPoint(long vessel, short slot, AttachPointType type)
+		{
+			_attachPoints[(vessel, slot)] = type;
+		}
+
+		public void RemoveAttachPoints(long vessel)
+		{
+			List<(long Vessel, short Slot)> removed = new List<(long Vessel, short Slot)>();
+			foreach ((long Vessel, short Slot) key in _attachPoints.Keys)
+			{
+				if (key.Vessel == vessel)
+				{
+					removed.Add(key);
+				}
+			}
+			foreach ((long Vessel, short Slot) key in removed)
+			{
+				_attachPoints.Remove(key);
+			}
+		}
 
 		public ItemId ItemInSlot(long parentKey, LocationKind kind, short slotId)
 		{
@@ -230,6 +258,7 @@ namespace OpenHellion.State
 			_guid[row] = guid;
 			_dataId[row] = dataId;
 			_location[row] = default;
+			_previousLocation[row] = default;
 			_nextSibling[row] = -1;
 			_prevSibling[row] = -1;
 			_health[row] = 0f;
@@ -293,6 +322,11 @@ namespace OpenHellion.State
 				return false;
 			}
 
+			if (location.Kind == LocationKind.AttachPoint && !_attachPoints.ContainsKey((location.ParentKey, location.SlotId)))
+			{
+				return false;
+			}
+
 			if (location.HasParent)
 			{
 				long ancestor = location.ParentKey;
@@ -324,6 +358,10 @@ namespace OpenHellion.State
 				return false;
 			}
 
+			if ((_changes[row] & ItemChanges.Location) == 0)
+			{
+				_previousLocation[row] = _location[row];
+			}
 			Unlink(row);
 			_location[row] = location;
 			if (location.IsSlot)
@@ -593,6 +631,11 @@ namespace OpenHellion.State
 					return $"Item {_guid[row]} is in slot {location.Kind} {location.SlotId} of {location.ParentKey}, but the slot index disagrees.";
 				}
 
+				if (location.Kind == LocationKind.AttachPoint && !_attachPoints.ContainsKey((location.ParentKey, location.SlotId)))
+				{
+					return $"Item {_guid[row]} is on attach point {location.SlotId} of {location.ParentKey}, which is not registered.";
+				}
+
 				if (location.HasParent)
 				{
 					bool found = false;
@@ -712,6 +755,7 @@ namespace OpenHellion.State
 			Array.Resize(ref _guid, capacity);
 			Array.Resize(ref _dataId, capacity);
 			Array.Resize(ref _location, capacity);
+			Array.Resize(ref _previousLocation, capacity);
 			Array.Resize(ref _nextSibling, capacity);
 			Array.Resize(ref _prevSibling, capacity);
 			Array.Resize(ref _health, capacity);

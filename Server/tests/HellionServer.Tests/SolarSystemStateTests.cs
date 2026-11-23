@@ -120,6 +120,7 @@ public class SolarSystemStateTests
 	{
 		SolarSystemState state = new();
 		ItemId item = state.CreateItem(1001, 10);
+		state.AddAttachPoint(Vessel, 7, AttachPointType.Simple);
 		state.TryMoveItem(item, new ItemLocation(LocationKind.AttachPoint, Vessel, 7));
 		state.SetResource(item, 0, 3, 50f);
 
@@ -134,6 +135,50 @@ public class SolarSystemStateTests
 		Assert.That(reused.Row, Is.EqualTo(item.Row));
 		Assert.That(state.FirstResource(reused), Is.LessThan(0));
 		Assert.That(state.ValidateInvariants(), Is.Null);
+	}
+
+	[Test]
+	public void AttachPointsMustBeRegisteredAndKnowTheirType()
+	{
+		SolarSystemState state = new();
+		ItemId turret = state.CreateItem(1001, 10);
+		ItemLocation activePoint = new(LocationKind.AttachPoint, Vessel, 4);
+
+		Assert.That(state.TryMoveItem(turret, activePoint), Is.False);
+		Assert.That(state.AttachPointTypeAt(activePoint), Is.EqualTo(AttachPointType.None));
+
+		state.AddAttachPoint(Vessel, 4, AttachPointType.Active);
+
+		Assert.That(state.TryMoveItem(turret, activePoint), Is.True);
+		Assert.That(state.AttachPointTypeAt(state.Location(turret)), Is.EqualTo(AttachPointType.Active));
+		Assert.That(state.ValidateInvariants(), Is.Null);
+
+		state.RemoveAttachPoints(Vessel);
+
+		Assert.That(state.AttachPointTypeAt(activePoint), Is.EqualTo(AttachPointType.None));
+		Assert.That(state.ValidateInvariants(), Is.Not.Null);
+	}
+
+	[Test]
+	public void PreviousLocationIsWhereTheItemWasWhenTheChangeWindowOpened()
+	{
+		SolarSystemState state = new();
+		ItemId gun = state.CreateItem(1001, 10);
+		ItemLocation hands = new(LocationKind.Inventory, Player, -1);
+		ItemLocation loose = new(LocationKind.Loose, Vessel, 0);
+		ItemLocation floating = new(LocationKind.Floating, 0, 0);
+		state.TryMoveItem(gun, hands);
+		state.ClearChanges();
+
+		state.TryMoveItem(gun, loose);
+		state.TryMoveItem(gun, floating);
+
+		Assert.That(state.PreviousLocation(gun), Is.EqualTo(hands));
+
+		state.ClearChanges();
+		state.TryMoveItem(gun, loose);
+
+		Assert.That(state.PreviousLocation(gun), Is.EqualTo(floating));
 	}
 
 	[Test]

@@ -63,18 +63,7 @@ public abstract class Item : IPersistantObject, IDamageable
 
 	public VesselObjectID AttachPointID => State.Location(Row) is { Kind: LocationKind.AttachPoint } location ? new VesselObjectID(location.ParentKey, location.SlotId) : null;
 
-	public AttachPointType AttachPointType
-	{
-		get
-		{
-			ItemLocation location = State.Location(Row);
-			if (location.Kind != LocationKind.AttachPoint || Server.Instance.GetVessel(location.ParentKey) is not { } vessel)
-			{
-				return AttachPointType.None;
-			}
-			return vessel.AttachPointsTypes.GetValueOrDefault(new VesselObjectID(location.ParentKey, location.SlotId));
-		}
-	}
+	public AttachPointType AttachPointType => State.AttachPointTypeAt(State.Location(Row));
 
 	public long GUID => DynamicObj.Guid;
 

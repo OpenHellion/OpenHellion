@@ -531,12 +531,12 @@ public class SpatialCollection<TValue>
 		return false;
 	}
 
-	/// <summary>
-	/// 	Spatially index a stored value at the given position, or move it if it is already indexed.
-	/// 	Ids without a stored value are ignored.
-	/// </summary>
-	/// <param name="id">Id of the value to index.</param>
-	/// <param name="position">Position to index at.</param>
+	public bool TryGetPosition(long id, out Vector3D position)
+	{
+		position = default;
+		return _index.TryGetValue(id, out Cell cell) && _grid.TryGetValue(cell, out ConcurrentDictionary<long, Vector3D> set) && set.TryGetValue(id, out position);
+	}
+
 	public void SetPosition(long id, Vector3D position)
 	{
 		if (!_storage.ContainsKey(id))

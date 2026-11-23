@@ -122,7 +122,7 @@ namespace ZeroGravity.Objects
 			StartOrbit.InitFromPeriapisAndApoapsis(MyShipOrbit.Parent, MyShipOrbit.PeriapsisDistance,
 				MyShipOrbit.ApoapsisDistance, MyShipOrbit.Inclination, MyShipOrbit.ArgumentOfPeriapsis,
 				MyShipOrbit.LongitudeOfAscendingNode, MyShipOrbit.TrueAnomalyAtZeroTime() * (180.0 / Mathf.PI), 0.0);
-			StartOrbit.ResetOrbit(_world.SolarSystem.CurrentTime);
+			StartOrbit.UpdateOrbit(_world.SolarSystem.CurrentTime);
 			_startTimeSincePeriapsis = StartOrbit.TimeSincePeriapsis;
 			_endTimeSincePeriapsis = EndOrbit.TimeSincePeriapsis;
 			StartTime = 60.0;
@@ -131,7 +131,7 @@ namespace ZeroGravity.Objects
 
 		private void UpdateManeuver()
 		{
-			StartOrbit.ResetOrbit(_world.SolarSystem.CurrentTime);
+			StartOrbit.UpdateOrbit(_world.SolarSystem.CurrentTime);
 			Transfer.StartOrbitAngle =
 				(float)(StartOrbit.TrueAnomalyAtZeroTimePlusTime(_startTimeSincePeriapsis + StartTime) *
 				        (180.0 / Mathf.PI));

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OpenHellion.Net;
 using OpenHellion.Net.Message;
+using OpenHellion.State;
 using ZeroGravity.BulletPhysics;
 using ZeroGravity.Data;
 using ZeroGravity.Math;
@@ -977,7 +978,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		{
 			foreach (BaseAttachPointData apd2 in data.AttachPoints)
 			{
-				AttachPointsTypes[new VesselObjectID(Guid, apd2.InSceneID)] = apd2.AttachPointType;
+				Server.Instance.SolarSystem.State.AddAttachPoint(Guid, (short)apd2.InSceneID, apd2.AttachPointType);
 				AttachPoints.Add(apd2.InSceneID, new VesselAttachPoint
 				{
 					Vessel = this,
@@ -1173,27 +1174,14 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		};
 		await newShip.CreateShipData(registration, vesselTag, sceneID, loadDynamicObjects: true, health);
 		newShip.DistributionManager = new DistributionManager(newShip);
-		Server.Instance.PhysicsController.CreateAndAddRigidBody(newShip);
 		Server.Instance.SolarSystem.GetSpawnPosition(newShip.Radius, checkPosition, out shipPos, out shipVel, out shipRotation, nearArtificialBodyGUIDs, celestialBodyGUIDs, positionOffset, velocityAtPosition, localRotation, distanceFromSurfacePercMin, distanceFromSurfacePercMax, spawnRuleOrbit, celestialBodyDeathDistanceMultiplier, artificialBodyDistanceCheck, out OrbitParameters orbit);
 		newShip.InitializeOrbit(shipPos, shipVel, shipRotation, orbit);
 		if (registration.IsNullOrEmpty())
 		{
 			newShip.VesselRegistration = Server.NameGenerator.GenerateObjectRegistration(SpaceObjectType.Ship, newShip.Orbit.Parent.CelestialBody, sceneID);
 		}
-		foreach (DynamicObject dobj in Server.Instance.ItemsInSpaceObject(newShip))
-		{
-			if (dobj.Item is { AttachPointID: not null })
-			{
-				VesselComponent comp = newShip.MainDistributionManager.GetVesselComponentByPartSlot(dobj.Item.AttachPointID);
-				if (comp != null && dobj.Item is MachineryPart part)
-				{
-					comp.FitPartToSlot(part.AttachPointID, part);
-				}
-			}
-		}
 		await newShip.MainDistributionManager.UpdateSystems();
 		Server.Instance.Add(newShip);
-		newShip.SetPhysicsParameters();
 		return newShip;
 	}
 
@@ -1325,6 +1313,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		Server.Instance.Remove(this);
 		DisconectListener();
 		await base.Destroy();
+		Server.Instance.SolarSystem.State.RemoveAttachPoints(Guid);
 	}
 
 	private void DisconectListener()
@@ -1500,8 +1489,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		EmblemId = data.EmblemId;
 		LoadShipRequestPersistance(data.timePassedSinceShipCall);
 		DistributionManager = new DistributionManager(this);
-		InitializeOrbit(Vector3D.Zero, Vector3D.One, data.Rotation.ToQuaternionD());
-		Server.Instance.PhysicsController.CreateAndAddRigidBody(this);
+		InitializeOrbit(data.OrbitData, data.Rotation.ToQuaternionD());
 		AngularVelocity = data.AngularVelocity.ToVector3D();
 		await SetHealthAsync(data.Health);
 		IsInvulnerable = data.IsInvulnerable;
@@ -1511,15 +1499,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 
 		foreach (PersistenceObjectDataDynamicObject dobjData in data.DynamicObjects.Cast<PersistenceObjectDataDynamicObject>())
 		{
-			DynamicObject dobj = await Persistence.CreateDynamicObject(dobjData, this, structureSceneData);
-			if (dobj is { Item.AttachPointID: not null })
-			{
-				VesselComponent comp = MainDistributionManager.GetVesselComponentByPartSlot(dobj.Item.AttachPointID);
-				if (comp != null && dobj.Item is MachineryPart part)
-				{
-					comp.FitPartToSlot(part.AttachPointID, part);
-				}
-			}
+			await Persistence.CreateDynamicObject(dobjData, this, structureSceneData);
 		}
 		if (data.CargoBay != null)
 		{
@@ -1593,12 +1573,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 			}
 		}
 		await MainDistributionManager.UpdateSystems();
-		if (data.OrbitData != null)
-		{
-			Orbit.ParseNetworkData(data.OrbitData, resetOrbit: true);
-		}
 		Server.Instance.Add(this);
-		SetPhysicsParameters();
 		if (data.timePassedSinceShipCall > 0.0)
 		{
 			LoadShipRequestPersistance(data.timePassedSinceShipCall);
@@ -2057,11 +2032,15 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 			{
 				if (rp.AffectedSystem is { Defective: true} && MathHelper.RandomNextDouble() < damage / MaxHealth)
 				{
-					MachineryPart mp = (from m in rp.AffectedSystem.MachineryParts.Values
-						where m != null
-						orderby MathHelper.RandomNextDouble()
-						select m).FirstOrDefault();
-
+					MachineryPart mp = null;
+					int parts = 0;
+					foreach (VesselObjectID slot in rp.AffectedSystem.MachineryPartSlots.Keys)
+					{
+						if (VesselComponent.PartInSlot(slot) is { } part && MathHelper.RandomNextDouble() * ++parts < 1.0)
+						{
+							mp = part;
+						}
+					}
 					if (mp != null)
 					{
 						await mp.TakeDamage(new Dictionary<TypeOfDamage, float> {

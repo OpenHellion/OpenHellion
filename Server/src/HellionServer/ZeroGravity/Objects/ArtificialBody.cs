@@ -11,7 +11,7 @@ public class ArtificialBody : SpaceObject
 {
 	private double _prevUpdatePositionTime = Server.SolarSystemTime;
 
-	public virtual OrbitParameters Orbit { get; set; } = new OrbitParameters();
+	public OrbitParameters Orbit { get; set; } = new OrbitParameters();
 
 	private ManeuverCourse _currentCourse;
 
@@ -122,6 +122,16 @@ public class ArtificialBody : SpaceObject
 		}
 	}
 
+	public void InitializeOrbit(OrbitData orbitData, QuaternionD rotation)
+	{
+		Orbit.SetArtificialBody(this);
+		Orbit.ParseNetworkData(orbitData);
+		Rotation = rotation;
+		Server.Instance.SolarSystem.AddArtificialBody(this);
+		RefreshSunlightExposure();
+	}
+
+	[System.Obsolete("Initialise the orbit from OrbitData instead of a transform.")]
 	public void InitializeOrbit(Vector3D position, Vector3D velocity, QuaternionD rotation, OrbitParameters orbit = null)
 	{
 		Orbit.SetArtificialBody(this);
@@ -215,7 +225,7 @@ public class ArtificialBody : SpaceObject
 		}
 		else
 		{
-			Orbit.UpdateOrbit();
+			Orbit.UpdateOrbit(Server.SolarSystemTime);
 		}
 		if (await CheckThrustAndRotation(deltaTime))
 		{

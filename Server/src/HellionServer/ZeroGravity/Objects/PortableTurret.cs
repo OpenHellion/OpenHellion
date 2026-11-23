@@ -10,11 +10,7 @@ namespace ZeroGravity.Objects;
 
 internal class PortableTurret : Item
 {
-	public bool IsActive
-	{
-		get => State.Active(Row);
-		set => State.SetActive(Row, value);
-	}
+	public bool IsActive => AttachPointType == AttachPointType.Active;
 
 	public float Damage;
 
@@ -39,7 +35,6 @@ internal class PortableTurret : Item
 		FillPersistenceData(data);
 		data.PortableTurretData = new PortableTurretData();
 		FillBaseAuxData(data.PortableTurretData);
-		data.PortableTurretData.IsActive = IsActive;
 		data.PortableTurretData.Damage = Damage;
 		return data;
 	}
@@ -62,7 +57,6 @@ internal class PortableTurret : Item
 	{
 		await base.SetData(data);
 		PortableTurretData ptd = data as PortableTurretData;
-		IsActive = ptd.IsActive;
 		Damage = ptd.Damage;
 		ApplyTierMultiplier();
 	}
@@ -151,10 +145,6 @@ internal class PortableTurret : Item
 	{
 		base.FillStats(stats, fields);
 		PortableTurretStats turret = (PortableTurretStats)stats;
-		if ((fields & ItemChanges.Active) != 0)
-		{
-			turret.IsActive = IsActive;
-		}
 		if ((fields & ItemChanges.Stunned) != 0)
 		{
 			turret.IsStunned = isStunned;

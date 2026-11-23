@@ -97,7 +97,7 @@ namespace ZeroGravity.ShipComponents
 
 		public override void UpdateObject()
 		{
-			Orbit.ResetOrbit(World.SolarSystem.CurrentTime);
+			Orbit.UpdateOrbit(World.SolarSystem.CurrentTime);
 			Position.position = ObjectPosition;
 			Orbits.localScale = Vector3.one * (float)ObjectScale;
 			LongitudeOfAscendingNodePlane.localScale = Vector3.one * ((float)(Orbit.Parent.Radius * ObjectScale) *
@@ -112,7 +112,7 @@ namespace ZeroGravity.ShipComponents
 		{
 			orbit.InitFromPeriapisAndApoapsis(parent.Orbit, parent.Orbit.Radius * 2.0, parent.Orbit.Radius * 4.0, 0.0,
 				0.0, 0.0, 90.0, World.SolarSystem.CurrentTime);
-			orbit.ResetOrbit(World.SolarSystem.CurrentTime);
+			orbit.UpdateOrbit(World.SolarSystem.CurrentTime);
 			SetOrbit();
 			UpdateOrbitPlane();
 			UpdateOrbitIndicators();
@@ -310,7 +310,7 @@ namespace ZeroGravity.ShipComponents
 			}
 
 			Orbit.InitFromPeriapisAndApoapsis(Orbit.Parent, num, num2, num3, num4, num5, num6, solarSystemTime);
-			Orbit.ResetOrbit(World.SolarSystem.CurrentTime);
+			Orbit.UpdateOrbit(World.SolarSystem.CurrentTime);
 			dragTrueAnomaly = false;
 			SetOrbit();
 			UpdateOrbitPlane();

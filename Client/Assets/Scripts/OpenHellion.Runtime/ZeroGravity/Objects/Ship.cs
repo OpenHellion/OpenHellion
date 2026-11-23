@@ -1358,8 +1358,11 @@ namespace ZeroGravity.Objects
 		private async UniTask LoadInternalAsync(VesselObjects shipObjects, bool optimise)
 		{
 			World.InGameGUI.ToggleBusyLoading(true);
+			Diagnostics.Log($"ship load: '{VesselRegistration}' ({Guid}) loading structure scene {SceneId}");
 			await LoadStructureScenesAsync(SceneId, GeometryRoot.transform, shipObjects);
+			Diagnostics.Log($"ship load: '{VesselRegistration}' ({Guid}) structure scene {SceneId} loaded");
 			UpdateShipObjects(shipObjects, isInitialize: true);
+			Diagnostics.Log($"ship load: '{VesselRegistration}' ({Guid}) ship objects updated");
 			World.InGameGUI.ToggleBusyLoading(false);
 
 			OnSceneLoaded();
@@ -1389,6 +1392,7 @@ namespace ZeroGravity.Objects
 
 			SceneObjectsLoaded = true;
 			ZeroOcclusion.CheckOcclusionFor(this, onlyCheckDistance: false);
+			Diagnostics.Log($"ship load: '{VesselRegistration}' ({Guid}) done");
 		}
 
 		private void DockUndockCompleted(bool isDock, bool isInitialize)

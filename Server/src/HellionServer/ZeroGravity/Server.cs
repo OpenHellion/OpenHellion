@@ -399,6 +399,10 @@ public sealed class Server
 
 	private const double ShipSystemSweepSeconds = 1.0;
 
+	private const int InactiveShipSystemSweepInterval = 30;
+
+	private const double ActiveVesselKeepRadius = SolarSystem.ViewRadius * 1.5;
+
 	private static double _pilotStateTimer;
 
 	private static double _movementMessageTimer;
@@ -430,6 +434,8 @@ public sealed class Server
 	private double _shipSystemSweepTime;
 
 	private double _shipSystemSweepSeconds = ShipSystemSweepSeconds;
+
+	private int _shipSystemSweepCount;
 
 	public readonly ConcurrentDictionary<long, VesselDataUpdate> VesselsDataUpdate = new ConcurrentDictionary<long, VesselDataUpdate>();
 
@@ -1326,6 +1332,7 @@ public sealed class Server
 					"pressurize                           pressurize the current room",
 					"airquality <0-1>                     set air quality in the current room",
 					"sethealth <health>                   set health of held item, or of this vessel",
+					"destroyparts                         destroy every machinery part fitted in this vessel and its docked vessels, to test how systems react to losing parts",
 					"god [0|1]                            query or set god mode",
 					"setmain                              make this vessel the current station's main vessel",
 					"respawn <spawn rule>                 respawn a blueprint spawn rule",
@@ -1787,7 +1794,7 @@ public sealed class Server
 					myAb.Orbit.RelativePosition -= myAb.Rotation * Vector3D.Forward * (target.Radius + 100.0);
 				}
 				myAb.Orbit.InitFromCurrentStateVectors(SolarSystem.CurrentTime);
-				myAb.Orbit.UpdateOrbit();
+				myAb.Orbit.UpdateOrbit(SolarSystemTime);
 				return Ok("teleport: moved to " + (target is SpaceObjectVessel targetVessel ? targetVessel.FullName : parts[1]) + ".");
 			}
 			case "respawn":
@@ -1827,6 +1834,36 @@ public sealed class Server
 				await parentVessel.SetHealthAsync(health);
 				parentVessel.MainVessel.UpdateVesselData();
 				return Ok("sethealth: " + parentVessel.VesselName + " set to " + health + ".");
+			}
+			case "destroyparts":
+			{
+				if (parts.Length != 1)
+				{
+					return Error("destroyparts: expected no arguments.");
+				}
+				if (parent is not SpaceObjectVessel vessel)
+				{
+					return Error("destroyparts: you are not inside a vessel.");
+				}
+
+				string response = "";
+				int destroyed = 0;
+				foreach (SpaceObjectVessel dockedVessel in vessel.MainVessel.AllDockedVessels.Prepend(vessel.MainVessel))
+				{
+					foreach (VesselComponent system in dockedVessel.Systems)
+					{
+						foreach (VesselObjectID slot in system.MachineryPartSlots.Keys)
+						{
+							if (VesselComponent.PartInSlot(slot) is { } part)
+							{
+								response += "\r\n" + dockedVessel.VesselName + " " + system.GetType().Name + ": " + part.PartType + " " + part.GUID;
+								await part.DestroyItem();
+								destroyed++;
+							}
+						}
+					}
+				}
+				return Ok("destroyparts: destroyed " + destroyed + " machinery parts." + response);
 			}
 			case "spawnrulescleanup":
 			{
@@ -1891,7 +1928,7 @@ public sealed class Server
 				await vessel3.MainVessel.DisableStabilization(disableForChildren: false, updateBeforeDisable: true);
 				vessel3.MainVessel.Orbit.RelativePosition += vessel3.Rotation * Vector3D.Forward * dist * 1000.0;
 				vessel3.MainVessel.Orbit.InitFromCurrentStateVectors(SolarSystemTime);
-				vessel3.MainVessel.Orbit.UpdateOrbit();
+				vessel3.MainVessel.Orbit.UpdateOrbit(SolarSystemTime);
 				return Ok("blink: moved " + dist + "km forward.");
 			}
 			case "whereami":
@@ -1962,10 +1999,6 @@ public sealed class Server
 								}
 							}
 							await DynamicObject.SpawnDynamicObject(it, gt, mt, vessel2, ap.InSceneID, null, null, null, MathHelper.RandomRange(1, 5), null, refill: true);
-							if (mt != 0)
-							{
-								vessel2.MainDistributionManager.GetVesselComponentByPartSlot(ap.Item.AttachPointID)?.FitPartToSlot(ap.Item.AttachPointID, (MachineryPart)ap.Item);
-							}
 						}
 					}
 				}
@@ -2186,7 +2219,7 @@ public sealed class Server
 				depth++;
 			}
 			return depth;
-		}).ThenBy(m => m.InvSlotID == InventorySlot.OutfitSlotID ? 0 : 1).Select(m => m.GetDetails())];
+		}).Select(m => m.GetDetails())];
 		response.CorpseObjects = [.. corpses];
 		response.Players = [.. players];
 		return Task.FromResult<NetworkData>(response);
@@ -2269,18 +2302,27 @@ public sealed class Server
 			{
 				continue;
 			}
+			double sweepSeconds = _shipSystemSweepSeconds;
+			if (vessel.MainVessel.RigidBody is null)
+			{
+				if ((vessel.Guid + _shipSystemSweepCount) % InactiveShipSystemSweepInterval != 0)
+				{
+					continue;
+				}
+				sweepSeconds *= InactiveShipSystemSweepInterval;
+			}
 			vessel.RefreshSunlightExposure();
 			foreach (SpaceObjectVessel dockedVessel in vessel.AllDockedVessels)
 			{
 				dockedVessel.RefreshSunlightExposure();
 			}
 			await vessel.UpdateVesselSystems();
-			vessel.DecayGraceTimer = MathHelper.Clamp(vessel.DecayGraceTimer - _shipSystemSweepSeconds, 0.0, double.MaxValue);
+			vessel.DecayGraceTimer = MathHelper.Clamp(vessel.DecayGraceTimer - sweepSeconds, 0.0, double.MaxValue);
 			if (vessel.DecayGraceTimer <= double.Epsilon)
 			{
 				await vessel.ChangeHealthBy(
-					(float)((0f - vessel.ExposureDamage) * VesselDecayRateMultiplier * _shipSystemSweepSeconds), null,
-					VesselRepairPoint.Priority.Internal, force: false, VesselDamageType.Decay, _shipSystemSweepSeconds);
+					(float)((0f - vessel.ExposureDamage) * VesselDecayRateMultiplier * sweepSeconds), null,
+					VesselRepairPoint.Priority.Internal, force: false, VesselDamageType.Decay, sweepSeconds);
 			}
 		}
 		if (_shipSystemCursor >= _shipSystemSweep.Length && _shipSystemSweepTime >= ShipSystemSweepSeconds)
@@ -2291,6 +2333,7 @@ public sealed class Server
 			}
 			_shipSystemSweepSeconds = _shipSystemSweepTime;
 			_shipSystemSweep = [.. _vessels.Values];
+			_shipSystemSweepCount++;
 			_shipSystemCursor = 0;
 			_shipSystemSweepTime = 0.0;
 		}
@@ -2301,10 +2344,9 @@ public sealed class Server
 			_pilotStateTimer = _pilotStateTimer > PilotStateSendInterval * 2.0
 				? 0.0
 				: _pilotStateTimer - PilotStateSendInterval;
-			Player[] pilots = [.. AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive && m.IsDrivingShip)];
-			if (pilots.Length > 0)
+			foreach (Player pilot in AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive && m.IsDrivingShip))
 			{
-				await Parallel.ForEachAsync(pilots, async (pl, ct) => await SolarSystem.SendPilotStateMessageToPlayer(pl)).WaitAsync(new TimeSpan(0, 0, 10));
+				await SolarSystem.SendPilotStateMessageToPlayer(pilot);
 			}
 		}
 
@@ -2314,12 +2356,31 @@ public sealed class Server
 			_movementMessageTimer = _movementMessageTimer > MovementMessageSendInterval * 2.0
 				? 0.0
 				: _movementMessageTimer - MovementMessageSendInterval;
+			SolarSystem.ApplyLocationChanges();
 			Player[] players = [.. AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive)];
-			if (players.Length > 0)
+			foreach (Player player in players)
 			{
-				await Parallel.ForEachAsync(players, async (pl, ct) => await SolarSystem.SendMovementMessageToPlayer(pl)).WaitAsync(new TimeSpan(0, 0, 10));
+				await SolarSystem.SendMovementMessageToPlayer(player);
 			}
 			await SolarSystem.SendStateMessages(players);
+
+			HashSet<long> keepActive = [.. players.SelectMany(player => SpaceObjects.QueryRadius<SpaceObjectVessel>(player.Position, ActiveVesselKeepRadius)).Select(vessel => vessel.Guid)];
+			foreach (SpaceObjectVessel vessel in _vessels.Values)
+			{
+				if (!vessel.IsMainVessel)
+				{
+					continue;
+				}
+				if (vessel.RigidBody is null && players.Any(player => player.KnownView.Contains(vessel.Guid)))
+				{
+					PhysicsController.CreateAndAddRigidBody(vessel);
+					vessel.SetPhysicsParameters();
+				}
+				else if (vessel.RigidBody is not null && !keepActive.Contains(vessel.Guid))
+				{
+					PhysicsController.RemoveRigidBody(vessel);
+				}
+			}
 #if DEBUG
 			if (SolarSystem.State.ValidateInvariants() is { } broken)
 			{
@@ -2468,6 +2529,7 @@ public sealed class Server
 			SubscribeToTimer(UpdateTimer.TimerStep.Step_1_0_sec, ServerAutoRestartTimer);
 		}
 		DoomedShipController.SubscribeToTimer();
+		SubscribeToTimer(UpdateTimer.TimerStep.Step_1_0_min, DynamicObject.DestroyAbandonedFloatingItems);
 		DateTime lastOverrunLogTime = DateTime.MinValue;
 		if (_printDebugObjects)
 		{
@@ -2554,9 +2616,9 @@ public sealed class Server
 			}
 
 			tickDeadline += tickPeriod;
-			if (tickDeadline < Stopwatch.GetTimestamp())
+			if (tickDeadline < Stopwatch.GetTimestamp() - tickPeriod)
 			{
-				tickDeadline = Stopwatch.GetTimestamp() + tickPeriod;
+				tickDeadline = Stopwatch.GetTimestamp();
 			}
 		}
 

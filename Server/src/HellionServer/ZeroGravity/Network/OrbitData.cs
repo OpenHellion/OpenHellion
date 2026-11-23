@@ -24,7 +24,5 @@ public class OrbitData
 
 	public double Inclination;
 
-	public double TimeSincePeriapsis;
-
 	public double SolarSystemPeriapsisTime;
 }

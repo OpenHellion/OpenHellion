@@ -708,7 +708,6 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 			}
 
 			Pivot pivot = new Pivot(this, vesselLeft.MainVessel);
-			pivot.Orbit.SetLastChangeTime(Server.SolarSystemTime);
 			newParent = pivot;
 		}
 		else if (Server.Instance.TryGetSpaceObject(message.ParentGuid, out SpaceObject requestedParent)
@@ -834,7 +833,6 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 					refVessel = refVessel.StabilizeToTargetObj;
 				}
 				stabilisePivot.AdjustPositionAndVelocity(Vector3D.Zero, refVessel.Velocity - stabilisePivot.Velocity);
-				stabilisePivot.Orbit.SetLastChangeTime(Server.SolarSystemTime);
 			}
 
 			Vector3D reportedPosition = message.Position.ToVector3D();
@@ -1272,18 +1270,9 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		}
 		data.CoreTemperature = CoreTemperature;
 		data.ChildObjects = new List<PersistenceObjectData>();
-		List<DynamicObject> dynamicObjects = Server.Instance.ItemsInSpaceObject(this);
-		DynamicObject outfitItem = dynamicObjects.FirstOrDefault(m => m.Item is { Slot.SlotID: -2 });
-		if (outfitItem != null)
+		foreach (DynamicObject dobj in Server.Instance.ItemsInSpaceObject(this))
 		{
-			data.ChildObjects.Add(outfitItem.Item != null ? outfitItem.Item.GetPersistenceData() : outfitItem.GetPersistenceData());
-		}
-		foreach (DynamicObject dobj in dynamicObjects)
-		{
-			if (dobj != outfitItem)
-			{
-				data.ChildObjects.Add(dobj.Item != null ? dobj.Item.GetPersistenceData() : dobj.GetPersistenceData());
-			}
+			data.ChildObjects.Add(dobj.Item != null ? dobj.Item.GetPersistenceData() : dobj.GetPersistenceData());
 		}
 		data.Quests = Quests.Select((Quest m) => m.GetDetails()).ToList();
 		data.Blueprints = Blueprints;
@@ -1355,6 +1344,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 				Quest quest = Quests.FirstOrDefault((Quest m) => m.ID == det.ID);
 				if (quest == null)
 				{
+					Debug.LogWarning($"Player {Guid} skipped loading quest {det.ID} with status {det.Status}: no such quest in quest data.");
 					continue;
 				}
 				quest.Status = det.Status;
@@ -1366,8 +1356,22 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 						questTrigger.SpawnedMainVesselGuid = questTrigger.SpawnRuleName.IsNullOrEmpty() ? 0 : qtDet.StationMainVesselGUID;
 						await questTrigger.SetQuestStatusAsync(qtDet.Status);
 					}
+					else
+					{
+						Debug.LogWarning($"Player {Guid} skipped loading quest {det.ID} trigger {qtDet.ID} with status {qtDet.Status}: no such trigger in quest data.");
+					}
+				}
+				string saved = det.Status + " [" + string.Join(",", det.QuestTriggers.Select(m => (int)m.Status)) + "]";
+				string applied = quest.Status + " [" + string.Join(",", quest.QuestTriggers.Select(m => (int)m.Status)) + "]";
+				if (saved != applied)
+				{
+					Debug.LogWarning($"Player {Guid} loaded quest {det.ID} as {applied}, but it was saved as {saved}.");
 				}
 			}
+		}
+		else
+		{
+			Debug.LogWarning($"Player {Guid} has no saved quests.");
 		}
 		if (data.Blueprints != null)
 		{

@@ -12,6 +12,12 @@ using ZeroGravity.UI;
 
 public class QuestTracker : MonoBehaviour
 {
+	private static readonly int SwitchHash = Animator.StringToHash("Switch");
+
+	private static readonly int CompletedHash = Animator.StringToHash("Completed");
+
+	private static readonly int CloseHash = Animator.StringToHash("Close");
+
 	public Dictionary<QuestTrigger, TaskUI> Tasks = new Dictionary<QuestTrigger, TaskUI>();
 
 	public TaskUI TaskUIPrefab;
@@ -28,103 +34,75 @@ public class QuestTracker : MonoBehaviour
 
 	public Text AltTriggerName;
 
-	[FormerlySerializedAs("_worldState")] [SerializeField] private World _world;
-
-	public void AddTasks()
+	public void Refresh(Quest quest)
 	{
-		foreach (TaskUI value in Tasks.Values)
+		if (quest == null || quest.Status != QuestStatus.Active)
 		{
-			if (value != null)
+			if (_currentQuest != null && gameObject.activeInHierarchy)
 			{
-				Destroy(value.gameObject);
-			}
-		}
+				foreach (TaskUI task in Tasks.Values.Where(m => m.gameObject.activeSelf))
+				{
+					task.Animator.SetTrigger(CloseHash);
+				}
 
-		Tasks.Clear();
-		foreach (QuestTrigger questTrigger in _currentQuest.QuestTriggers)
-		{
-			if (questTrigger.Type != QuestTriggerType.Activate)
+				Animator.SetBool(CloseHash, value: true);
+			}
+			else if (_currentQuest != null)
 			{
-				TaskUI taskUI = Instantiate(TaskUIPrefab, Content);
-				taskUI.transform.Reset();
-				taskUI.transform.SetAsLastSibling();
-				taskUI.Name.text = questTrigger.Name;
-				taskUI.gameObject.SetActive(questTrigger.Status == QuestStatus.Active);
-				taskUI.QuestTracker = this;
-				Tasks.Add(questTrigger, taskUI);
+				gameObject.SetActive(value: false);
 			}
-		}
 
-		QuestName.text = Localization.GetLocalizedField(_currentQuest.Name, useDefault: true).ToUpper();
-	}
-
-	public void RefreshTasks()
-	{
-		foreach (QuestTrigger key in Tasks.Keys)
-		{
-			if (key.Status == QuestStatus.Completed)
-			{
-				Tasks[key].Animator.SetBool("Completed", value: true);
-			}
-		}
-	}
-
-	public void RefreshBatch()
-	{
-		bool flag = true;
-		foreach (QuestTrigger key in Tasks.Keys)
-		{
-			if (key.Status == QuestStatus.Active)
-			{
-				Tasks[key].gameObject.SetActive(value: true);
-				flag = false;
-			}
-		}
-
-		if (!flag)
-		{
+			_currentQuest = null;
 			return;
 		}
 
-		HideActiveTasks();
-		if (_currentQuest.QuestObject.QuestToTrackWhenCompleted != null)
+		if (quest != _currentQuest)
 		{
-			Quest quest = _world.Quests.FirstOrDefault((Quest m) =>
-				m.ID == _currentQuest.QuestObject.QuestToTrackWhenCompleted.ID);
-			_world.InGameGUI.SetCurrentTrackingQuest(quest);
-		}
-	}
+			foreach (TaskUI task in Tasks.Values.Where(m => m != null))
+			{
+				Destroy(task.gameObject);
+			}
 
-	public void ShowTasks()
-	{
-		if (_currentQuest.Status != QuestStatus.Completed)
-		{
+			Tasks.Clear();
+			_currentQuest = quest;
 			gameObject.SetActive(value: true);
-			Animator.SetBool("Close", value: false);
-			AddTasks();
+			Animator.SetBool(CloseHash, value: false);
+			foreach (QuestTrigger trigger in quest.QuestTriggers.Where(m => m.Type != QuestTriggerType.Activate))
+			{
+				TaskUI task = Instantiate(TaskUIPrefab, Content);
+				task.transform.Reset();
+				task.transform.SetAsLastSibling();
+				task.Name.text = trigger.Name;
+				task.gameObject.SetActive(trigger.Status == QuestStatus.Active);
+				Tasks.Add(trigger, task);
+			}
+
+			QuestName.text = Localization.GetLocalizedField(quest.Name, useDefault: true).ToUpper();
 		}
-	}
 
-	public void ShowTasks(float delay)
-	{
-		_currentQuest = _world.InGameGUI.CurrentTrackingQuest;
-		Invoke(nameof(ShowTasks), delay);
-	}
-
-	public void HideActiveTasks()
-	{
-		foreach (TaskUI value in Tasks.Values)
+		foreach ((QuestTrigger trigger, TaskUI task) in Tasks)
 		{
-			value.Animator.SetTrigger("Close");
+			if (trigger.Status == QuestStatus.Active)
+			{
+				task.gameObject.SetActive(value: true);
+			}
+			else if (trigger.Status == QuestStatus.Completed && task.gameObject.activeInHierarchy)
+			{
+				task.Animator.SetBool(CompletedHash, value: true);
+			}
+			else
+			{
+				task.gameObject.SetActive(value: false);
+			}
 		}
 
-		Animator.SetBool("Close", value: true);
+		Diagnostics.Assert(Tasks.Keys.Any(m => m.Status == QuestStatus.Active), $"quest tracker shows active quest {quest.ID} without active tasks");
 	}
 
 	public void TriggerNonTrackedTask(QuestTrigger trigger)
 	{
 		AltQuestName.text = trigger.Quest.Name;
 		AltTriggerName.text = trigger.Name;
-		Animator.SetTrigger("Switch");
+		Animator.SetTrigger(SwitchHash);
 	}
 }

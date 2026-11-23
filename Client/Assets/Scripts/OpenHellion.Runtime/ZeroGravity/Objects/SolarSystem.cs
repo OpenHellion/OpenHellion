@@ -181,7 +181,7 @@ namespace ZeroGravity.Objects
 			_timeCorrection = HiResTime.Milliseconds / 1000.0 - time;
 			foreach (CelestialBody celestialBody in _celestialBodyReferences)
 			{
-				celestialBody.UpdatePosition(this, time, resetTime: true);
+				celestialBody.UpdatePosition(this, time);
 			}
 		}
 
@@ -194,12 +194,12 @@ namespace ZeroGravity.Objects
 			foreach (CelestialBody celestialBody in _celestialBodyReferences)
 			{
 				celestialBody.UpdatePlanetSpacePosition((float)deltaTime);
-				celestialBody.UpdatePosition(this, deltaTime);
+				celestialBody.UpdatePosition(this, _currentTime);
 			}
 
 			foreach (MapItemData vessel in KnownVessels.Values)
 			{
-				vessel.Orbit.UpdateOrbit(deltaTime);
+				vessel.Orbit.UpdateOrbit(_currentTime);
 			}
 		}
 

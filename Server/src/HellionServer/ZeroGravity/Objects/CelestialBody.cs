@@ -50,7 +50,7 @@ public class CelestialBody
 	{
 		if (Orbit.IsOrbitValid)
 		{
-			Orbit.UpdateOrbit();
+			Orbit.UpdateOrbit(Server.SolarSystemTime);
 		}
 	}
 }

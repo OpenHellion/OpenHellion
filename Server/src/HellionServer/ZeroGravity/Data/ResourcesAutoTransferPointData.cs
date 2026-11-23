@@ -1,3 +1,5 @@
+using OpenHellion.State;
+
 namespace ZeroGravity.Data;
 
 public class ResourcesAutoTransferPointData : BaseAttachPointData

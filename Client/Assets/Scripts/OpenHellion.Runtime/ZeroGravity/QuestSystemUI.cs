@@ -125,7 +125,7 @@ namespace ZeroGravity
 		public QuestUI CreateQuestUI(Quest quest)
 		{
 			QuestUI questUI = Instantiate(QuestItem, QuestsHolder);
-			QuestUI.Init(_inGameGUI);
+			questUI.Init(_inGameGUI);
 			questUI.transform.Reset();
 			questUI.transform.SetAsFirstSibling();
 			questUI.gameObject.SetActive(value: true);

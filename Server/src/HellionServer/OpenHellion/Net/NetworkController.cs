@@ -206,14 +206,13 @@ public static class NetworkController
 		{
 			return;
 		}
-		await Parallel.ForEachAsync(from m in GetAllConnectedPlayers() where m != null && m.Guid != skipPlayerGuid select m, async (player, ct) =>
+		foreach (Player player in GetAllConnectedPlayers())
 		{
-			HashSet<long> view = player.KnownView;
-			if (player.IsAlive && player.EnvironmentReady && spaceObjects.Any(m => m != null && view.Contains(m.Guid)))
+			if (player != null && player.Guid != skipPlayerGuid && player.IsAlive && player.EnvironmentReady && spaceObjects.Any(m => m != null && player.KnownView.Contains(m.Guid)))
 			{
 				await SendAsync(player.Guid, data);
 			}
-		});
+		}
 	}
 
 	[Obsolete("Probably a symptom of bad design")]

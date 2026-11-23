@@ -187,7 +187,7 @@ public class StationBlueprint
 			mainVessel.Orbit.RelativePosition += ab.Rotation * LocalPosition.ToVector3D();
 			mainVessel.Orbit.InitFromCurrentStateVectors(Server.SolarSystemTime);
 		}
-		mainVessel.Orbit.UpdateOrbit();
+		mainVessel.Orbit.UpdateOrbit(Server.SolarSystemTime);
 		if (LocalAngularVelocity is { Length: 3 })
 		{
 			mainVessel.AngularVelocity = LocalAngularVelocity.ToVector3D();

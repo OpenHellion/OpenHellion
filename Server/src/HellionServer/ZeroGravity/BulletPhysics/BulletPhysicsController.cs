@@ -132,87 +132,7 @@ public class BulletPhysicsController
 		{
 			_dynamicsWorld.AddRigidBody(rigidBody);
 		}
-		compound.GetBoundingSphere(out _, out var sphereRadius);
-		vessel.SetRadius(sphereRadius);
 		vessel.RigidBody = rigidBody;
-	}
-
-	public static void ComplexBoundCalculation(SpaceObjectVessel vessel, out Vector3 minValue, out Vector3 maxValue)
-	{
-		CompoundShape compound = new CompoundShape();
-		foreach (VesselPrimitiveColliderData data4 in vessel.PrimitiveCollidersData)
-		{
-			if (data4.AffectingCenterOfMass)
-			{
-				CollisionShape shape4 = null;
-				Matrix l = BulletHelper.AffineTransformation(1f, Quaternion.Identity, data4.CenterPosition.ToVector3());
-				if (data4.Type == ColliderDataType.Box)
-				{
-					shape4 = new BoxShape(data4.Bounds.X / 2.0, data4.Bounds.Y / 2.0, data4.Bounds.Z / 2.0);
-				}
-				else if (data4.Type == ColliderDataType.Sphere)
-				{
-					shape4 = new SphereShape(data4.Bounds.X);
-				}
-				if (shape4 != null)
-				{
-					compound.AddChildShape(l, shape4);
-				}
-			}
-		}
-		foreach (VesselMeshColliderData data3 in vessel.MeshCollidersData)
-		{
-			if (data3.AffectingCenterOfMass)
-			{
-				Matrix k = BulletHelper.AffineTransformation(1f, data3.Rotation.ToQuaternion(), data3.CenterPosition.ToVector3());
-				GImpactMeshShape shape3 = new GImpactMeshShape(new TriangleIndexVertexArray(data3.Indices, data3.Vertices));
-				shape3.LocalScaling = data3.Scale.ToVector3();
-				shape3.UpdateBound();
-				if (shape3 != null)
-				{
-					compound.AddChildShape(k, shape3);
-				}
-			}
-		}
-		if (vessel.AllDockedVessels.Count > 0)
-		{
-			foreach (Ship p in vessel.AllDockedVessels.Cast<Ship>())
-			{
-				CompoundShape newCompound = new CompoundShape();
-				Matrix relative = BulletHelper.AffineTransformation(1f, p.RelativeRotationFromMainParent.ToQuaternion(), p.RelativePositionFromMainParent.ToVector3());
-				foreach (VesselPrimitiveColliderData data2 in p.PrimitiveCollidersData)
-				{
-					CollisionShape shape2 = null;
-					Matrix j = BulletHelper.AffineTransformation(1f, Quaternion.Identity, data2.CenterPosition.ToVector3());
-					if (data2.Type == ColliderDataType.Box)
-					{
-						shape2 = new BoxShape(data2.Bounds.X / 2.0, data2.Bounds.Y / 2.0, data2.Bounds.Z / 2.0);
-					}
-					else if (data2.Type == ColliderDataType.Sphere)
-					{
-						shape2 = new SphereShape(data2.Bounds.X);
-					}
-					if (shape2 != null)
-					{
-						newCompound.AddChildShape(j, shape2);
-					}
-				}
-				foreach (VesselMeshColliderData data in p.MeshCollidersData)
-				{
-					Matrix i = BulletHelper.AffineTransformation(1f, data.Rotation.ToQuaternion(), data.CenterPosition.ToVector3());
-					GImpactMeshShape shape = new GImpactMeshShape(new TriangleIndexVertexArray(data.Indices, data.Vertices));
-					shape.LocalScaling = data.Scale.ToVector3();
-					shape.UpdateBound();
-					if (shape != null)
-					{
-						newCompound.AddChildShape(i, shape);
-					}
-				}
-				compound.AddChildShape(relative, newCompound);
-			}
-		}
-		Matrix identity = BulletHelper.AffineTransformation(1f, Quaternion.Identity, Vector3.Zero);
-		compound.GetAabb(identity, out minValue, out maxValue);
 	}
 
 	public bool RayCast(Vector3 from, Vector3 to, out ClosestRayResultCallback result)
@@ -239,9 +159,9 @@ public class BulletPhysicsController
 	{
 		try
 		{
-			foreach (SpaceObjectVessel vess in Server.Instance.AllVessels)
+			foreach (CollisionObject body in world.CollisionObjectArray)
 			{
-				vess.ReadPhysicsParameters();
+				(body.UserObject as SpaceObjectVessel)?.ReadPhysicsParameters();
 			}
 			int k = world.Dispatcher.NumManifolds;
 			for (int i = 0; i < k; i++)
