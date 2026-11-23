@@ -166,6 +166,7 @@ public class OrbitParameters
 	public void InitFromElements(OrbitParameters parent, double mass, double radius, double rotationPeriod, double eccentricity, double semiMajorAxis, double inclination, double argumentOfPeriapsis, double longitudeOfAscendingNode, double timeSincePeriapsis, double solarSystemTime)
 	{
 		FixEccentricity(ref eccentricity);
+		Debug.Assert(eccentricity < 1.0, $"Orbit of {GUID} initialised as escape trajectory with eccentricity {eccentricity}.");
 		this.parent = parent;
 		if (mass > 0.0)
 		{
@@ -186,7 +187,7 @@ public class OrbitParameters
 		this.longitudeOfAscendingNode = longitudeOfAscendingNode;
 		this.timeSincePeriapsis = timeSincePeriapsis;
 		solarSystemTimeAtPeriapsis = solarSystemTime - timeSincePeriapsis;
-		lastChangeTime = Server.SolarSystemTime;
+		lastChangeTime = solarSystemTime;
 		gravParameter = 6.67384E-11 * this.mass;
 		if (parent != null)
 		{
@@ -295,6 +296,7 @@ public class OrbitParameters
 		Vector3D eccentricityVec = Vector3D.Cross(RelativeVelocity, h) / parent.gravParameter - RelativePosition / rMag;
 		eccentricity = eccentricityVec.Magnitude;
 		FixEccentricity(ref eccentricity);
+		Debug.Assert(eccentricity < 1.0, $"Orbit of {GUID} entered escape trajectory with eccentricity {eccentricity} at speed {RelativeVelocity.Magnitude:F0} m/s, distance {rMag / 1000.0:F0} km.");
 		double orbitalEnergy = RelativeVelocity.SqrMagnitude / 2.0 - parent.gravParameter / rMag;
 		if (eccentricity < 1.0)
 		{
@@ -347,7 +349,7 @@ public class OrbitParameters
 		}
 		timeSincePeriapsis = CalculateTimeSincePeriapsis(this, RelativePosition, RelativeVelocity);
 		solarSystemTimeAtPeriapsis = solarSystemTime - timeSincePeriapsis;
-		lastChangeTime = Server.SolarSystemTime;
+		lastChangeTime = solarSystemTime;
 	}
 
 	public void InitFromCurrentStateVectors(double solarSystemTime)
@@ -745,7 +747,7 @@ public class OrbitParameters
 		double trueAnomaly = CalculateTrueAnomaly(this, timeSincePeriapsis);
 		RelativePosition = PositionAtTrueAnomaly(trueAnomaly, getRelativePosition: true);
 		RelativeVelocity = VelocityAtTrueAnomaly(trueAnomaly, getRelativeVelocity: true);
-		lastChangeTime = Server.SolarSystemTime;
+		lastChangeTime = solarSystemTime;
 	}
 
 	public List<Vector3D> GetOrbitPositions(int numberOfPositions, double timeStep)
