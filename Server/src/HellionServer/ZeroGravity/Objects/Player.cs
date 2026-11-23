@@ -1346,6 +1346,7 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 				Quest quest = Quests.FirstOrDefault((Quest m) => m.ID == det.ID);
 				if (quest == null)
 				{
+					Debug.LogWarning($"Player {Guid} skipped loading quest {det.ID} with status {det.Status}: no such quest in quest data.");
 					continue;
 				}
 				quest.Status = det.Status;
@@ -1357,8 +1358,22 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 						questTrigger.SpawnedMainVesselGuid = questTrigger.SpawnRuleName.IsNullOrEmpty() ? 0 : qtDet.StationMainVesselGUID;
 						await questTrigger.SetQuestStatusAsync(qtDet.Status);
 					}
+					else
+					{
+						Debug.LogWarning($"Player {Guid} skipped loading quest {det.ID} trigger {qtDet.ID} with status {qtDet.Status}: no such trigger in quest data.");
+					}
+				}
+				string saved = det.Status + " [" + string.Join(",", det.QuestTriggers.Select(m => (int)m.Status)) + "]";
+				string applied = quest.Status + " [" + string.Join(",", quest.QuestTriggers.Select(m => (int)m.Status)) + "]";
+				if (saved != applied)
+				{
+					Debug.LogWarning($"Player {Guid} loaded quest {det.ID} as {applied}, but it was saved as {saved}.");
 				}
 			}
+		}
+		else
+		{
+			Debug.LogWarning($"Player {Guid} has no saved quests.");
 		}
 		if (data.Blueprints != null)
 		{

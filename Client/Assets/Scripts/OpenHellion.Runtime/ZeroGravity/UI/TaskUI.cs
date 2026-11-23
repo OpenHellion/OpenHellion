@@ -14,14 +14,11 @@ namespace ZeroGravity.UI
 
 		public GameObject CompletedObject;
 
-		public QuestTracker QuestTracker;
-
 		public QuestTrigger NextTrigger;
 
 		public void OnCompletedTask()
 		{
 			gameObject.SetActive(false);
-			QuestTracker.RefreshBatch();
 		}
 
 		public void OnHideTask()

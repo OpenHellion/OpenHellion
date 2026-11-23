@@ -3631,7 +3631,10 @@ namespace ZeroGravity.Objects
 		private void QuestStatsMessageListener(NetworkData data)
 		{
 			QuestStatsMessage questStatsMessage = data as QuestStatsMessage;
-			SetQuestDetails(questStatsMessage.QuestDetails);
+			if (SetQuestDetails(questStatsMessage.QuestDetails) is { } completed)
+			{
+				World.InGameGUI.QuestTriggerUpdate(completed);
+			}
 		}
 
 		private void UpdateBlueprintsMessageListener(NetworkData data)
@@ -3643,15 +3646,16 @@ namespace ZeroGravity.Objects
 			}
 		}
 
-		public void SetQuestDetails(QuestDetails details, bool showNotifications = true, bool playCutScenes = true)
+		public QuestTrigger SetQuestDetails(QuestDetails details)
 		{
 			Quest quest = World.Quests.FirstOrDefault((Quest m) => m.ID == details.ID);
 			if (quest == null)
 			{
-				return;
+				Diagnostics.Assert(false, $"no quest {details.ID}, its status {details.Status} was dropped");
+				return null;
 			}
 
-			quest.SetDetails(details, World, showNotifications, playCutScenes);
+			QuestTrigger completed = quest.SetDetails(details);
 			if (quest.Status != 0)
 			{
 				QuestUI questUI =
@@ -3669,6 +3673,8 @@ namespace ZeroGravity.Objects
 			{
 				World.InGameGUI.PlayerOverview.Quests.RefreshSelectedQuest();
 			}
+
+			return completed;
 		}
 
 		public void CheckEquipmentAchievement()

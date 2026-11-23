@@ -72,34 +72,33 @@ namespace ZeroGravity.Objects
 			}
 		}
 
-		public void SetDetails(QuestDetails details, World world, bool showNotifications = true,
-			bool playCutScenes = true)
+		public QuestTrigger SetDetails(QuestDetails details)
 		{
 			Status = details.Status;
-			QuestTrigger questTrigger = null;
+			QuestTrigger completed = null;
 			foreach (QuestTriggerDetails qtd in details.QuestTriggers)
 			{
-				QuestTrigger questTrigger2 = QuestTriggers.FirstOrDefault((QuestTrigger m) => m.ID == qtd.ID);
-				if (questTrigger2 != null)
+				QuestTrigger trigger = QuestTriggers.FirstOrDefault((QuestTrigger m) => m.ID == qtd.ID);
+				if (trigger == null)
 				{
-					if (questTrigger2.Status != qtd.Status && qtd.Status == QuestStatus.Completed)
-					{
-						questTrigger = questTrigger2;
-					}
-
-					questTrigger2.SetDetails(qtd, showNotifications);
+					Diagnostics.Assert(false, $"quest {ID} has no trigger {qtd.ID}, its status {qtd.Status} was dropped");
+					continue;
 				}
-			}
 
-			if (questTrigger != null)
-			{
-				world.InGameGUI.QuestTriggerUpdate(questTrigger, playCutScenes);
+				if (trigger.Status != qtd.Status && qtd.Status == QuestStatus.Completed)
+				{
+					completed = trigger;
+				}
+
+				trigger.SetDetails(qtd);
 			}
 
 			if (Status == QuestStatus.Completed && QuestObject != null && QuestObject.Achivement != 0)
 			{
 				RichPresenceManager.SetAchievement(QuestObject.Achivement);
 			}
+
+			return completed;
 		}
 	}
 }

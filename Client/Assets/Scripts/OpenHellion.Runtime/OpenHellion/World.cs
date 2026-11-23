@@ -1341,9 +1341,11 @@ namespace OpenHellion
 				{
 					foreach (QuestDetails quest in spawnResponse.Quests)
 					{
-						MyPlayer.Instance.SetQuestDetails(quest, showNotifications: false, playCutScenes: false);
+						MyPlayer.Instance.SetQuestDetails(quest);
 					}
 				}
+
+				InGameGUI.SetCurrentTrackingQuest(Quests.FirstOrDefault((Quest m) => m.Status == QuestStatus.Active));
 
 				if (spawnResponse.Blueprints != null)
 				{

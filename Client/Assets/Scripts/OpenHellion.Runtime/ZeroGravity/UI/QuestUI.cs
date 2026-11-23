@@ -31,9 +31,9 @@ namespace ZeroGravity.UI
 
 		public Text LinkedQuestName;
 
-		private static InGameGUI _inGameGUI;
+		private InGameGUI _inGameGUI;
 
-		public static void Init(InGameGUI inGameGUI)
+		public void Init(InGameGUI inGameGUI)
 		{
 			_inGameGUI = inGameGUI;
 		}
@@ -98,19 +98,12 @@ namespace ZeroGravity.UI
 
 			if (_inGameGUI.CurrentTrackingQuest == Quest)
 			{
-				_inGameGUI.QuestTracker.HideActiveTasks();
 				_inGameGUI.SetCurrentTrackingQuest(null);
 				return;
 			}
 
 			Tracking.SetActive(true);
-			if (_inGameGUI.CurrentTrackingQuest != null)
-			{
-				_inGameGUI.QuestTracker.HideActiveTasks();
-			}
-
 			_inGameGUI.SetCurrentTrackingQuest(Quest);
-			_inGameGUI.QuestTracker.ShowTasks(0f);
 		}
 	}
 }

@@ -192,7 +192,6 @@ namespace OpenHellion.UI
 		{
 			ScreenShootMod.Activate(value: false);
 			UpdateTooltipKeys();
-			SetCurrentTrackingQuest(_world.Quests.FirstOrDefault((Quest m) => m.Status == QuestStatus.Active));
 			UpdateQuestObjects();
 		}
 
@@ -686,12 +685,9 @@ namespace OpenHellion.UI
 
 		public void SetCurrentTrackingQuest(Quest quest)
 		{
+			Diagnostics.Assert(quest == null || quest.Status != QuestStatus.Completed, $"tracking completed quest {quest?.ID}");
 			CurrentTrackingQuest = quest;
-			if (quest != null)
-			{
-				QuestTracker.ShowTasks(1f);
-			}
-
+			QuestTracker.Refresh(quest);
 			UpdateQuestMarkers();
 		}
 
@@ -751,64 +747,51 @@ namespace OpenHellion.UI
 			}
 		}
 
-		public void QuestTriggerUpdate(QuestTrigger trigger, bool playCutScenes = true)
+		public void QuestTriggerUpdate(QuestTrigger trigger)
 		{
 			if (trigger.Quest == CurrentTrackingQuest)
 			{
 				if (trigger.Type == QuestTriggerType.Task || trigger.Type == QuestTriggerType.Complete)
 				{
-					if (playCutScenes)
+					QuestCutScene.PlayCutScene(trigger);
+				}
+
+				if (trigger.Type == QuestTriggerType.Complete && trigger.Quest.Status == QuestStatus.Completed)
+				{
+					QuestTitleUI.CompleteQuest(trigger.Quest);
+					if (trigger.TaskObject.LastTask)
 					{
-						QuestTracker.RefreshTasks();
-						QuestCutScene.PlayCutScene(trigger);
+						SeasonEnd.Activate(value: true);
 					}
 
+					QuestObject next = trigger.Quest.QuestObject.QuestToTrackWhenCompleted;
+					SetCurrentTrackingQuest(next != null
+						? _world.Quests.FirstOrDefault((Quest m) => m.ID == next.ID && m.Status == QuestStatus.Active)
+						: _world.Quests.FirstOrDefault((Quest m) => m.Status == QuestStatus.Active));
+				}
+				else
+				{
+					QuestTracker.Refresh(CurrentTrackingQuest);
 					UpdateQuestMarkers();
-					if (trigger.Type == QuestTriggerType.Complete && playCutScenes &&
-					    trigger.Quest.Status == QuestStatus.Completed)
-					{
-						QuestTitleUI.CompleteQuest(trigger.Quest);
-						if (trigger.TaskObject.LastTask)
-						{
-							SeasonEnd.Activate(value: true);
-						}
-
-						SetCurrentTrackingQuest(null);
-					}
 				}
 			}
 			else if (trigger.Type == QuestTriggerType.Activate)
 			{
 				if (trigger.Quest.QuestObject.TrackOnPickUp || CurrentTrackingQuest == null)
 				{
-					QuestTracker.HideActiveTasks();
 					SetCurrentTrackingQuest(trigger.Quest);
-					QuestTracker.ShowTasks(5f);
 				}
 
-				if (playCutScenes)
-				{
-					QuestTitleUI.ShowTitle(trigger.Quest);
-				}
-
-				if (playCutScenes)
-				{
-					QuestCutScene.PlayCutScene(trigger);
-				}
-
+				QuestTitleUI.ShowTitle(trigger.Quest);
+				QuestCutScene.PlayCutScene(trigger);
 				QuickTip(Localization.GetLocalizedField("NewQuestAvailable"));
 			}
 			else
 			{
-				if (playCutScenes)
-				{
-					QuestCutScene.PlayCutScene(trigger);
-				}
-
-				if (CurrentTrackingQuest == null)
+				QuestCutScene.PlayCutScene(trigger);
+				if (CurrentTrackingQuest == null && trigger.Quest.Status == QuestStatus.Active)
 				{
 					SetCurrentTrackingQuest(trigger.Quest);
-					QuestTracker.ShowTasks(5f);
 				}
 				else
 				{
