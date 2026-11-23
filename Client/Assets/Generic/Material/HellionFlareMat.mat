@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: HellionFlareMat
-  m_Shader: {fileID: 10720, guid: 0000000000000000f000000000000000, type: 0}
+  m_Shader: {fileID: 4800000, guid: d333edf79697cb44e96ddeea15ac934f, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords:
   - _ALPHABLEND_ON
