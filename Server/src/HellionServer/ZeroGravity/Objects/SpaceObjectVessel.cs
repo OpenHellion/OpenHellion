@@ -1080,7 +1080,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 		SpaceObjectVessel vesselWithSecuritySystem = newDockedToMainVessel.AllDockedVessels.Find((SpaceObjectVessel m) => m.HasSecuritySystem);
 		newDockedToMainVessel.RecreateDockedVesselsTree();
 		newDockedToMainVessel.DbgLogDockedVesseslTree();
-		Orbit.SetLastChangeTime(Server.SolarSystemTime);
 		SpaceObjectVessel dockedToMainVessel = DockedToMainVessel;
 		DockedToMainVessel.CompoundDistributionManager = new DistributionManager(DockedToMainVessel, linkDockedVessels: true);
 		DockedToMainVessel.ConnectionsChanged = true;

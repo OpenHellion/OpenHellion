@@ -229,7 +229,7 @@ public class ManeuverCourse
 
 	public void SetFinalPosition()
 	{
-		targetOrbit.UpdateOrbit();
+		targetOrbit.UpdateOrbit(Server.SolarSystemTime);
 		double stopDist = 0.0;
 		ArtificialBody[] artificialBodies = [.. from m in Server.Instance.SolarSystem.GetNearbySpaceObjects(targetOrbit.RelativePosition, 5000.0)
 			where m is not SpaceObjectVessel vessel || vessel.MainVessel != parentShip.MainVessel && vessel.Orbit.Parent.CelestialBody == targetOrbit.Parent.CelestialBody
@@ -258,7 +258,7 @@ public class ManeuverCourse
 		parentShip.Orbit.RelativePosition = endPos;
 		parentShip.Orbit.RelativeVelocity = targetOrbit.RelativeVelocity;
 		parentShip.Orbit.InitFromCurrentStateVectors(Server.SolarSystemTime);
-		parentShip.Orbit.UpdateOrbit();
+		parentShip.Orbit.UpdateOrbit(Server.SolarSystemTime);
 	}
 
 	public async Task Invalidate()
@@ -275,12 +275,12 @@ public class ManeuverCourse
 				double LongitudeOfAscendingNode = 0.0;
 				double TrueAnomalyAngleDeg = 0.0;
 				tempOrbit.InitFromPeriapisAndApoapsis(parentShip.Orbit.Parent, relPos.Magnitude, relPos.Magnitude, inclination, argumentOfPeriapsis, LongitudeOfAscendingNode, TrueAnomalyAngleDeg, Server.Instance.SolarSystem.CurrentTime);
-				tempOrbit.UpdateOrbit();
+				tempOrbit.UpdateOrbit(Server.SolarSystemTime);
 				tempOrbit.RelativePosition += parentShip.Orbit.Position - tempOrbit.Position;
 				tempOrbit.InitFromCurrentStateVectors(Server.SolarSystemTime);
-				tempOrbit.UpdateOrbit();
+				tempOrbit.UpdateOrbit(Server.SolarSystemTime);
 				parentShip.Orbit.CopyDataFrom(tempOrbit, Server.Instance.SolarSystem.CurrentTime, exactCopy: true);
-				parentShip.Orbit.UpdateOrbit();
+				parentShip.Orbit.UpdateOrbit(Server.SolarSystemTime);
 			}
 			isStarted = false;
 			isValid = false;
@@ -320,7 +320,7 @@ public class ManeuverCourse
 	{
 		startOrbit = parentShip.Orbit;
 		targetOrbit = new OrbitParameters();
-		targetOrbit.ParseNetworkData(data.EndOrbit, resetOrbit: true);
+		targetOrbit.ParseNetworkData(data.EndOrbit);
 		startOrbit.FillPositionAndVelocityAfterTime(data.StartSolarSystemTime - Server.SolarSystemTime, fillRelativeData: true, ref startPos, ref startVel);
 		targetOrbit.FillPositionAndVelocityAfterTime(data.EndSolarSystemTime - Server.SolarSystemTime, fillRelativeData: true, ref targetPos, ref targetVel);
 		travelTime = data.EndSolarSystemTime - data.StartSolarSystemTime;

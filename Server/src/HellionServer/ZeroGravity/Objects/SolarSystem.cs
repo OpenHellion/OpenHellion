@@ -28,6 +28,10 @@ public class SolarSystem
 
 	private double _timeCorrection;
 
+#if DEBUG
+	private double _previousPositionsTime;
+#endif
+
 	public double CurrentTime => _currentTime;
 
 	public int ArtificialBodiesCount => Server.Instance.ArtificialBodiesCount;
@@ -95,6 +99,11 @@ public class SolarSystem
 
 	public async Task UpdatePositions()
 	{
+#if DEBUG
+		bool checkJumps = _previousPositionsTime > 0.0;
+		double solarDelta = _currentTime - _previousPositionsTime;
+		_previousPositionsTime = _currentTime;
+#endif
 		foreach (CelestialBody body in _celestialBodies)
 		{
 			body.Update();
@@ -113,11 +122,14 @@ public class SolarSystem
 			else
 			{
 #if DEBUG
-				if (ab is SpaceObjectVessel vessel && Server.SolarSystemTime - vessel.CreationSolarSystemTime > 5.0 && Server.Instance.SpaceObjects.TryGetPosition(ab.Guid, out Vector3D previous)
-					&& (ab.Position - previous - ab.Velocity * Server.Instance.DeltaTime).Magnitude is var jump and > 10000.0)
+				if (checkJumps && ab is SpaceObjectVessel vessel && Server.SolarSystemTime - vessel.CreationSolarSystemTime > 5.0 && Server.Instance.SpaceObjects.TryGetPosition(ab.Guid, out Vector3D previous)
+					&& (ab.Position - previous - ab.Velocity * solarDelta).Magnitude is var jump and > 10000.0)
 				{
-					Debug.State($"vessel {vessel.Guid} '{vessel.VesselRegistration}' jumped {jump / 1000.0:F0} km in one tick; dt {Server.Instance.DeltaTime:F3}, " +
-						$"time since periapsis {ab.Orbit.TimeSincePeriapsis:F1} of period {ab.Orbit.OrbitalPeriod:F1}, course {ab.CurrentCourse != null}, stabilised to {ab.StabilizeToTargetObj?.Guid}, physics body {vessel.RigidBody != null}");
+					Debug.State($"vessel {vessel.Guid} '{vessel.VesselRegistration}' jumped {jump / 1000.0:F0} km in one tick; solar dt {solarDelta:F3}, tick dt {Server.Instance.DeltaTime:F3}, " +
+						$"moved {(ab.Position - previous).Magnitude / 1000.0:F1} km at {ab.Velocity.Magnitude / 1000.0:F2} km/s ({ab.Orbit.RelativeVelocity.Magnitude / 1000.0:F2} km/s relative), " +
+						$"parent {ab.Orbit.Parent.CelestialBody?.GUID} at {ab.Orbit.RelativePosition.Magnitude / 1000.0:F0} km, eccentricity {ab.Orbit.Eccentricity:F6}, " +
+						$"time since periapsis {ab.Orbit.TimeSincePeriapsis:F1} of period {ab.Orbit.OrbitalPeriod:F1}, main {vessel.IsMainVessel}, docked {vessel.AllDockedVessels.Count}, " +
+						$"course {ab.CurrentCourse != null}, stabilised to {ab.StabilizeToTargetObj?.Guid}, physics body {vessel.RigidBody != null}");
 				}
 #endif
 				Server.Instance.SpaceObjects.SetPosition(ab.Guid, ab.Position);

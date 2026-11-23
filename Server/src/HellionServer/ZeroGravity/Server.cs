@@ -1794,7 +1794,7 @@ public sealed class Server
 					myAb.Orbit.RelativePosition -= myAb.Rotation * Vector3D.Forward * (target.Radius + 100.0);
 				}
 				myAb.Orbit.InitFromCurrentStateVectors(SolarSystem.CurrentTime);
-				myAb.Orbit.UpdateOrbit();
+				myAb.Orbit.UpdateOrbit(SolarSystemTime);
 				return Ok("teleport: moved to " + (target is SpaceObjectVessel targetVessel ? targetVessel.FullName : parts[1]) + ".");
 			}
 			case "respawn":
@@ -1928,7 +1928,7 @@ public sealed class Server
 				await vessel3.MainVessel.DisableStabilization(disableForChildren: false, updateBeforeDisable: true);
 				vessel3.MainVessel.Orbit.RelativePosition += vessel3.Rotation * Vector3D.Forward * dist * 1000.0;
 				vessel3.MainVessel.Orbit.InitFromCurrentStateVectors(SolarSystemTime);
-				vessel3.MainVessel.Orbit.UpdateOrbit();
+				vessel3.MainVessel.Orbit.UpdateOrbit(SolarSystemTime);
 				return Ok("blink: moved " + dist + "km forward.");
 			}
 			case "whereami":

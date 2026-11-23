@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Diagnostics;
 using ZeroGravity;
 using ZeroGravity.Math;
 
@@ -25,6 +26,45 @@ public class OrbitParametersTests
 	private const double EarthMass = 5.97E24;
 
 	private const double SunMass = 1.989E30;
+
+	private readonly System.Text.StringBuilder _assertFailures = new System.Text.StringBuilder();
+
+	private TraceListener[] _listeners = [];
+
+	private static readonly object[] NearParabolicOrbits =
+	[
+		new object[] { EarthMass, 0.9999, 1.0E8, 10.0, 20.0, 30.0 },
+		new object[] { EarthMass, 1.0 - 1E-6, 1.0E8, 40.0, 50.0, 60.0 },
+		new object[] { EarthMass, 1.0 - 1E-8, 4.0E7, 0.0, 0.0, 0.0 },
+		new object[] { EarthMass, 1.0 - 1E-9, 4.0E7, 120.0, 200.0, 310.0 },
+		new object[] { SunMass, 1.0 - 1E-8, 3.0E11, 5.0, 15.0, 25.0 }
+	];
+
+	private static readonly object[] StraightLineTrajectories =
+	[
+		new object[] { new Vector3D(1.0, 0.0, 0.0), 0.0, 0.0 },
+		new object[] { new Vector3D(0.0, 1.0, 0.0), 0.0, 0.0 },
+		new object[] { new Vector3D(0.3, 0.4, 0.866), 0.5, 0.0 },
+		new object[] { new Vector3D(0.3, 0.4, 0.866), -0.5, 0.0 },
+		new object[] { new Vector3D(0.6, -0.8, 0.0), 0.2, 1E-6 }
+	];
+
+	[SetUp]
+	public void CaptureAssertFailures()
+	{
+		_listeners = Trace.Listeners.Cast<TraceListener>().ToArray();
+		_assertFailures.Clear();
+		Trace.Listeners.Clear();
+		Trace.Listeners.Add(new TextWriterTraceListener(new StringWriter(_assertFailures)));
+	}
+
+	[TearDown]
+	public void RestoreListeners()
+	{
+		Trace.Listeners.Clear();
+		Trace.Listeners.AddRange(_listeners);
+		Assert.That(_assertFailures.ToString(), Is.Empty, "unexpected assert failures");
+	}
 
 	private static readonly object[] EllipticOrbits =
 	[
@@ -129,7 +169,7 @@ public class OrbitParametersTests
 				double time = period * fraction;
 				OrbitParameters orbit = CreateOrbit(parentMass, eccentricity, semiMajorAxis, inclination, argumentOfPeriapsis, longitudeOfAscendingNode, time);
 				Vector3D initialised = orbit.Position;
-				orbit.ResetOrbit(time);
+				orbit.UpdateOrbit(time);
 				Assert.That((orbit.Position - initialised).Magnitude, Is.LessThan(semiMajorAxis * 1E-6), $"{fraction} of period became {orbit.TimeSincePeriapsis / period:F4}");
 			}
 		});
@@ -148,7 +188,7 @@ public class OrbitParametersTests
 				foreach (double fraction in PeriodFractions)
 				{
 					double time = System.Math.Ceiling(serverTime / period) * period + period * fraction;
-					orbit.ResetOrbit(time);
+					orbit.UpdateOrbit(time);
 					Vector3D expected = orbit.PositionAtTimeAfterPeriapsis(period * fraction, true);
 					Assert.That((orbit.RelativePosition - expected).Magnitude, Is.LessThan(semiMajorAxis * 1E-6), $"server time {time:F0} at {fraction} of period");
 					Assert.That(orbit.TimeSincePeriapsis, Is.InRange(-period, period), $"time since periapsis at server time {time:F0}");
@@ -233,6 +273,134 @@ public class OrbitParametersTests
 					Assert.That(error, Is.LessThan(semiMajorAxis * 1E-6), $"{later} periods after {fraction} of period");
 				}
 			}
+		});
+	}
+
+	[TestCaseSource(nameof(NearParabolicOrbits))]
+	public void NearParabolicOrbitFollowsNewtonianPhysics(double parentMass, double eccentricity, double semiMajorAxis, double inclination, double argumentOfPeriapsis, double longitudeOfAscendingNode)
+	{
+		OrbitParameters orbit = CreateOrbit(parentMass, eccentricity, semiMajorAxis, inclination, argumentOfPeriapsis, longitudeOfAscendingNode, 0.0);
+		double mu = orbit.Parent.GravParameter;
+		double period = orbit.OrbitalPeriod;
+		double angularMomentum = System.Math.Sqrt(mu * semiMajorAxis * (1.0 - eccentricity * eccentricity));
+		double start = period * 0.1;
+		int stepsPerCheckpoint = 20000;
+		double dt = period * 0.8 / 16.0 / stepsPerCheckpoint;
+		Vector3D r = orbit.PositionAtTimeAfterPeriapsis(start, true);
+		Vector3D v = orbit.VelocityAtTimeAfterPeriapsis(start, true);
+
+		Assert.Multiple(() =>
+		{
+			foreach (double fraction in new[] { -1E-6, 1E-6, 1E-3, 0.1, 0.25, 0.5, 0.75, 0.999 })
+			{
+				double time = period * fraction;
+				Vector3D position = orbit.PositionAtTimeAfterPeriapsis(time, true);
+				Vector3D velocity = orbit.VelocityAtTimeAfterPeriapsis(time, true);
+				Assert.That(position.Magnitude, Is.InRange(semiMajorAxis * (1.0 - eccentricity) * (1.0 - 1E-6) - 1E-6 * semiMajorAxis, semiMajorAxis * (1.0 + eccentricity) * (1.0 + 1E-9)), $"distance at {fraction} of period");
+				Assert.That(velocity.SqrMagnitude / 2.0 - mu / position.Magnitude, Is.EqualTo(-mu / (2.0 * semiMajorAxis)).Within(1E-6 * mu / position.Magnitude), $"orbital energy at {fraction} of period");
+				Assert.That(Vector3D.Cross(position, velocity).Magnitude, Is.EqualTo(angularMomentum).Within(1E-3).Percent, $"angular momentum at {fraction} of period");
+				Assert.That((orbit.PositionAtTimeAfterPeriapsis(time + period * 3.0, true) - position).Magnitude, Is.LessThan(semiMajorAxis * 1E-6), $"periodicity at {fraction} of period");
+			}
+
+			for (int checkpoint = 1; checkpoint <= 16; checkpoint++)
+			{
+				for (int step = 0; step < stepsPerCheckpoint; step++)
+				{
+					Vector3D a1 = r * (-mu / System.Math.Pow(r.Magnitude, 3.0));
+					Vector3D r2 = r + v * (dt / 2.0);
+					Vector3D v2 = v + a1 * (dt / 2.0);
+					Vector3D a2 = r2 * (-mu / System.Math.Pow(r2.Magnitude, 3.0));
+					Vector3D r3 = r + v2 * (dt / 2.0);
+					Vector3D v3 = v + a2 * (dt / 2.0);
+					Vector3D a3 = r3 * (-mu / System.Math.Pow(r3.Magnitude, 3.0));
+					Vector3D r4 = r + v3 * dt;
+					Vector3D v4 = v + a3 * dt;
+					Vector3D a4 = r4 * (-mu / System.Math.Pow(r4.Magnitude, 3.0));
+					r += (v + v2 * 2.0 + v3 * 2.0 + v4) * (dt / 6.0);
+					v += (a1 + a2 * 2.0 + a3 * 2.0 + a4) * (dt / 6.0);
+				}
+				double time = start + checkpoint * stepsPerCheckpoint * dt;
+				double error = (orbit.PositionAtTimeAfterPeriapsis(time, true) - r).Magnitude;
+				Assert.That(error, Is.LessThan(semiMajorAxis * 1E-5), $"integration checkpoint at {time / period:F3} periods");
+			}
+		});
+	}
+
+	[TestCaseSource(nameof(StraightLineTrajectories))]
+	public void StraightLineTrajectoryBecomesNearlyStraightOrbit(Vector3D direction, double radialFraction, double tangentialFraction)
+	{
+		OrbitParameters parent = new OrbitParameters();
+		parent.InitFromElements(null, EarthMass, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+		double mu = parent.GravParameter;
+		double distance = 4.0E7;
+		double circularSpeed = System.Math.Sqrt(mu / distance);
+		double timeScale = distance / circularSpeed;
+		direction = direction.Normalized;
+		Vector3D tangent = Vector3D.Cross(direction, System.Math.Abs(direction.Y) < 0.9 ? Vector3D.Up : Vector3D.Right).Normalized;
+		Vector3D r = direction * distance;
+		Vector3D v = direction * (radialFraction * circularSpeed) + tangent * (tangentialFraction * circularSpeed);
+		OrbitParameters orbit = new OrbitParameters();
+
+		orbit.InitFromStateVectors(parent, r, v, 0.0, areValuesRelative: true);
+
+		Assert.That(_assertFailures.ToString(), Does.Contain("degenerate straight-line trajectory"));
+		_assertFailures.Clear();
+		Assert.Multiple(() =>
+		{
+			Assert.That(orbit.IsOrbitValid, "orbit is valid");
+			Assert.That(orbit.Eccentricity, Is.LessThan(1.0), "orbit is bound");
+			Assert.That((orbit.RelativePosition - r).Magnitude, Is.LessThan(1E-9 * distance), "position is kept");
+			Assert.That((orbit.RelativeVelocity - v).Magnitude, Is.LessThanOrEqualTo(1.0001E-4 * circularSpeed), "velocity changes by at most the minimum tangential speed");
+
+			double dt = timeScale / 20000.0;
+			for (int checkpoint = 1; checkpoint <= 300; checkpoint++)
+			{
+				for (int step = 0; step < 200; step++)
+				{
+					Vector3D a1 = r * (-mu / System.Math.Pow(r.Magnitude, 3.0));
+					Vector3D r2 = r + v * (dt / 2.0);
+					Vector3D v2 = v + a1 * (dt / 2.0);
+					Vector3D a2 = r2 * (-mu / System.Math.Pow(r2.Magnitude, 3.0));
+					Vector3D r3 = r + v2 * (dt / 2.0);
+					Vector3D v3 = v + a2 * (dt / 2.0);
+					Vector3D a3 = r3 * (-mu / System.Math.Pow(r3.Magnitude, 3.0));
+					Vector3D r4 = r + v3 * dt;
+					Vector3D v4 = v + a3 * dt;
+					Vector3D a4 = r4 * (-mu / System.Math.Pow(r4.Magnitude, 3.0));
+					r += (v + v2 * 2.0 + v3 * 2.0 + v4) * (dt / 6.0);
+					v += (a1 + a2 * 2.0 + a3 * 2.0 + a4) * (dt / 6.0);
+				}
+				if (r.Magnitude < 0.2 * distance)
+				{
+					break;
+				}
+				double time = checkpoint * 200 * dt;
+				double error = (orbit.PositionAfterTime(time, true) - r).Magnitude;
+				Assert.That(error, Is.LessThan(1E-3 * distance), $"straight-line fall diverged at {time / timeScale:F2} time scales, {r.Magnitude / distance:F2} of start distance");
+			}
+		});
+	}
+
+	[Test]
+	public void OrbitAtCentreOfParentIsRefused()
+	{
+		OrbitParameters parent = new OrbitParameters();
+		parent.InitFromElements(null, EarthMass, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+		OrbitParameters orbit = new OrbitParameters();
+
+		orbit.InitFromStateVectors(parent, Vector3D.Zero, Vector3D.One, 0.0, areValuesRelative: true);
+		string creation = _assertFailures.ToString();
+		_assertFailures.Clear();
+		orbit.UpdateOrbit(100.0);
+		string update = _assertFailures.ToString();
+		_assertFailures.Clear();
+
+		Assert.Multiple(() =>
+		{
+			Assert.That(creation, Does.Contain("centre of its parent"));
+			Assert.That(orbit.IsOrbitValid, Is.False);
+			Assert.That(update, Does.Contain("degenerate orbit"));
+			Assert.That(orbit.RelativePosition.IsNaN(), Is.False);
 		});
 	}
 }

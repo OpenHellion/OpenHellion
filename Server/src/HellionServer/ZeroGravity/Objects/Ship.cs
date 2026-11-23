@@ -1508,7 +1508,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		EmblemId = data.EmblemId;
 		LoadShipRequestPersistance(data.timePassedSinceShipCall);
 		DistributionManager = new DistributionManager(this);
-		InitializeOrbit(Vector3D.Zero, Vector3D.One, data.Rotation.ToQuaternionD());
+		InitializeOrbit(data.OrbitData, data.Rotation.ToQuaternionD());
 		AngularVelocity = data.AngularVelocity.ToVector3D();
 		await SetHealthAsync(data.Health);
 		IsInvulnerable = data.IsInvulnerable;
@@ -1592,10 +1592,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 			}
 		}
 		await MainDistributionManager.UpdateSystems();
-		if (data.OrbitData != null)
-		{
-			Orbit.ParseNetworkData(data.OrbitData, resetOrbit: true);
-		}
 		Server.Instance.Add(this);
 		if (data.timePassedSinceShipCall > 0.0)
 		{

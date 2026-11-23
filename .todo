@@ -35,6 +35,7 @@ New central world state system:
 [ ] Fix ship driving without power and engine
 [ ] Move collections of all space objects into SolarSystem.cs on the server and only allow access trough getters and setters
 [ ] Fix refused state request echoing back same request instead of sending actual state or error
+[ ] Make OrbitParameters and common math into a library and use state to keep ingame orbits in sync
 
 Movement:
 [x] Made world use local space, derived from anchor
@@ -58,19 +59,19 @@ Movement:
 [x] Remove subscribe/unsubscribe, and only use player view
 [x] Fix docking mode ship piloting
 [x] Send faraway "known" vessels to client, but only on map and radar position (subscibe objects and known vessels rewrite)
+[x] Fix stabilising on hull of ship causing jumping around
+[x] Fix vessels jump along their orbit (position discontinuity) as quest ships around Haven moved 80,000 km (surfaced after save and load)
 [ ] Fix items, corpses and other players sliding when the anchor changes (fixed for items)
 [ ] Moving from 0g to 1g fast making you fall out of the world (think is fixed, havent reproduced for a while)
 [ ] Landing and staying on asteroid is impossible (because object spins)
 [ ] Fix radar selection raycast not succeeding
-[ ] Anchor onto moving platform
+[ ] Parent onto moving platform
 [ ] Fix parent flipping on border between two ships
 [ ] Harden collision damage
-[ ] Fix stabilising on hull of ship causing jumping around
 [ ] Enable movement when hooked onto panel (so that you can't stop collision by opening the ship door panel)
 [ ] Make sure stabilisation doesn't make you immune to depressurisation movement
 [ ] Piloting on a laggy server is horrible
 [ ] Rip out bullet physics and only rely on local client-side micro-level physics simulation and orbital calculations on the server
-[ ] Fix vessels jump along their orbit (position discontinuity) as quest ships around Haven moved 80,000 km (surfaced after save and load)
 [ ] Fix walls on some modules not having collisions
 [ ] Fix bug with inverted y-axis on ship movement
 

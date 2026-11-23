@@ -260,11 +260,7 @@ public class Asteroid : SpaceObjectVessel, IPersistantObject
 		ReadInfoFromJson();
 		RecalculateCenter();
 		CreationSolarSystemTime = Server.SolarSystemTime;
-		InitializeOrbit(Vector3D.Zero, Vector3D.One, data.Rotation.ToQuaternionD());
-		if (data.OrbitData != null)
-		{
-			Orbit.ParseNetworkData(data.OrbitData, resetOrbit: true);
-		}
+		InitializeOrbit(data.OrbitData, data.Rotation.ToQuaternionD());
 		AngularVelocity = data.AngularVelocity.ToVector3D();
 		await Task.Run(() => {
 			foreach (var det in data.MiningPoints)

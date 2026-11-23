@@ -502,7 +502,7 @@ namespace ZeroGravity.ShipComponents
 				((arg != 6) ? (orbit.TrueAnomalyAtZeroTime() * (180.0 / System.Math.PI)) : value);
 			Map.SelectedObject.Orbit.InitFromPeriapisAndApoapsis(orbit.Parent, periapsisDistance, apoapsisDistance,
 				inclination, argumentOfPeriapsis, longitudeOfAscendingNode, trueAnomalyAngleDeg, 0.0);
-			Map.SelectedObject.Orbit.ResetOrbit(_world.SolarSystem.CurrentTime);
+			Map.SelectedObject.Orbit.UpdateOrbit(_world.SolarSystem.CurrentTime);
 			Map.SelectedObject.SetOrbit();
 			Map.SelectedObject.UpdateOrbitPlane();
 			UpdateParameters();

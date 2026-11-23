@@ -708,7 +708,6 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 			}
 
 			Pivot pivot = new Pivot(this, vesselLeft.MainVessel);
-			pivot.Orbit.SetLastChangeTime(Server.SolarSystemTime);
 			newParent = pivot;
 		}
 		else if (Server.Instance.TryGetSpaceObject(message.ParentGuid, out SpaceObject requestedParent)
@@ -834,7 +833,6 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 					refVessel = refVessel.StabilizeToTargetObj;
 				}
 				stabilisePivot.AdjustPositionAndVelocity(Vector3D.Zero, refVessel.Velocity - stabilisePivot.Velocity);
-				stabilisePivot.Orbit.SetLastChangeTime(Server.SolarSystemTime);
 			}
 
 			Vector3D reportedPosition = message.Position.ToVector3D();
