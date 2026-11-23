@@ -72,6 +72,7 @@ Movement:
 [ ] Rip out bullet physics and only rely on local client-side micro-level physics simulation and orbital calculations on the server
 [ ] Fix vessels jump along their orbit (position discontinuity) as quest ships around Haven moved 80,000 km (surfaced after save and load)
 [ ] Fix walls on some modules not having collisions
+[ ] Fix bug with inverted y-axis on ship movement
 
 Debugging/diagnostics:
 [x] Fix console (add errors and make player admin)

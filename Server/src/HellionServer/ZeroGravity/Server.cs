@@ -1332,6 +1332,7 @@ public sealed class Server
 					"pressurize                           pressurize the current room",
 					"airquality <0-1>                     set air quality in the current room",
 					"sethealth <health>                   set health of held item, or of this vessel",
+					"destroyparts                         destroy every machinery part fitted in this vessel and its docked vessels, to test how systems react to losing parts",
 					"god [0|1]                            query or set god mode",
 					"setmain                              make this vessel the current station's main vessel",
 					"respawn <spawn rule>                 respawn a blueprint spawn rule",
@@ -1833,6 +1834,36 @@ public sealed class Server
 				await parentVessel.SetHealthAsync(health);
 				parentVessel.MainVessel.UpdateVesselData();
 				return Ok("sethealth: " + parentVessel.VesselName + " set to " + health + ".");
+			}
+			case "destroyparts":
+			{
+				if (parts.Length != 1)
+				{
+					return Error("destroyparts: expected no arguments.");
+				}
+				if (parent is not SpaceObjectVessel vessel)
+				{
+					return Error("destroyparts: you are not inside a vessel.");
+				}
+
+				string response = "";
+				int destroyed = 0;
+				foreach (SpaceObjectVessel dockedVessel in vessel.MainVessel.AllDockedVessels.Prepend(vessel.MainVessel))
+				{
+					foreach (VesselComponent system in dockedVessel.Systems)
+					{
+						foreach (VesselObjectID slot in system.MachineryPartSlots.Keys)
+						{
+							if (VesselComponent.PartInSlot(slot) is { } part)
+							{
+								response += "\r\n" + dockedVessel.VesselName + " " + system.GetType().Name + ": " + part.PartType + " " + part.GUID;
+								await part.DestroyItem();
+								destroyed++;
+							}
+						}
+					}
+				}
+				return Ok("destroyparts: destroyed " + destroyed + " machinery parts." + response);
 			}
 			case "spawnrulescleanup":
 			{
