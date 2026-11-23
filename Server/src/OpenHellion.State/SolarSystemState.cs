@@ -39,6 +39,7 @@ namespace OpenHellion.State
 		private long[] _guid;
 		private short[] _dataId;
 		private ItemLocation[] _location;
+		private ItemLocation[] _previousLocation;
 		private int[] _nextSibling;
 		private int[] _prevSibling;
 		private float[] _health;
@@ -105,6 +106,8 @@ namespace OpenHellion.State
 		public short DataId(ItemId item) => _dataId[item.Row];
 
 		public ItemLocation Location(ItemId item) => _location[item.Row];
+
+		public ItemLocation PreviousLocation(ItemId item) => _previousLocation[item.Row];
 
 		public AttachPointType AttachPointTypeAt(ItemLocation location) =>
 			location.Kind == LocationKind.AttachPoint && _attachPoints.TryGetValue((location.ParentKey, location.SlotId), out AttachPointType type) ? type : AttachPointType.None;
@@ -255,6 +258,7 @@ namespace OpenHellion.State
 			_guid[row] = guid;
 			_dataId[row] = dataId;
 			_location[row] = default;
+			_previousLocation[row] = default;
 			_nextSibling[row] = -1;
 			_prevSibling[row] = -1;
 			_health[row] = 0f;
@@ -354,6 +358,10 @@ namespace OpenHellion.State
 				return false;
 			}
 
+			if ((_changes[row] & ItemChanges.Location) == 0)
+			{
+				_previousLocation[row] = _location[row];
+			}
 			Unlink(row);
 			_location[row] = location;
 			if (location.IsSlot)
@@ -747,6 +755,7 @@ namespace OpenHellion.State
 			Array.Resize(ref _guid, capacity);
 			Array.Resize(ref _dataId, capacity);
 			Array.Resize(ref _location, capacity);
+			Array.Resize(ref _previousLocation, capacity);
 			Array.Resize(ref _nextSibling, capacity);
 			Array.Resize(ref _prevSibling, capacity);
 			Array.Resize(ref _health, capacity);

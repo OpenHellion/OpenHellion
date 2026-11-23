@@ -669,7 +669,7 @@ namespace ZeroGravity.Objects
 		public bool AreAttachDataSame(DynamicObjectAttachData data)
 		{
 			SpaceObject spaceObject = Slot is InventorySlot && InvSlot.Outfit != null
-				? InvSlot.Outfit.DynamicObj.Parent
+				? InvSlot.Outfit.DynamicObj
 				: Slot is not ItemSlot ? DynamicObj.Parent : Slot.Parent;
 			return spaceObject.Type == data.ParentType && spaceObject.Guid == data.ParentGUID &&
 			       (Slot is ItemSlot itemSlot ? itemSlot.ID : 0) == data.ItemSlotID &&

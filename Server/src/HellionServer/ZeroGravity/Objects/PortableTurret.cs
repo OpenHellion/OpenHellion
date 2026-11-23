@@ -64,13 +64,6 @@ internal class PortableTurret : Item
 	private async void PortableTurretShootingMessageListener(NetworkData data)
 	{
 		var message = data as PortableTurretShootingMessage;
-		if (message.TurretGUID == GUID)
-		{
-			SpaceObjectVessel vessel = AttachPointID is { } attachPoint ? Server.Instance.GetVessel(attachPoint.VesselGUID) : null;
-			Player shooter = Server.Instance.GetPlayer(message.Sender);
-			Debug.State($"turret {GUID} shooting request {message.IsShooting} from {message.Sender}: active {IsActive} stunned {isStunned} health {Health:F0}" +
-				$" vessel {vessel?.Guid ?? 0} base system {vessel?.VesselBaseSystem?.Status.ToString() ?? "none"} hostile {shooter != null && IsHostileTo(shooter)}");
-		}
 		if (message.TurretGUID == GUID && Server.Instance.GetPlayer(message.Sender) is { } sender && (!message.IsShooting || IsHostileTo(sender)))
 		{
 			targetPlayer = sender;

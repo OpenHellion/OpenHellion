@@ -50,11 +50,6 @@ public class InventorySlot
 		Inventory = inventory;
 	}
 
-	public void SetInventory(Inventory inv)
-	{
-		Inventory = inv;
-	}
-
 	public bool CanStoreItem(Item item)
 	{
 		return CanStoreItem(item.Type);

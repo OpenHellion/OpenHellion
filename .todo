@@ -16,23 +16,25 @@ Spawn:
 [x] Adding item to inventory using console doesn't update the client
 [x] Fix not spawning inside cryopod.
 [ ] Fix empty dynamic objects at scene root
-[ ] Queue state update messages when loading, and apply after loading is done
-[ ] Server-authortative view, push full state of object in view instead client requesting it
 [ ] Implement respawn without needing to rejoin
 
-WorldState rewrite:
+New central world state system:
 [x] Create a world state class to store basic data about dynamic objects (test the system)
 [x] Make syncronisation of changes in the state automatic (client never writes state but sends commands)
 [x] Corridor doors do not sync with the outer doors of other modules
-[ ] Do a total overhaul of how space objects are stored, cached and accessed on the server (put them into state)
+[ ] State changes marks that object dirty and calls a callback from the state (subscribe to state updates/replace EventSystem for state changes)
+[ ] Put all space objects and their contents into state (decouple state from logic)
+[ ] Gradually remove objects, so state is only source of truth for game data
 [ ] Remove all stats and details messages and put into StatsUpdateMessage/StatsUpdateRequest.
 [ ] Serve state as parameter instead of as a variable
 [ ] Rewrite trigger executors to use state
-[ ] Split world into correct classes
-[ ] State assembly parse state commands and received state instead of going through old objects
-[ ] Gradually remove objects, so state is only source of truth for game data (server)
+[ ] Split World.cs and Server.cs into correct classes
 [ ] Make saving simply writing and reading stored state on disk (server)
 [ ] Remove pivots
+[ ] Queue state update messages when loading, and apply after loading is done
+[ ] Fix ship driving without power and engine
+[ ] Move collections of all space objects into SolarSystem.cs on the server and only allow access trough getters and setters
+[ ] Fix refused state request echoing back same request instead of sending actual state or error
 
 Movement:
 [x] Made world use local space, derived from anchor
@@ -59,19 +61,17 @@ Movement:
 [ ] Fix items, corpses and other players sliding when the anchor changes (fixed for items)
 [ ] Moving from 0g to 1g fast making you fall out of the world (think is fixed, havent reproduced for a while)
 [ ] Landing and staying on asteroid is impossible (because object spins)
-[ ] Fix ship driving without power and engine
 [ ] Fix radar selection raycast not succeeding
 [ ] Anchor onto moving platform
-[ ] Implement leasing of space objects (security against hacking a vessel, only one player may lease an object at a time)
 [ ] Fix parent flipping on border between two ships
-[ ] MovementMessages only for objects that have moved
 [ ] Harden collision damage
 [ ] Fix stabilising on hull of ship causing jumping around
 [ ] Enable movement when hooked onto panel (so that you can't stop collision by opening the ship door panel)
 [ ] Make sure stabilisation doesn't make you immune to depressurisation movement
 [ ] Piloting on a laggy server is horrible
 [ ] Rip out bullet physics and only rely on local client-side micro-level physics simulation and orbital calculations on the server
-[ ] Fix vessels jump along their orbit (position discontinuity) as quest ships around Haven moved 80,000 kmDo (surfaced after save and load)
+[ ] Fix vessels jump along their orbit (position discontinuity) as quest ships around Haven moved 80,000 km (surfaced after save and load)
+[ ] Fix walls on some modules not having collisions
 
 Debugging/diagnostics:
 [x] Fix console (add errors and make player admin)
@@ -91,7 +91,7 @@ Debugging/diagnostics:
 Graphics:
 [ ] Recreate post processing using URP volumes
 [ ] Fix flickering decals by adding support for LimitTo (or find a better solution)
-[ ] Migrate HxVolumetricFog
+[ ] Implement a new volumetric fog solution replacing HxVolumetricFog
 [ ] Fix planets on map having no texture
 [ ] Enable helmet shader
 [ ] Fix health shader in helmet
@@ -126,17 +126,16 @@ Short-term:
 [x] Fix docking panels are inaccessible
 [x] Implement the unfinished passive and active radars, and make them server-authoratative
 [ ] Make the ranges of scanning plausible, passive scanning other active ships and active scanning other unpowered/cold vessels
-[ ] Move collections of all space objects into SolarSystem.cs on the server and only allow access trough getters and setters
-[ ] Test if new other character controller works
+[ ] Test playing multiplayer still works
 [ ] Crashing into a planet when on a pivot does not kill the player
 [ ] Only use timeout for non-sensitive network messages (implement reliable/unreliable send mode in GameTransport)
-[ ] Fix refused state request echoing back same request instead of sending actual state or error
 [ ] See if we can merge tick and flush in GameTransport
 [ ] Fix ship radar element under quest indicator (not selectable)
 [x] Fix breaking bug where docking a ship kills the player
 [ ] Fix names and icons not showing on radar GUI elements on map and ship lists
 [ ] Fix quests not comtinuing properly from save (lost progress, no current quest log in top right)
 [ ] Fix deleting character logging into game
+[ ] Fix all broken code references from the animators (move functionality from animators to script)
 
 Server:
 [x] Remove VesselData
@@ -150,7 +149,7 @@ Server:
 [x] Add assert to Debug.cs
 [x] Collect all network messages and flush on tick
 [ ] Respawn command does not work
-[ ] Fix Euler - Radians conversion
+[ ] Fix Euler - Radians conversion (make conversion use the same values as Unity)
 [x] Fix server constantly being over tick time budget
 
 Later:
@@ -192,3 +191,6 @@ Later:
 [ ] Deduce IsOffline from main server in cases where the server is connected to a main server (check if player id is same)
 [ ] Don't stop warp with movement, disable movement and add separate button to cancel warp
 [ ] Hide quest indicators when close to it
+[ ] Fix shaders that were removed from materials in commit Add ShaderForge plugin (d310531)
+[ ] Implement leasing of space objects (security against hacking a vessel, only one player may lease an object at a time)
+[ ] Server-authortative view, push full state of object in view instead client requesting it

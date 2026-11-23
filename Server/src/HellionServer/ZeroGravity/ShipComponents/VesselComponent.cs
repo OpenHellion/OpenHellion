@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OpenHellion.State;
 using ZeroGravity.Data;
 using ZeroGravity.Math;
 using ZeroGravity.Network;
@@ -11,8 +12,6 @@ namespace ZeroGravity.ShipComponents;
 
 public abstract class VesselComponent : IResourceConsumer, IResourceUser, IPersistantObject
 {
-	public Dictionary<VesselObjectID, MachineryPart> MachineryParts = new Dictionary<VesselObjectID, MachineryPart>();
-
 	public Dictionary<VesselObjectID, MachineryPartSlotData> MachineryPartSlots = new Dictionary<VesselObjectID, MachineryPartSlotData>();
 
 	protected float _PowerUpTime;
@@ -247,7 +246,7 @@ public abstract class VesselComponent : IResourceConsumer, IResourceUser, IPersi
 		foreach (KeyValuePair<VesselObjectID, MachineryPartSlotData> kv in MachineryPartSlots.Where((KeyValuePair<VesselObjectID, MachineryPartSlotData> m) => m.Value.Scope == scope))
 		{
 			slots++;
-			MachineryPart mp = MachineryParts[kv.Key];
+			MachineryPart mp = PartInSlot(kv.Key);
 			if (mp != null)
 			{
 				if (mp.Health > float.Epsilon)
@@ -271,19 +270,15 @@ public abstract class VesselComponent : IResourceConsumer, IResourceUser, IPersi
 		ParentVessel = vessel;
 	}
 
-	public virtual void FitPartToSlot(VesselObjectID slotKey, MachineryPart part)
+	public static MachineryPart PartInSlot(VesselObjectID slot)
 	{
-		MachineryParts[slotKey] = part;
+		SolarSystemState state = Server.Instance.SolarSystem.State;
+		ItemId item = state.ItemInSlot(slot.VesselGUID, LocationKind.AttachPoint, (short)slot.InSceneID);
+		return item.IsValid ? Server.Instance.GetItem(state.Guid(item)) as MachineryPart : null;
 	}
 
-	public virtual void RemovePartFromSlot(VesselObjectID slotKey)
+	public virtual void InitMachineryPartSlot(VesselObjectID slotKey, MachineryPartSlotData partSlotData)
 	{
-		MachineryParts[slotKey] = null;
-	}
-
-	public virtual void InitMachineryPartSlot(VesselObjectID slotKey, MachineryPart part, MachineryPartSlotData partSlotData)
-	{
-		FitPartToSlot(slotKey, part);
 		MachineryPartSlots[slotKey] = ObjectCopier.DeepCopy(partSlotData);
 	}
 
@@ -385,8 +380,7 @@ public abstract class VesselComponent : IResourceConsumer, IResourceUser, IPersi
 			foreach (KeyValuePair<VesselObjectID, MachineryPartSlotData> kv in MachineryPartSlots)
 			{
 				float decay = kv.Value.PartDecay;
-				MachineryPart mp = null;
-				MachineryParts.TryGetValue(kv.Key, out mp);
+				MachineryPart mp = PartInSlot(kv.Key);
 				if (kv.Value.IsActive && mp is { Health: > 0f })
 				{
 					mp.Health = MathHelper.Clamp((float)(mp.Health - PartsWearFactor * mp.WearMultiplier * decay / 3600f * duration * OperationRate), 0f, mp.MaxHealth);

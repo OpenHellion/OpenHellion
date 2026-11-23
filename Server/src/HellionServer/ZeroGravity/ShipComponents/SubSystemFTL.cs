@@ -73,21 +73,9 @@ public class SubSystemFTL : SubSystem
 		_PowerUpTime = 0f;
 	}
 
-	public override void FitPartToSlot(VesselObjectID slotKey, MachineryPart part)
+	public override void InitMachineryPartSlot(VesselObjectID slotKey, MachineryPartSlotData partSlotData)
 	{
-		base.FitPartToSlot(slotKey, part);
-		StatusChanged = true;
-	}
-
-	public override void RemovePartFromSlot(VesselObjectID slotKey)
-	{
-		base.RemovePartFromSlot(slotKey);
-		StatusChanged = true;
-	}
-
-	public override void InitMachineryPartSlot(VesselObjectID slotKey, MachineryPart part, MachineryPartSlotData partSlotData)
-	{
-		base.InitMachineryPartSlot(slotKey, part, partSlotData);
+		base.InitMachineryPartSlot(slotKey, partSlotData);
 		if (partSlotData.MachineryPartTypes.FirstOrDefault((MachineryPartType m) => m == MachineryPartType.WarpCell) != 0)
 		{
 			WarpCellSlots[partSlotData.SlotIndex] = slotKey;
@@ -133,7 +121,7 @@ public class SubSystemFTL : SubSystem
 	{
 		await base.Update(duration);
 		OperationRate = ParentVessel.CurrentCourse is { IsInProgress: true } ? 1 : 0;
-		MachineryPart mp = MachineryParts.Values.FirstOrDefault((MachineryPart m) => m is { PartType: MachineryPartType.SingularityCellDetonator });
+		MachineryPart mp = MachineryPartSlots.Keys.Select(PartInSlot).FirstOrDefault((MachineryPart m) => m is { PartType: MachineryPartType.SingularityCellDetonator });
 		if (mp == null)
 		{
 			MaxWarp = 0;
@@ -151,8 +139,7 @@ public class SubSystemFTL : SubSystem
 		Dictionary<int, float?> dict = new Dictionary<int, float?>();
 		foreach (KeyValuePair<int, VesselObjectID> kv in WarpCellSlots)
 		{
-			MachineryPart warpCell = null;
-			MachineryParts.TryGetValue(kv.Value, out warpCell);
+			MachineryPart warpCell = PartInSlot(kv.Value);
 			if (warpCell != null)
 			{
 				dict[kv.Key] = warpCell.Health;
@@ -176,8 +163,7 @@ public class SubSystemFTL : SubSystem
 				VesselObjectID id = null;
 				if (WarpCellSlots.TryGetValue(slotIndex, out id))
 				{
-					MachineryPart warpCell2 = null;
-					MachineryParts.TryGetValue(id, out warpCell2);
+					MachineryPart warpCell2 = PartInSlot(id);
 					if (warpCell2 != null)
 					{
 						list.Add(warpCell2);

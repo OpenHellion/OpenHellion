@@ -160,6 +160,28 @@ public class SolarSystemStateTests
 	}
 
 	[Test]
+	public void PreviousLocationIsWhereTheItemWasWhenTheChangeWindowOpened()
+	{
+		SolarSystemState state = new();
+		ItemId gun = state.CreateItem(1001, 10);
+		ItemLocation hands = new(LocationKind.Inventory, Player, -1);
+		ItemLocation loose = new(LocationKind.Loose, Vessel, 0);
+		ItemLocation floating = new(LocationKind.Floating, 0, 0);
+		state.TryMoveItem(gun, hands);
+		state.ClearChanges();
+
+		state.TryMoveItem(gun, loose);
+		state.TryMoveItem(gun, floating);
+
+		Assert.That(state.PreviousLocation(gun), Is.EqualTo(hands));
+
+		state.ClearChanges();
+		state.TryMoveItem(gun, loose);
+
+		Assert.That(state.PreviousLocation(gun), Is.EqualTo(floating));
+	}
+
+	[Test]
 	public void DestroyWithChildrenThrows()
 	{
 		SolarSystemState state = new();

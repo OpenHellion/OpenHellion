@@ -196,19 +196,9 @@ public class SolarSystem
 
 	private void AddCarriedItemsToState(Player owner, Player viewer, List<ItemId> items)
 	{
-		if (owner == viewer)
-		{
-			State.AddDescendants(owner.FakeGuid, items);
-			return;
-		}
-		foreach (DynamicObject carried in Server.Instance.ItemsInSpaceObject(owner))
-		{
-			if (carried.IsVisibleTo(viewer))
-			{
-				items.Add(carried.Row);
-				State.AddDescendants(carried.Guid, items);
-			}
-		}
+		List<ItemId> carried = [];
+		State.AddDescendants(owner.Key, carried);
+		items.AddRange(carried.Where(m => Server.Instance.GetDynamicObject(State.Guid(m)).IsVisibleTo(viewer)));
 	}
 
 	/// <summary>
@@ -227,13 +217,13 @@ public class SolarSystem
 		ItemId row = dynamicObject.Row;
 		ItemLocation location = State.Location(row);
 		ItemLocation holder = location;
-		while (holder.Kind == LocationKind.ItemSlot && State.TryGetItem(holder.ParentKey, out ItemId container))
+		while (holder.Kind is LocationKind.ItemSlot or LocationKind.Inventory && State.TryGetItem(holder.ParentKey, out ItemId container))
 		{
 			holder = State.Location(container);
 		}
 		bool reachable = (holder.Kind != LocationKind.Inventory || holder.ParentKey == sender.Key || Server.Instance.ResolveKey(holder.ParentKey) is not Player)
 			&& !(item is PortableTurret turret && turret.IsHostileTo(sender));
-		bool held = location.Kind == LocationKind.Inventory && location.ParentKey == sender.Key;
+		bool held = location.Kind == LocationKind.Inventory && (location.ParentKey == sender.Key || location.ParentKey == sender.PlayerInventory.CurrOutfit?.GUID);
 
 		try
 		{
@@ -292,6 +282,44 @@ public class SolarSystem
 		catch (System.Exception ex)
 		{
 			Debug.LogError("Command threw", request.Type, dynamicObject.Guid, dynamicObject.ItemType, "sender", data.Sender, ex);
+		}
+	}
+
+	/// <summary>
+	/// 	Applies the consequences of every item that moved since the changes were last cleared.
+	/// </summary>
+	public void ApplyLocationChanges()
+	{
+		foreach (ItemId row in State.ChangedItems.ToArray())
+		{
+			if (!State.IsAlive(row) || (State.Changes(row) & ItemChanges.Location) == 0 || Server.Instance.GetDynamicObject(State.Guid(row)) is not { } dynamicObject)
+			{
+				continue;
+			}
+
+			ItemLocation previous = State.PreviousLocation(row);
+			ItemLocation location = State.Location(row);
+			foreach (ItemLocation slot in new[] { previous, location })
+			{
+				if (State.AttachPointTypeAt(slot) == AttachPointType.MachineryPartSlot
+					&& Server.Instance.GetVessel(slot.ParentKey)?.MainDistributionManager?.GetVesselComponentByPartSlot(new VesselObjectID(slot.ParentKey, slot.SlotId)) is { } component)
+				{
+					component.StatusChanged = true;
+				}
+			}
+			if (dynamicObject.Item is Canister canister && State.AttachPointTypeAt(location) == AttachPointType.ResourcesAutoTransferPoint && Server.Instance.GetVessel(location.ParentKey) is Ship)
+			{
+				canister.AutoTransferResources();
+			}
+			if (location.Kind != LocationKind.Floating && Server.Instance.GetSpaceObject(dynamicObject.Guid) is Pivot pivot)
+			{
+				RemoveArtificialBody(pivot);
+			}
+			dynamicObject.LastChangeTime = Server.SolarSystemTime;
+			if (dynamicObject.Item != null)
+			{
+				dynamicObject.Item.AttachmentChangeTime = Server.SolarSystemTime;
+			}
 		}
 	}
 

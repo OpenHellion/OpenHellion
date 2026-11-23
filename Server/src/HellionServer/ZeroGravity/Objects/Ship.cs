@@ -1199,17 +1199,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		{
 			newShip.VesselRegistration = Server.NameGenerator.GenerateObjectRegistration(SpaceObjectType.Ship, newShip.Orbit.Parent.CelestialBody, sceneID);
 		}
-		foreach (DynamicObject dobj in Server.Instance.ItemsInSpaceObject(newShip))
-		{
-			if (dobj.Item is { AttachPointID: not null })
-			{
-				VesselComponent comp = newShip.MainDistributionManager.GetVesselComponentByPartSlot(dobj.Item.AttachPointID);
-				if (comp != null && dobj.Item is MachineryPart part)
-				{
-					comp.FitPartToSlot(part.AttachPointID, part);
-				}
-			}
-		}
 		await newShip.MainDistributionManager.UpdateSystems();
 		Server.Instance.Add(newShip);
 		return newShip;
@@ -1529,15 +1518,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 
 		foreach (PersistenceObjectDataDynamicObject dobjData in data.DynamicObjects.Cast<PersistenceObjectDataDynamicObject>())
 		{
-			DynamicObject dobj = await Persistence.CreateDynamicObject(dobjData, this, structureSceneData);
-			if (dobj is { Item.AttachPointID: not null })
-			{
-				VesselComponent comp = MainDistributionManager.GetVesselComponentByPartSlot(dobj.Item.AttachPointID);
-				if (comp != null && dobj.Item is MachineryPart part)
-				{
-					comp.FitPartToSlot(part.AttachPointID, part);
-				}
-			}
+			await Persistence.CreateDynamicObject(dobjData, this, structureSceneData);
 		}
 		if (data.CargoBay != null)
 		{
@@ -2079,11 +2060,15 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 			{
 				if (rp.AffectedSystem is { Defective: true} && MathHelper.RandomNextDouble() < damage / MaxHealth)
 				{
-					MachineryPart mp = (from m in rp.AffectedSystem.MachineryParts.Values
-						where m != null
-						orderby MathHelper.RandomNextDouble()
-						select m).FirstOrDefault();
-
+					MachineryPart mp = null;
+					int parts = 0;
+					foreach (VesselObjectID slot in rp.AffectedSystem.MachineryPartSlots.Keys)
+					{
+						if (VesselComponent.PartInSlot(slot) is { } part && MathHelper.RandomNextDouble() * ++parts < 1.0)
+						{
+							mp = part;
+						}
+					}
 					if (mp != null)
 					{
 						await mp.TakeDamage(new Dictionary<TypeOfDamage, float> {

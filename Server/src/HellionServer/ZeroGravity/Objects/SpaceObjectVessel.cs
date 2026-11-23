@@ -408,15 +408,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 		}
 	}
 
-	public void FitMachineryPart(VesselObjectID slotID, MachineryPart part)
-	{
-		DistributionManager.GetVesselComponentByPartSlot(slotID)?.FitPartToSlot(slotID, part);
-	}
-
-	/// <summary>
-	/// 	Puts an item on one of this vessel's attach points, fitting machinery parts into their system and
-	/// 	emptying canisters into the ship's containers where the point transfers resources.
-	/// </summary>
 	public bool AttachItem(Item item, short inSceneId)
 	{
 		if (!item.DynamicObj.MoveTo(new ItemLocation(LocationKind.AttachPoint, Guid, inSceneId)))
@@ -425,14 +416,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 		}
 		item.DynamicObj.LocalPosition = Vector3D.Zero;
 		item.DynamicObj.LocalRotation = QuaternionD.Identity;
-		if (item is MachineryPart { AttachPointType: AttachPointType.MachineryPartSlot } part)
-		{
-			DistributionManager?.GetVesselComponentByPartSlot(part.AttachPointID)?.FitPartToSlot(part.AttachPointID, part);
-		}
-		if (item is Canister && item.AttachPointType == AttachPointType.ResourcesAutoTransferPoint && this is Ship)
-		{
-			item.AutoTransferResources();
-		}
 		return true;
 	}
 
@@ -462,11 +445,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 		PhysicsVelocityDifference = RigidBody.LinearVelocity.ToVector3D() - Velocity;
 		PhysicsRotationDifference =
 			Rotation.Inverse() * (RigidBody.AngularVelocity.ToVector3D() * (180.0 / System.Math.PI) - Rotation * AngularVelocity);
-	}
-
-	public void RemoveMachineryPart(VesselObjectID slotID)
-	{
-		DistributionManager.GetVesselComponentByPartSlot(slotID)?.RemovePartFromSlot(slotID);
 	}
 
 	public List<PairedDoorsDetails> GetPairedDoors(VesselDockingPort port)

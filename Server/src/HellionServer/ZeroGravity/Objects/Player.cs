@@ -1272,18 +1272,9 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		}
 		data.CoreTemperature = CoreTemperature;
 		data.ChildObjects = new List<PersistenceObjectData>();
-		List<DynamicObject> dynamicObjects = Server.Instance.ItemsInSpaceObject(this);
-		DynamicObject outfitItem = dynamicObjects.FirstOrDefault(m => m.Item is { Slot.SlotID: -2 });
-		if (outfitItem != null)
+		foreach (DynamicObject dobj in Server.Instance.ItemsInSpaceObject(this))
 		{
-			data.ChildObjects.Add(outfitItem.Item != null ? outfitItem.Item.GetPersistenceData() : outfitItem.GetPersistenceData());
-		}
-		foreach (DynamicObject dobj in dynamicObjects)
-		{
-			if (dobj != outfitItem)
-			{
-				data.ChildObjects.Add(dobj.Item != null ? dobj.Item.GetPersistenceData() : dobj.GetPersistenceData());
-			}
+			data.ChildObjects.Add(dobj.Item != null ? dobj.Item.GetPersistenceData() : dobj.GetPersistenceData());
 		}
 		data.Quests = Quests.Select((Quest m) => m.GetDetails()).ToList();
 		data.Blueprints = Blueprints;

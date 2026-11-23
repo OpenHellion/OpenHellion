@@ -104,17 +104,13 @@ public class Corpse : SpaceObjectTransferable
 
 	private async Task DestroyWhenDue(double deltaTime)
 	{
+		if (CorpseInventory.HandsSlot.Item == null && (CorpseInventory.CurrOutfit == null || CorpseInventory.CurrOutfit.InventorySlots.Values.All(m => m.Item == null)))
+		{
+			_destroyAt = System.Math.Min(_destroyAt, Server.SolarSystemTime + EmptyCorpseTimer / 1000.0);
+		}
 		if (Server.SolarSystemTime >= _destroyAt)
 		{
 			await Destroy();
-		}
-	}
-
-	internal void CheckInventoryDestroy()
-	{
-		if (CorpseInventory.HandsSlot.Item == null && (CorpseInventory.CurrOutfit == null || CorpseInventory.CurrOutfit.InventorySlots.Values.All(m => m.Item == null)))
-		{
-			_destroyAt = Server.SolarSystemTime + EmptyCorpseTimer / 1000.0;
 		}
 	}
 

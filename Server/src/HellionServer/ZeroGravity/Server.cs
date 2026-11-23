@@ -1968,10 +1968,6 @@ public sealed class Server
 								}
 							}
 							await DynamicObject.SpawnDynamicObject(it, gt, mt, vessel2, ap.InSceneID, null, null, null, MathHelper.RandomRange(1, 5), null, refill: true);
-							if (mt != 0)
-							{
-								vessel2.MainDistributionManager.GetVesselComponentByPartSlot(ap.Item.AttachPointID)?.FitPartToSlot(ap.Item.AttachPointID, (MachineryPart)ap.Item);
-							}
 						}
 					}
 				}
@@ -2192,7 +2188,7 @@ public sealed class Server
 				depth++;
 			}
 			return depth;
-		}).ThenBy(m => m.InvSlotID == InventorySlot.OutfitSlotID ? 0 : 1).Select(m => m.GetDetails())];
+		}).Select(m => m.GetDetails())];
 		response.CorpseObjects = [.. corpses];
 		response.Players = [.. players];
 		return Task.FromResult<NetworkData>(response);
@@ -2329,6 +2325,7 @@ public sealed class Server
 			_movementMessageTimer = _movementMessageTimer > MovementMessageSendInterval * 2.0
 				? 0.0
 				: _movementMessageTimer - MovementMessageSendInterval;
+			SolarSystem.ApplyLocationChanges();
 			Player[] players = [.. AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive)];
 			foreach (Player player in players)
 			{
@@ -2501,6 +2498,7 @@ public sealed class Server
 			SubscribeToTimer(UpdateTimer.TimerStep.Step_1_0_sec, ServerAutoRestartTimer);
 		}
 		DoomedShipController.SubscribeToTimer();
+		SubscribeToTimer(UpdateTimer.TimerStep.Step_1_0_min, DynamicObject.DestroyAbandonedFloatingItems);
 		DateTime lastOverrunLogTime = DateTime.MinValue;
 		if (_printDebugObjects)
 		{

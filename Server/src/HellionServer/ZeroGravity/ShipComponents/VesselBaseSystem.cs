@@ -39,7 +39,7 @@ public class VesselBaseSystem : SubSystem
 		float armor = 0f;
 		foreach (KeyValuePair<VesselObjectID, MachineryPartSlotData> kv in MachineryPartSlots.Where((KeyValuePair<VesselObjectID, MachineryPartSlotData> m) => m.Value.Scope == MachineryPartSlotScope.Armor))
 		{
-			MachineryPart mp = MachineryParts[kv.Key];
+			MachineryPart mp = PartInSlot(kv.Key);
 			if (mp is { Health: > float.Epsilon })
 			{
 				armor += mp.AuxValue;
@@ -58,7 +58,7 @@ public class VesselBaseSystem : SubSystem
 		float admorConsumed = 0f;
 		List<MachineryPart> list = (from m in MachineryPartSlots
 			where m.Value.Scope == MachineryPartSlotScope.Armor
-			select MachineryParts[m.Key] into m
+			select PartInSlot(m.Key) into m
 			where m is { Health: > float.Epsilon }
 			orderby m.AuxValue
 			select m).ToList();

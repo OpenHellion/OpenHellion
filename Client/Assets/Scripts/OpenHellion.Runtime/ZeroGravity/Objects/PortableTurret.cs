@@ -95,9 +95,9 @@ namespace ZeroGravity.Objects
 
 		public override EquipType EquipTo => EquipType.Hands;
 
-		public bool IsActive => AttachPoint is ActiveSceneAttachPoint && !isStunned && !isDestroyed;
+		public bool IsActive => AttachPoint is ActiveSceneAttachPoint;
 
-		public bool CanTarget => IsActive && BaseVesselSystem is { Status: SystemStatus.Online };
+		public bool CanTarget => IsActive && !isStunned && !isDestroyed && BaseVesselSystem is { Status: SystemStatus.Online };
 
 		public TargetingPoint CurrentTarget
 		{
@@ -238,7 +238,7 @@ namespace ZeroGravity.Objects
 		{
 			if (turretAnimator.isActiveAndEnabled && turretAnimator.isInitialized)
 			{
-				turretAnimator.SetBool(IsActiveHash, AttachPoint is ActiveSceneAttachPoint && BaseVesselSystem is { Status: SystemStatus.Online });
+				turretAnimator.SetBool(IsActiveHash, IsActive && BaseVesselSystem is { Status: SystemStatus.Online });
 				turretAnimator.SetBool(IsStunnedHash, isStunned);
 				turretAnimator.SetBool(IsDestroyedHash, isDestroyed);
 				if (!CanTarget)
@@ -296,7 +296,6 @@ namespace ZeroGravity.Objects
 		{
 			if (!isShooting)
 			{
-				OpenHellion.Diagnostics.Log($"turret {GUID} start shooting at {CurrentTarget?.MainObject?.GetType().Name}");
 				NetworkController.SendAndForget(new PortableTurretShootingMessage
 				{
 					IsShooting = true,

@@ -801,7 +801,7 @@ public class DistributionManager
 					_idMachineryPartSlots[sid2] = ss;
 					if (!isCompoundDM)
 					{
-						ss.InitMachineryPartSlot(sid2, null, slotData2);
+						ss.InitMachineryPartSlot(sid2, slotData2);
 					}
 				}
 			}
@@ -858,7 +858,7 @@ public class DistributionManager
 					_idMachineryPartSlots[sid] = gen;
 					if (!isCompoundDM)
 					{
-						gen.InitMachineryPartSlot(sid, null, slotData);
+						gen.InitMachineryPartSlot(sid, slotData);
 					}
 				}
 			}
@@ -1440,7 +1440,7 @@ public class DistributionManager
 			float scrubQty = tempQty / (1f - room.CompoundRoom.AirQuality);
 			float airQty = room.CompoundRoom.Volume * room.CompoundRoom.AirPressure;
 			room.CompoundRoom.AirQuality = airQty > float.Epsilon ? (scrubQty + (airQty - scrubQty) * room.CompoundRoom.AirQuality) / airQty : 0f;
-			List<MachineryPart> cartridges = scrubber.MachineryParts.Values.Where((MachineryPart m) => m is
+			List<MachineryPart> cartridges = scrubber.MachineryPartSlots.Keys.Select(VesselComponent.PartInSlot).Where((MachineryPart m) => m is
 			{
 				PartType: MachineryPartType.CarbonFilters
 			}).ToList();
