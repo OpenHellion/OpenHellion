@@ -114,10 +114,12 @@ namespace ZeroGravity.UI
 
 		public void UpdateRadarList()
 		{
-			Dictionary<long, SpaceObjectVessel> loadedVessels = _world.AllArtificialBodies.OfType<SpaceObjectVessel>()
-				.Where((SpaceObjectVessel m) => m.IsMainVessel && !m.IsWarpOnline)
-				.ToDictionary((SpaceObjectVessel m) => m.Guid);
-			List<TargetObject> list2 = AllTargets.Where((TargetObject m) => !loadedVessels.ContainsKey(m.Guid)).ToList();
+			Dictionary<long, ArtificialBody> loadedTargetBodies = _world.AllArtificialBodies
+				.Where((ArtificialBody m) => m != MyPlayer.Instance.Parent &&
+				                             (m is SpaceObjectVessel { IsMainVessel: true, IsWarpOnline: false } ||
+				                              m is Pivot { Type: SpaceObjectType.PlayerPivot or SpaceObjectType.DynamicObjectPivot }))
+				.ToDictionary((ArtificialBody m) => m.Guid);
+			List<TargetObject> list2 = AllTargets.Where((TargetObject m) => !loadedTargetBodies.ContainsKey(m.Guid)).ToList();
 			foreach (TargetObject item in list2)
 			{
 				AllTargets.Remove(item);
@@ -134,17 +136,42 @@ namespace ZeroGravity.UI
 			}
 
 			HashSet<long> targeted = AllTargets.Select((TargetObject m) => m.Guid).ToHashSet();
-			List<TargetObject> newTargets = loadedVessels.Keys.Where((long guid) => !targeted.Contains(guid))
+			List<TargetObject> newTargets = loadedTargetBodies.Keys.Where((long guid) => !targeted.Contains(guid))
 				.Select((long guid) => new TargetObject { Guid = guid }).ToList();
 			AllTargets.AddRange(newTargets);
 
 			foreach (TargetObject target in AllTargets)
 			{
-				SpaceObjectVessel vessel = loadedVessels[target.Guid];
-				target.Position = vessel.transform.position;
-				target.Velocity = vessel.Velocity;
-				target.Name = vessel is Asteroid asteroid ? asteroid.Name : vessel is Ship ship ? ship.CommandVesselName : "Unknown";
-				target.Icon = vessel is Asteroid ? SpriteManager.Instance.GetSprite(vessel.Type) : SpriteManager.Instance.GetSprite(vessel, true);
+				ArtificialBody body = loadedTargetBodies[target.Guid];
+				switch (body)
+				{
+					case Asteroid asteroid:
+						target.Position = asteroid.transform.position;
+						target.Velocity = asteroid.Velocity;
+						target.Name = asteroid.Name;
+						target.Icon = SpriteManager.Instance.GetSprite(asteroid.Type);
+						break;
+					case SpaceObjectVessel vessel:
+						target.Position = vessel.transform.position;
+						target.Velocity = vessel.Velocity;
+						target.Name = vessel.CommandVesselName;
+						target.Icon = SpriteManager.Instance.GetSprite(vessel, true);
+						break;
+					case Pivot { Type: SpaceObjectType.PlayerPivot } playerPivot:
+						OtherPlayer otherPlayer = playerPivot.GetComponentInChildren<OtherPlayer>();
+						target.Position = otherPlayer != null ? otherPlayer.transform.position : playerPivot.transform.position;
+						target.Velocity = playerPivot.Velocity;
+						target.Name = otherPlayer != null ? otherPlayer.PlayerName : Localization.UnknownObject;
+						target.Icon = SpriteManager.Instance.GetSprite(playerPivot.Type);
+						break;
+					case Pivot itemPivot:
+						DynamicObject droppedObject = itemPivot.GetComponentInChildren<DynamicObject>();
+						target.Position = droppedObject != null ? droppedObject.transform.position : itemPivot.transform.position;
+						target.Velocity = itemPivot.Velocity + (droppedObject != null ? droppedObject.Velocity : Vector3.zero);
+						target.Name = droppedObject != null && droppedObject.Item != null ? droppedObject.Item.Name : Localization.UnknownObject;
+						target.Icon = SpriteManager.Instance.GetSprite(itemPivot.Type);
+						break;
+				}
 			}
 
 			foreach (TargetObject newTarget in newTargets)
