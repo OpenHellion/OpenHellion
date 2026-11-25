@@ -19,9 +19,8 @@ public class TargetObject
 	{
 		get
 		{
-			Vector3 to = MyPlayer.Instance.transform.rotation * MyPlayer.Instance.FpsController.MainCamera.transform.forward;
-			return Vector3.Angle(
-				(Position - MyPlayer.Instance.transform.rotation * MyPlayer.Instance.FpsController.MainCamera.transform.position).normalized, to);
+			Transform cameraTransform = MyPlayer.Instance.FpsController.MainCamera.transform;
+			return Vector3.Angle(Position - cameraTransform.position, cameraTransform.forward);
 		}
 	}
 }

@@ -133,11 +133,11 @@ Short-term:
 [x] Make scanning system use physical units instead of designer units
 [x] Fix breaking bug where docking a ship kills the player
 [x] Fix names and icons not showing on radar GUI elements on map and ship lists
+[x] Fix ship radar element under quest indicator (not selectable)
 [ ] Test playing multiplayer still works
 [ ] Crashing into a planet when on a pivot does not kill the player
 [ ] Only use timeout for non-sensitive network messages (implement reliable/unreliable send mode in GameTransport)
 [ ] See if we can merge tick and flush in GameTransport
-[ ] Fix ship radar element under quest indicator (not selectable)
 [ ] Fix deleting character logging into game
 [ ] Fix all broken code references from the animators (move functionality from animators to script)
 [ ] Make Haven spawn with all of the objects stabilised to eachother
@@ -203,3 +203,4 @@ Later:
 [ ] Implement leasing of space objects (security against hacking a vessel, only one player may lease an object at a time)
 [ ] Server-authortative view, push full state of object in view instead client requesting it
 [ ] Parent onto moving platform
+[ ] Fix quest markers disappearing when ship is more than 10km away

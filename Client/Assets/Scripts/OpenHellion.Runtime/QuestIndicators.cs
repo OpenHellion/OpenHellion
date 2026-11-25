@@ -202,6 +202,11 @@ public class QuestIndicators : MonoBehaviour
 		{
 			foreach (SceneQuestTrigger key in SceneQuestTriggers.Keys)
 			{
+				if (key == null)
+				{
+					continue;
+				}
+
 				Vector3 vector =
 					MyPlayer.Instance.FpsController.MainCamera.WorldToScreenPoint(
 						key.transform.TransformPoint(key.QuestIndicatorPosition));
