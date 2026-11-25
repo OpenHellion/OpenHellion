@@ -162,8 +162,8 @@ Server:
 
 Later:
 [x] Remove GameStarter.FixCryoPodState
+[x] Make map support fuzzy objects (objects where location is uncertain)
 [ ] Find areas where risk of race conditions are high
-[ ] Make map support fuzzy objects (objects where location is uncertain)
 [ ] Fix sounds playing based on selected target when EVAing
 [ ] Fix alarm not running and sounds playing in ships where they should not
 [ ] Sound does not mute when in 0G
