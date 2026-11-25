@@ -334,42 +334,10 @@ namespace ZeroGravity.UI
 				{
 					ParametersHolder.SetActive(value: true);
 				}
-
-				if (IsActive)
-				{
-					ToggleStarDust(value: true);
-				}
 			}
 			else
 			{
 				ParametersHolder.Activate(value: false);
-				ToggleStarDust(value: false);
-			}
-		}
-
-		private void ToggleStarDust(bool value)
-		{
-			if (value && SelectedTarget != null)
-			{
-				if (AllTargets.Count > 0)
-				{
-					bool selectedBodyFound = _world.TryGetSpaceObject(SelectedTarget.Guid, out ArtificialBody selectedBody);
-					Diagnostics.Assert(selectedBodyFound, $"helmet radar target {SelectedTarget.Guid} has no spawned body");
-					if (!selectedBodyFound)
-					{
-						return;
-					}
-
-					ParticleSystem.MainModule main = MyPlayer.Instance.FpsController.StarDustParticle.main;
-					main.customSimulationSpace = selectedBody.transform;
-					MyPlayer.Instance.FpsController.StarDustParticle.gameObject.SetActive(value: true);
-					MyPlayer.Instance.FpsController.StarDustParticle.Play();
-				}
-			}
-			else
-			{
-				MyPlayer.Instance.FpsController.StarDustParticle.gameObject.SetActive(value: false);
-				MyPlayer.Instance.FpsController.StarDustParticle.Stop();
 			}
 		}
 
@@ -377,7 +345,6 @@ namespace ZeroGravity.UI
 		{
 			IsActive = val;
 			Root.SetActive(IsActive);
-			ToggleStarDust(IsActive);
 		}
 	}
 }

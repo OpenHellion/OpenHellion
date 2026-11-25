@@ -197,12 +197,6 @@ namespace ZeroGravity.UI
 				Active.Activate(value: false);
 				JetpackInfo.Activate(value: false);
 				HelmetRoot.Activate(value: false);
-				if (MyPlayer.Instance.FpsController.StarDustParticle != null && MyPlayer.Instance.FpsController
-						.StarDustParticle.gameObject.activeInHierarchy)
-				{
-					TurnOffStardust();
-				}
-
 				return;
 			}
 
@@ -381,12 +375,6 @@ namespace ZeroGravity.UI
 				TargetInfo.SetActive(value: true);
 				TargetInfoName.text = target.PlayerName;
 			}
-		}
-
-		private void TurnOffStardust()
-		{
-			MyPlayer.Instance.FpsController.StarDustParticle.gameObject.SetActive(value: false);
-			MyPlayer.Instance.FpsController.StarDustParticle.Stop();
 		}
 
 		public void CheckFireMod()

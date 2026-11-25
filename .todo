@@ -190,7 +190,7 @@ Later:
 [ ] Remove lineEdit.cs
 [ ] Remove FakeGuid on player
 [ ] Fix no external collision on AltCorp_Corridor45Turn (and probably others)
-[ ] Fix space particles moving when selecting new object
+[x] Fix space particles moving when selecting new object
 [ ] Find other ways than hashing username to get a player id when in offline mode
 [ ] Fix server accepting unauthenticated character deletion
 [ ] Update to use Discord Social SDK
