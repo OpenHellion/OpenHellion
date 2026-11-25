@@ -71,6 +71,10 @@ namespace OpenHellion
 
 		public long AnchorGuid { get; private set; }
 
+		public readonly Dictionary<long, MovementMessage.RadarContact> RadarContacts = new Dictionary<long, MovementMessage.RadarContact>();
+
+		public float RadarContactsReceivedTime { get; private set; }
+
 		/// <summary>
 		/// 	The vessel the local player is flying, which is predicted locally instead of being driven by
 		/// 	the movement stream. Zero when nobody here is piloting.
@@ -658,6 +662,13 @@ namespace OpenHellion
 					movementMessage.PlayerRotation?.ToQuaternion(),
 					movementMessage.PlayerVelocity?.ToVector3(),
 					movementMessage.PlayerAnimationData);
+
+				RadarContacts.Clear();
+				RadarContactsReceivedTime = Time.time;
+				foreach (MovementMessage.RadarContact radarContact in movementMessage.RadarContacts ?? Array.Empty<MovementMessage.RadarContact>())
+				{
+					RadarContacts[radarContact.Guid] = radarContact;
+				}
 
 				if (movementMessage.ArtificialBodiesMovement != null)
 				{

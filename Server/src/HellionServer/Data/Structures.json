@@ -3267,7 +3267,7 @@
     "SceneName": "AltCorp_Shuttle_SARA",
     "GameName": "AltCorp_Shuttle_SARA",
     "Mass": 1698122.38,
-    "RadarCrossSection": 1300.0,
+    "RadarCrossSection": 870.0,
     "HeatCollectionFactor": 100000.0,
     "HeatDissipationFactor": 200.0,
     "StructureConnections": [],
@@ -11402,7 +11402,7 @@
         "ResourceRequirements": [
           {
             "ResourceType": 1,
-            "Nominal": 2000.0,
+            "Nominal": 1000.0,
             "Standby": 0.0
           }
         ],
@@ -11419,7 +11419,8 @@
         "AutoReactivate": true,
         "AuxData": {
           "ActiveScanDuration": 3.0,
-          "PassiveThreshold": 2.238E-09,
+          "PassiveRangePerSquareMetre": 4600.0,
+          "UnidentifiedSphereSize": 0.33,
           "AuxDataType": 16
         }
       }
@@ -13201,7 +13202,7 @@
     "SceneName": "ALtCorp_PowerSupply_Module",
     "GameName": "ALtCorp_PowerSupply_Module",
     "Mass": 1142899.75,
-    "RadarCrossSection": 430.0,
+    "RadarCrossSection": 705.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -17828,7 +17829,7 @@
     "SceneName": "AltCorp_LifeSupportModule",
     "GameName": "AltCorp_LifeSupportModule",
     "Mass": 671741.4,
-    "RadarCrossSection": 280.0,
+    "RadarCrossSection": 480.0,
     "HeatCollectionFactor": 100000.0,
     "HeatDissipationFactor": 200.0,
     "StructureConnections": [],
@@ -36458,7 +36459,7 @@
         "ResourceRequirements": [
           {
             "ResourceType": 1,
-            "Nominal": 4000.0,
+            "Nominal": 1000.0,
             "Standby": 0.0
           }
         ],
@@ -36473,7 +36474,8 @@
         "AutoReactivate": true,
         "AuxData": {
           "ActiveScanDuration": 3.0,
-          "PassiveThreshold": 1.119E-09,
+          "PassiveRangePerSquareMetre": 6900.0,
+          "UnidentifiedSphereSize": 0.33,
           "AuxDataType": 16
         }
       }
@@ -39178,7 +39180,7 @@
     "SceneName": "AltCorp_StartingModule",
     "GameName": "AltCorp_StartingModule",
     "Mass": 429607.469,
-    "RadarCrossSection": 470.0,
+    "RadarCrossSection": 285.0,
     "HeatCollectionFactor": 100000.0,
     "HeatDissipationFactor": 200.0,
     "StructureConnections": [],
@@ -48893,7 +48895,7 @@
     "SceneName": "Generic_Debris_Module_JuncRoom001",
     "GameName": "Generic_Debris_Module_JuncRoom001",
     "Mass": 182489.938,
-    "RadarCrossSection": 170.0,
+    "RadarCrossSection": 795.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -50557,7 +50559,7 @@
     "SceneName": "Generic_Debris_Module_JuncRoom002",
     "GameName": "Generic_Debris_Module_JuncRoom002",
     "Mass": 145426.5,
-    "RadarCrossSection": 170.0,
+    "RadarCrossSection": 630.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -51448,7 +51450,7 @@
     "SceneName": "Generic_Debris_Module_Corridor001",
     "GameName": "Generic_Debris_Module_Corridor001",
     "Mass": 24345.78,
-    "RadarCrossSection": 40.0,
+    "RadarCrossSection": 215.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -54029,7 +54031,7 @@
     "SceneName": "Generic_Debris_Module_Corridor002",
     "GameName": "Generic_Debris_Module_Corridor002",
     "Mass": 49209.1,
-    "RadarCrossSection": 75.0,
+    "RadarCrossSection": 325.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -55034,7 +55036,7 @@
     "SceneName": "AltCorp_DockableContainer",
     "GameName": "AltCorp_DockableContainer",
     "Mass": 84421.5859,
-    "RadarCrossSection": 30.0,
+    "RadarCrossSection": 75.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -55511,7 +55513,7 @@
     "SceneName": "Generic_Debris_Outpost001",
     "GameName": "Generic_Debris_Outpost001",
     "Mass": 1314368.5,
-    "RadarCrossSection": 2400.0,
+    "RadarCrossSection": 4350.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -64724,7 +64726,7 @@
     "SceneName": "Generic_Debris_Spawn1",
     "GameName": "Generic_Debris_Spawn1",
     "Mass": 33813.28,
-    "RadarCrossSection": 40.0,
+    "RadarCrossSection": 75.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -64785,7 +64787,7 @@
     "SceneName": "Generic_Debris_Spawn2",
     "GameName": "Generic_Debris_Spawn2",
     "Mass": 68857.45,
-    "RadarCrossSection": 75.0,
+    "RadarCrossSection": 150.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -64846,7 +64848,7 @@
     "SceneName": "Generic_Debris_Spawn3",
     "GameName": "Generic_Debris_Spawn3",
     "Mass": 120510.945,
-    "RadarCrossSection": 170.0,
+    "RadarCrossSection": 260.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -72915,7 +72917,8 @@
         "AutoReactivate": false,
         "AuxData": {
           "ActiveScanDuration": 3.0,
-          "PassiveThreshold": 4.476E-09,
+          "PassiveRangePerSquareMetre": 4140.0,
+          "UnidentifiedSphereSize": 0.2,
           "AuxDataType": 16
         }
       },
@@ -78454,7 +78457,7 @@
     "SceneName": "AltCorp_PatchModule",
     "GameName": "AltCorp_Bulkhead",
     "Mass": 84421.5859,
-    "RadarCrossSection": 10.0,
+    "RadarCrossSection": 35.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -78792,7 +78795,7 @@
     "SceneName": "SOE_Location002",
     "GameName": "SOE_Location002",
     "Mass": 643460.563,
-    "RadarCrossSection": 400.0,
+    "RadarCrossSection": 1045.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -91017,7 +91020,7 @@
     "SceneName": "AltCorp_Destroyed_Shuttle_CECA",
     "GameName": "AltCorp_Shuttle_CECA",
     "Mass": 936415.75,
-    "RadarCrossSection": 320.0,
+    "RadarCrossSection": 760.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -93707,7 +93710,7 @@
     "SceneName": "AltCorp_CorridorIntersection_MKII",
     "GameName": "AltCorp_CorridorIntersectionModuleMKII",
     "Mass": 70250.0,
-    "RadarCrossSection": 120.0,
+    "RadarCrossSection": 45.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -97827,7 +97830,7 @@
     "SceneName": "AlrCorp_Corridor_MKII",
     "GameName": "AltCorp_CorridorModuleMKII",
     "Mass": 87500.0,
-    "RadarCrossSection": 180.0,
+    "RadarCrossSection": 45.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],

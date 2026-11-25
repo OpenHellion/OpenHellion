@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenHellion;
 using OpenHellion.Map;
+using OpenHellion.Net.Message;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Scripting;
@@ -128,8 +129,8 @@ namespace ZeroGravity.ShipComponents
 
 		private Ray _ray;
 
-		[HideInInspector]
-		public Dictionary<long, OrbitParameters> UnknownVisibilityOrbits = new Dictionary<long, OrbitParameters>();
+		private readonly Dictionary<(double, double, double), MapObjectFuzzyScan> _unidentifiedContacts =
+			new Dictionary<(double, double, double), MapObjectFuzzyScan>();
 
 		[NonSerialized] public HashSet<long> KnownSpawnRuleIDs = new HashSet<long>();
 
@@ -575,6 +576,45 @@ namespace ZeroGravity.ShipComponents
 			}
 
 			InitialiseFocus();
+		}
+
+		/// <summary>
+		/// 	Shows the spheres the server sends for echoes too weak to locate. A sphere is created once and fades out on
+		/// 	its own over its remaining lifetime; one the server no longer sends is removed.
+		/// </summary>
+		public void ApplyUnidentifiedContacts(KnownVesselsMessage.UnidentifiedContact[] contacts)
+		{
+			HashSet<(double, double, double)> receivedCentres = new HashSet<(double, double, double)>();
+			foreach (KnownVesselsMessage.UnidentifiedContact contact in contacts)
+			{
+				(double, double, double) centre = (contact.Centre[0], contact.Centre[1], contact.Centre[2]);
+				receivedCentres.Add(centre);
+				if (_unidentifiedContacts.ContainsKey(centre))
+				{
+					continue;
+				}
+
+				GameObject sphereObject = Instantiate(MapObjectFuzzuScan, MapObjectsRoot);
+				sphereObject.name = Localization.UnidentifiedObject.ToUpper();
+				MapObjectFuzzyScan sphere = sphereObject.GetComponent<MapObjectFuzzyScan>();
+				sphere.OnCreate(_world, null);
+				sphere.FixedPosition = contact.Centre.ToVector3D();
+				sphere.MinMaxScale = (contact.Radius * 2.0 - sphere.MinScale) / (sphere.MaxScale - sphere.MinScale);
+				sphere.TimeToLive = contact.RemainingLifetimeSeconds;
+				sphere.Description = Localization.UnidentifiedObjectDescription;
+				sphereObject.Activate(true);
+				_unidentifiedContacts[centre] = sphere;
+			}
+
+			foreach ((double, double, double) centre in _unidentifiedContacts.Keys.Where(m => !receivedCentres.Contains(m)).ToList())
+			{
+				if (_unidentifiedContacts[centre] != null)
+				{
+					Destroy(_unidentifiedContacts[centre].gameObject);
+				}
+
+				_unidentifiedContacts.Remove(centre);
+			}
 		}
 
 		/// <summary>

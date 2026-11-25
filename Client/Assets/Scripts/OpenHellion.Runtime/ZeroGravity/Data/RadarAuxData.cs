@@ -4,7 +4,9 @@ namespace ZeroGravity.Data
 	{
 		public float ActiveScanDuration;
 
-		public double PassiveThreshold;
+		public double PassiveRangePerSquareMetre;
+
+		public double UnidentifiedSphereSize;
 
 		public override SystemAuxDataType AuxDataType
 		{

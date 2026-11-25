@@ -15,7 +15,7 @@ namespace ZeroGravity.Objects
 
 		public float AsteroidGasBurstDmgMultiplier;
 
-		public double NoiseRadius;
+		public double RadarSensitivityInSphereOfInfluence;
 
 		private Vector3 _targetPosition;
 

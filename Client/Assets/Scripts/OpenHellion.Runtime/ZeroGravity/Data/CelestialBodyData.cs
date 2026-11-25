@@ -40,7 +40,7 @@ namespace ZeroGravity.Data
 
 		public List<ResourceMinMax> AsteroidResources;
 
-		public double NoiseRadius;
+		public double RadarSensitivityInSphereOfInfluence;
 
 	}
 }

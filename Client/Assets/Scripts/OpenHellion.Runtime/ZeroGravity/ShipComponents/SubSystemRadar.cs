@@ -1,4 +1,5 @@
 using OpenHellion;
+using OpenHellion.State;
 using UnityEngine;
 using ZeroGravity.Data;
 using ZeroGravity.LevelDesign;
@@ -10,17 +11,7 @@ namespace ZeroGravity.ShipComponents
 {
 	public class SubSystemRadar : SubSystem
 	{
-		public const double TransmitterEfficiency = 0.3;
-
-		public const double ActiveThreshold = 1.717e-18;
-
-		public const double FuzzyThreshold = ActiveThreshold / 81.0;
-
-		public const double ReferenceEmission = 225e3;
-
-		public const double ReferenceCrossSection = 340.0;
-
-		public const double WarpingReferenceEmission = 20225e3;
+		public const double ScanningConeReferenceSignature = 110.0;
 
 		[SerializeField] private ResourceRequirement[] _ResourceRequirements = new ResourceRequirement[1]
 		{
@@ -32,8 +23,8 @@ namespace ZeroGravity.ShipComponents
 
 		public float ActiveScanDuration = 3f;
 
-		[Tooltip("Weakest emission flux the passive sensor picks up, in W/m2")]
-		public double PassiveThreshold = 4.476e-9;
+		[Tooltip("Metres of passive range per square metre of signature")]
+		public double PassiveRangePerSquareMetre = 4140.0;
 
 		[System.NonSerialized] public bool ActiveScanPending;
 
@@ -56,38 +47,31 @@ namespace ZeroGravity.ShipComponents
 			}
 		}
 
-		public double TransmitPower =>
-			_ResourceRequirements[0].Nominal * 1000.0 * TransmitterEfficiency * SignalAmplification;
+		public double Kilowatts => _ResourceRequirements[0].Nominal;
 
-		public double GetNoise()
+		public double GetSensitivityMultiplier()
 		{
 			Vector3D position = World.LocalToWorldPosition(ParentVessel.transform.position);
-			double noise = 1.0;
+			double planetZoneSensitivity = 1.0;
 			foreach (CelestialBody body in World.SolarSystem.GetCelestialBodies())
 			{
-				noise += body.NoiseRadius * body.NoiseRadius / (position - body.Position).SqrMagnitude;
+				if ((position - body.Position).SqrMagnitude < body.Orbit.GravityInfluenceRadiusSquared)
+				{
+					planetZoneSensitivity *= body.RadarSensitivityInSphereOfInfluence;
+				}
 			}
 
+			double debrisFieldSensitivity = 1.0;
 			foreach (DebrisField debrisField in World.DebrisFields)
 			{
 				if (debrisField.CheckObject(ParentVessel))
 				{
-					noise /= debrisField.ScanningSensitivityMultiplier;
+					debrisFieldSensitivity *= debrisField.ScanningSensitivityMultiplier;
 				}
 			}
 
-			return noise;
-		}
-
-		public double GetPassiveRange(double emission, double noise)
-		{
-			return System.Math.Sqrt(emission * SignalAmplification / (4.0 * System.Math.PI * PassiveThreshold * noise));
-		}
-
-		public double GetActiveRange(double crossSection, float coneAngle, double threshold, double noise)
-		{
-			double coneSolidAngle = 2.0 * System.Math.PI * (1.0 - System.Math.Cos(coneAngle * (System.Math.PI / 180.0) / 2.0));
-			return System.Math.Pow(TransmitPower * crossSection / (coneSolidAngle * coneSolidAngle * threshold * noise), 0.25);
+			return RadarDetection.GetSensitivityMultiplier(SignalAmplification, World.GetVesselExposureDamage(position.Magnitude),
+				planetZoneSensitivity, debrisFieldSensitivity);
 		}
 
 		public override SystemAuxData GetAuxData()
@@ -95,7 +79,7 @@ namespace ZeroGravity.ShipComponents
 			return new RadarAuxData
 			{
 				ActiveScanDuration = ActiveScanDuration,
-				PassiveThreshold = PassiveThreshold
+				PassiveRangePerSquareMetre = PassiveRangePerSquareMetre
 			};
 		}
 

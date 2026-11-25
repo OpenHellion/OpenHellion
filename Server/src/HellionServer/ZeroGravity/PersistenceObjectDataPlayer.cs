@@ -7,6 +7,17 @@ namespace ZeroGravity;
 
 public class PersistenceObjectDataPlayer : PersistenceObjectData
 {
+	public class LastKnownVesselData
+	{
+		public long VesselGuid;
+
+		public long SpawnRuleId;
+
+		public OrbitData LastKnownOrbit;
+
+		public double LastKnownSignature;
+	}
+
 	public long FakeGUID;
 
 	public long ParentGUID;
@@ -54,4 +65,6 @@ public class PersistenceObjectDataPlayer : PersistenceObjectData
 	public List<QuestDetails> Quests;
 
 	public List<ItemCompoundType> Blueprints;
+
+	public List<LastKnownVesselData> LastKnownVessels;
 }

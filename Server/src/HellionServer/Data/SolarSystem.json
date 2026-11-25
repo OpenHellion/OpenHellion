@@ -40,7 +40,7 @@
           "Max": 3000.0
         }
       ],
-      "NoiseRadius": 43000000000.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 2,
@@ -72,7 +72,7 @@
           "Max": 4500.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 3,
@@ -104,7 +104,7 @@
           "Max": 1800.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 4,
@@ -136,7 +136,7 @@
           "Max": 900.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 5,
@@ -173,7 +173,7 @@
           "Max": 2700.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 10,
@@ -205,7 +205,7 @@
           "Max": 900.0
         }
       ],
-      "NoiseRadius": 69000000.0
+      "RadarSensitivityInSphereOfInfluence": 0.72
     },
     {
       "GUID": 11,
@@ -226,7 +226,7 @@
       "AsteroidGasBurstTimeMax": 0.0,
       "AsteroidGasBurstDmgMultiplier": 1.0,
       "AsteroidResources": [],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 12,
@@ -258,7 +258,7 @@
           "Max": 900.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 13,
@@ -295,7 +295,7 @@
           "Max": 1800.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 14,
@@ -327,7 +327,7 @@
           "Max": 900.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 15,
@@ -348,7 +348,7 @@
       "AsteroidGasBurstTimeMax": 45.0,
       "AsteroidGasBurstDmgMultiplier": 1.0,
       "AsteroidResources": [],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 16,
@@ -369,7 +369,7 @@
       "AsteroidGasBurstTimeMax": 30.0,
       "AsteroidGasBurstDmgMultiplier": 1.0,
       "AsteroidResources": [],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 17,
@@ -401,7 +401,7 @@
           "Max": 1800.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 6,
@@ -433,7 +433,7 @@
           "Max": 1800.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 7,
@@ -465,7 +465,7 @@
           "Max": 900.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 8,
@@ -497,7 +497,7 @@
           "Max": 1800.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 9,
@@ -529,7 +529,7 @@
           "Max": 900.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 18,
@@ -571,7 +571,7 @@
           "Max": 2700.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     },
     {
       "GUID": 19,
@@ -613,7 +613,7 @@
           "Max": 2700.0
         }
       ],
-      "NoiseRadius": 0.0
+      "RadarSensitivityInSphereOfInfluence": 1.0
     }
   ],
   "ExposureRange": 380106946806.721,

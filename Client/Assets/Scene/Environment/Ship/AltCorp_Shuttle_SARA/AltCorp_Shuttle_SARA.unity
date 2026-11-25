@@ -651501,10 +651501,10 @@ MonoBehaviour:
   DebugInfo: 
   _ResourceRequirements:
   - ResourceType: 1
-    Nominal: 2000
+    Nominal: 1000
     Standby: 0
   ActiveScanDuration: 3
-  PassiveThreshold: 2.238e-9
+  PassiveRangePerSquareMetre: 4600
 --- !u!114 &18843
 MonoBehaviour:
   m_ObjectHideFlags: 0

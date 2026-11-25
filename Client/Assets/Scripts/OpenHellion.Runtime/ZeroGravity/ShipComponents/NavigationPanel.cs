@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using OpenHellion;
 using OpenHellion.Map;
+using OpenHellion.State;
 using UnityEngine;
 using UnityEngine.UI;
 using ZeroGravity.Data;
@@ -22,6 +23,13 @@ namespace ZeroGravity.ShipComponents
 {
 	public class NavigationPanel : MonoBehaviour
 	{
+		private static readonly int ObjectHash = Animator.StringToHash("object");
+
+		private static readonly int ClusterHash = Animator.StringToHash("cluster");
+
+		private static readonly int StopHash = Animator.StringToHash("Stop");
+
+
 		public struct POINT
 		{
 			public int x;
@@ -270,6 +278,7 @@ namespace ZeroGravity.ShipComponents
 			}
 		}
 
+// TODO find native solution
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 		[DllImport("user32.dll")]
 		private static extern bool SetCursorPos(int x, int y);
@@ -298,7 +307,7 @@ namespace ZeroGravity.ShipComponents
 
 		public void HideWarning()
 		{
-			Warnings.GetComponent<Animator>().SetTrigger("Stop");
+			Warnings.GetComponent<Animator>().SetTrigger(StopHash);
 		}
 
 		public void OnInteract(Ship parent)
@@ -578,11 +587,11 @@ namespace ZeroGravity.ShipComponents
 			string text = Map.SelectedObject.Name.ToUpper();
 			Sprite icon = Map.SelectedObject.Icon;
 			string text2 = Map.SelectedObject.Description;
-			string empty = string.Empty;
-			string text3 = ((!(Map.SelectedObject is MapObjectVessel))
+			string text3 = (Map.SelectedObject is not MapObjectVessel)
 				? "-"
-				: (Map.SelectedObject as MapObjectVessel).CrossSection.ToString("0"));
+				: (Map.SelectedObject as MapObjectVessel).Signature.ToString("0");
 			RadiationInfo.Activate(value: true);
+			string empty;
 			if (Map.SelectedObject is MapObjectCustomOrbit)
 			{
 				float vesselExposureDamage =
@@ -592,9 +601,7 @@ namespace ZeroGravity.ShipComponents
 			}
 			else if (Map.SelectedObject is MapObjectFuzzyScan)
 			{
-				MapObjectFuzzyScan mapObjectFuzzyScan = Map.SelectedObject as MapObjectFuzzyScan;
 				text3 = "-";
-				text2 = Localization.PossibleContacts + ": " + mapObjectFuzzyScan.Vessels.Count;
 				empty = "-";
 				RadiationInfo.Activate(value: false);
 			}
@@ -614,11 +621,11 @@ namespace ZeroGravity.ShipComponents
 			{
 				SelectedDetails.Activate(value: true);
 				SubSystemRadar radar = ParentVessel.RadarSystem;
-				double noise = radar.GetNoise();
-				ActiveSens.text = (radar.GetActiveRange(SubSystemRadar.ReferenceCrossSection, _scanAngle,
-					SubSystemRadar.ActiveThreshold, noise) / 1000.0).ToString("0");
-				PassiveSens.text = (radar.GetPassiveRange(SubSystemRadar.ReferenceEmission, noise) / 1000.0).ToString("0");
-				WarpSens.text = (radar.GetPassiveRange(SubSystemRadar.WarpingReferenceEmission, noise) / 1000.0).ToString("0");
+				double sensitivityMultiplier = radar.GetSensitivityMultiplier();
+				ActiveSens.text = (RadarDetection.GetActiveRange(radar.Kilowatts, RadarDetection.MinimumActiveConeAngleDegrees, 1.0,
+					sensitivityMultiplier) / 1000.0).ToString("0.0");
+				PassiveSens.text = (RadarDetection.GetPassiveRange(radar.PassiveRangePerSquareMetre, 1.0, sensitivityMultiplier) / 1000.0).ToString("0.0");
+				WarpSens.text = (RadarDetection.GetWarpDetectionRange(radar.PassiveRangePerSquareMetre, 1.0, sensitivityMultiplier) / 1000.0).ToString("0.0");
 				ScanPowerConsumption.text = FormatHelper.FormatValue(
 					ParentVessel.RadarSystem.GetPowerConsumption(true) * ParentVessel.RadarSystem.ActiveScanDuration);
 				SignalAmplificationValue.text = ((!(ParentVessel.RadarSystem.SignalAmplification > 1f))
@@ -1173,8 +1180,8 @@ namespace ZeroGravity.ShipComponents
 				                       Localization.Distance + ": " +
 				                       FormatHelper.DistanceFormat(
 					                       (Map.SelectedObject.TruePosition - mapObjects[0].TruePosition).Magnitude);
-				HoverObjectUiAnimator.SetBool("cluster", value: false);
-				HoverObjectUiAnimator.SetBool("object", value: true);
+				HoverObjectUiAnimator.SetBool(ClusterHash, value: false);
+				HoverObjectUiAnimator.SetBool(ObjectHash, value: true);
 				return;
 			}
 
@@ -1187,34 +1194,26 @@ namespace ZeroGravity.ShipComponents
 					groupObject.text = groupObject.text + mapObject.Name.ToUpper() + "\n";
 				}
 
-				HoverObjectUiAnimator.SetBool("object", value: false);
-				HoverObjectUiAnimator.SetBool("cluster", value: true);
+				HoverObjectUiAnimator.SetBool(ObjectHash, value: false);
+				HoverObjectUiAnimator.SetBool(ClusterHash, value: true);
 				return;
 			}
 
-			if (mapObjects[0] is MapObjectFuzzyScan)
-			{
-				MapObjectFuzzyScan mapObjectFuzzyScan = mapObjects[0] as MapObjectFuzzyScan;
-				HoverObjectName.text = Localization.PossibleContacts + ": " + mapObjectFuzzyScan.Vessels.Count;
-			}
-			else
-			{
-				HoverObjectName.text = mapObjects[0].Name.ToUpper();
-			}
+			HoverObjectName.text = mapObjects[0].Name.ToUpper();
 
-			HoverObjectUiAnimator.SetBool("cluster", value: false);
-			HoverObjectUiAnimator.SetBool("object", value: true);
+			HoverObjectUiAnimator.SetBool(ClusterHash, value: false);
+			HoverObjectUiAnimator.SetBool(ObjectHash, value: true);
 		}
 
 		public void HideHoverInfo()
 		{
-			HoverObjectUiAnimator.SetBool("object", value: false);
-			HoverObjectUiAnimator.SetBool("cluster", value: false);
+			HoverObjectUiAnimator.SetBool(ObjectHash, value: false);
+			HoverObjectUiAnimator.SetBool(ClusterHash, value: false);
 		}
 
 		public void CalculateMass()
 		{
-			float num = ((SelectedWarpStage != 0) ? ParentVessel.FTLEngine.TowingCapacity : 0f);
+			float num = (SelectedWarpStage != 0) ? ParentVessel.FTLEngine.TowingCapacity : 0f;
 			float num2 = (float)(ParentVessel.GetCompoundMass() - ParentVessel.Mass);
 			if (num2 / num > 0.85f)
 			{

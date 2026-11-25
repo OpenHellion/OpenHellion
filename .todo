@@ -22,6 +22,7 @@ New central world state system:
 [x] Create a world state class to store basic data about dynamic objects (test the system)
 [x] Make syncronisation of changes in the state automatic (client never writes state but sends commands)
 [x] Corridor doors do not sync with the outer doors of other modules
+[ ] Merge spatial index and state
 [ ] State changes marks that object dirty and calls a callback from the state (subscribe to state updates/replace EventSystem for state changes)
 [ ] Put all space objects and their contents into state (decouple state from logic)
 [ ] Gradually remove objects, so state is only source of truth for game data
@@ -61,11 +62,10 @@ Movement:
 [x] Send faraway "known" vessels to client, but only on map and radar position (subscibe objects and known vessels rewrite)
 [x] Fix stabilising on hull of ship causing jumping around
 [x] Fix vessels jump along their orbit (position discontinuity) as quest ships around Haven moved 80,000 km (surfaced after save and load)
+[x] Fix moving from 0g to 1g fast making you fall out of the world
+[ ] Fix moving from 0g to 1g with ragdoll making you stand sideways/upside down
 [ ] Fix items, corpses and other players sliding when the anchor changes (fixed for items)
-[ ] Moving from 0g to 1g fast making you fall out of the world (think is fixed, havent reproduced for a while)
-[ ] Landing and staying on asteroid is impossible (because object spins)
-[ ] Fix radar selection raycast not succeeding
-[ ] Parent onto moving platform
+[ ] Landing on asteroid is impossible (because object spins)
 [ ] Fix parent flipping on border between two ships
 [ ] Harden collision damage
 [ ] Enable movement when hooked onto panel (so that you can't stop collision by opening the ship door panel)
@@ -98,6 +98,7 @@ Graphics:
 [ ] Fix planets on map having no texture
 [ ] Enable helmet shader
 [ ] Fix health shader in helmet
+[ ] NavMapObject draws below planets (or planets draw above)
 
 Short-term:
 [x] Update to Unity 6.3
@@ -129,17 +130,20 @@ Short-term:
 [x] Fix docking panels are inaccessible
 [x] Implement the unfinished passive and active radars, and make them server-authoratative
 [x] Fix quests not continuing properly from save (lost progress, no current quest log in top right)
-[ ] Make the ranges of scanning plausible, passive scanning other active ships and active scanning other unpowered/cold vessels
+[x] Make scanning system use physical units instead of designer units
+[x] Fix breaking bug where docking a ship kills the player
+[x] Fix names and icons not showing on radar GUI elements on map and ship lists
 [ ] Test playing multiplayer still works
 [ ] Crashing into a planet when on a pivot does not kill the player
 [ ] Only use timeout for non-sensitive network messages (implement reliable/unreliable send mode in GameTransport)
 [ ] See if we can merge tick and flush in GameTransport
 [ ] Fix ship radar element under quest indicator (not selectable)
-[x] Fix breaking bug where docking a ship kills the player
-[ ] Fix names and icons not showing on radar GUI elements on map and ship lists
 [ ] Fix deleting character logging into game
 [ ] Fix all broken code references from the animators (move functionality from animators to script)
 [ ] Make Haven spawn with all of the objects stabilised to eachother
+[ ] Fix active quest being the one you last selected in journal screen (vanilla behaviour)
+[ ] Use lever to deploy solar panels in A safe haven not registering lever pull
+[ ] Fix server player count not correct
 
 Server:
 [x] Remove VesselData
@@ -198,3 +202,4 @@ Later:
 [ ] Fix shaders that were removed from materials in commit Add ShaderForge plugin (d310531)
 [ ] Implement leasing of space objects (security against hacking a vessel, only one player may lease an object at a time)
 [ ] Server-authortative view, push full state of object in view instead client requesting it
+[ ] Parent onto moving platform

@@ -508220,7 +508220,7 @@ MonoBehaviour:
     Nominal: 1000
     Standby: 0
   ActiveScanDuration: 3
-  PassiveThreshold: 4.476e-9
+  PassiveRangePerSquareMetre: 4140
 --- !u!114 &11843
 MonoBehaviour:
   m_ObjectHideFlags: 0

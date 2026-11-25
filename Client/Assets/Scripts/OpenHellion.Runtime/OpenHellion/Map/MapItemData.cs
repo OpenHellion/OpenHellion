@@ -40,7 +40,9 @@ namespace OpenHellion.Map
 
 		public long SpawnRuleId { get; private set; }
 
-		public double CrossSection { get; private set; }
+		public double Signature { get; private set; }
+
+		public bool IsTracked { get; private set; }
 
 		public bool IsAlwaysVisible { get; private set; }
 
@@ -65,7 +67,12 @@ namespace OpenHellion.Map
 					return RadarVisibilityType.AlwaysVisible;
 				}
 
-				return IsDistressSignalActive ? RadarVisibilityType.Distress : RadarVisibilityType.Visible;
+				if (IsDistressSignalActive)
+				{
+					return RadarVisibilityType.Distress;
+				}
+
+				return IsTracked ? RadarVisibilityType.Visible : RadarVisibilityType.Unknown;
 			}
 		}
 
@@ -77,10 +84,13 @@ namespace OpenHellion.Map
 		{
 			Guid = data.Guid;
 			Type = data.Type;
-			Name = data.Name;
+			Name = !string.IsNullOrEmpty(data.Name) ? data.Name
+				: !string.IsNullOrEmpty(data.Registration) ? data.Registration
+				: Localization.UnknownObject;
 			Registration = data.Registration;
 			SpawnRuleId = data.SpawnRuleId;
-			CrossSection = data.CrossSection;
+			Signature = data.Signature;
+			IsTracked = data.IsTracked;
 			IsAlwaysVisible = data.IsAlwaysVisible;
 			IsDistressSignalActive = data.IsDistressSignalActive;
 			Orbit ??= new OrbitParameters();

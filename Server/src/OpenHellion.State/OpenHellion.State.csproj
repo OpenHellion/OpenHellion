@@ -6,5 +6,10 @@
 		<LangVersion>9</LangVersion>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>disable</ImplicitUsings>
+		<DebugType>portable</DebugType>
+		<UnityPluginDirectory>$(MSBuildThisFileDirectory)..\..\..\Client\Assets\Plugins\OpenHellion.State\</UnityPluginDirectory>
 	</PropertyGroup>
+	<Target Name="CopyToUnityClient" AfterTargets="Build">
+		<Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(UnityPluginDirectory)" SkipUnchangedFiles="true" />
+	</Target>
 </Project>

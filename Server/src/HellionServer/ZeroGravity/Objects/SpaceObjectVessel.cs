@@ -7,6 +7,7 @@ using BulletSharp;
 using BulletSharp.Math;
 using OpenHellion;
 using OpenHellion.Net;
+using OpenHellion.Net.Message;
 using OpenHellion.State;
 using ZeroGravity.BulletPhysics;
 using ZeroGravity.Data;
@@ -81,46 +82,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 	public long SpawnRuleId { get; internal set; }
 
 	public double CreationSolarSystemTime { get; protected set; }
-
-	/// <summary>
-	/// 	Heat and radio the structure gives off, in watts. Every watt its running systems draw ends up radiated, so
-	/// 	engines, warp drives and transmitting radars make a vessel loud and a powered-down one silent.
-	/// </summary>
-	public double Emission
-	{
-		get
-		{
-			double kilowatts = 0.0;
-			foreach (VesselComponent component in Systems)
-			{
-				if (component is SubSystem { Status: SystemStatus.OnLine } subSystem && subSystem.ResourceRequirements.TryGetValue(DistributionSystemType.Power, out ResourceRequirement power))
-				{
-					kilowatts += power.Nominal * subSystem.PowerInputFactor * (subSystem.FixedConsumption ? 1f : subSystem.OperationRate);
-				}
-			}
-			return kilowatts * 1000.0;
-		}
-	}
-
-	public double GetCompoundCrossSection()
-	{
-		double crossSection = MainVessel.RadarCrossSection;
-		foreach (SpaceObjectVessel docked in MainVessel.AllDockedVessels)
-		{
-			crossSection += docked.RadarCrossSection;
-		}
-		return crossSection;
-	}
-
-	public double GetCompoundEmission()
-	{
-		double emission = MainVessel.Emission;
-		foreach (SpaceObjectVessel docked in MainVessel.AllDockedVessels)
-		{
-			emission += docked.Emission;
-		}
-		return emission;
-	}
 
 	public List<SpawnObjectsWithChance> SpawnChance = new List<SpawnObjectsWithChance>();
 
@@ -385,6 +346,74 @@ public abstract class SpaceObjectVessel : ArtificialBody
 	public SpaceObjectVessel(long guid, bool initializeOrbit, Vector3D position, Vector3D velocity, QuaternionD rotation)
 		: base(guid, initializeOrbit, position, velocity, rotation)
 	{
+	}
+
+	/// <summary>
+	/// 	How visible this structure alone is to radar, in square metres: its hull, louder when damaged or powered,
+	/// 	plus every running machine and fusion reactor.
+	/// </summary>
+	public double GetSignature()
+	{
+		double machineSignature = 0.0;
+		foreach (VesselComponent component in Systems)
+		{
+			if (component.Status != SystemStatus.OnLine || component == VesselBaseSystem)
+			{
+				continue;
+			}
+			if (component is SubSystem subSystem && subSystem.ResourceRequirements.TryGetValue(DistributionSystemType.Power, out ResourceRequirement power))
+			{
+				machineSignature += RadarDetection.GetMachineSignature(power.Nominal * subSystem.PowerInputFactor * (subSystem.FixedConsumption ? 1f : subSystem.OperationRate));
+			}
+			else if (component is Generator { Type: GeneratorType.Power } fusionReactor)
+			{
+				machineSignature += RadarDetection.GetMachineSignature(fusionReactor.NominalOutput);
+			}
+		}
+		double healthFraction = MaxHealth > 0f ? Health / MaxHealth : 1.0;
+		bool isPowered = VesselBaseSystem?.Status == SystemStatus.OnLine;
+		return RadarDetection.GetHullSignature(RadarCrossSection, healthFraction, isPowered, isRock: this is Asteroid) + machineSignature;
+	}
+
+	public double GetCompoundSignature()
+	{
+		double signature = MainVessel.GetSignature();
+		foreach (SpaceObjectVessel docked in MainVessel.AllDockedVessels)
+		{
+			signature += docked.GetSignature();
+		}
+		return signature;
+	}
+
+	public LastKnownVessel RememberForNavigationMap(double solarSystemTime)
+	{
+		OrbitParameters lastKnownOrbit = new();
+		lastKnownOrbit.CopyDataFrom(Orbit, solarSystemTime, exactCopy: true);
+		return new LastKnownVessel
+		{
+			SpawnRuleId = SpawnRuleId,
+			LastKnownOrbit = lastKnownOrbit,
+			LastKnownSignature = GetCompoundSignature()
+		};
+	}
+
+	public KnownVesselsMessage.KnownVessel DescribeForNavigationMap(OrbitParameters orbitToShow, double signatureToShow, bool isTracked)
+	{
+		OrbitData orbit = new();
+		orbitToShow.FillOrbitData(ref orbit, this);
+		return new KnownVesselsMessage.KnownVessel
+		{
+			Guid = Guid,
+			Type = this is Asteroid ? SpaceObjectType.Asteroid : SpaceObjectType.Ship,
+			Name = VesselName,
+			Registration = VesselRegistration,
+			SpawnRuleId = SpawnRuleId,
+			Orbit = orbit,
+			Signature = signatureToShow,
+			IsTracked = isTracked,
+			IsAlwaysVisible = IsAlwaysVisible,
+			IsDistressSignalActive = IsDistressSignalActive,
+		};
 	}
 
 	public void ResetDockedToVessel()

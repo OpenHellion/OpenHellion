@@ -4,7 +4,9 @@ public class RadarAuxData : SystemAuxData
 {
 	public float ActiveScanDuration;
 
-	public double PassiveThreshold;
+	public double PassiveRangePerSquareMetre;
+
+	public double UnidentifiedSphereSize;
 
 	public override SystemAuxDataType AuxDataType => SystemAuxDataType.Radar;
 }

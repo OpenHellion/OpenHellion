@@ -44,10 +44,6 @@ namespace ZeroGravity.UI
 		[FormerlySerializedAs("_worldState")] [SerializeField] private World _world;
 		private Camera _uiCamera;
 
-		public int CurrentRadarRange => (int)(10000f * (MyPlayer.Instance.CurrentHelmet == null
-			? 1f
-			: MyPlayer.Instance.CurrentHelmet.TierMultiplier));
-
 		private void Awake()
 		{
 			Canvas canvas = OverlayTargets.GetComponentInParent<Canvas>(includeInactive: true).rootCanvas;
@@ -118,10 +114,10 @@ namespace ZeroGravity.UI
 
 		public void UpdateRadarList()
 		{
-			Vector3 myPos = MyPlayer.Instance.Parent.transform.position + MyPlayer.Instance.transform.position;
-			List<TargetObject> list2 = AllTargets.Where((TargetObject m) =>
-				m.ArtificialBody == null || m.ArtificialBody is not SpaceObjectVessel ||
-				!(m.ArtificialBody as SpaceObjectVessel).IsMainVessel || m.Distance > CurrentRadarRange).ToList();
+			Dictionary<long, SpaceObjectVessel> loadedVessels = _world.AllArtificialBodies.OfType<SpaceObjectVessel>()
+				.Where((SpaceObjectVessel m) => m.IsMainVessel && !m.IsWarpOnline)
+				.ToDictionary((SpaceObjectVessel m) => m.Guid);
+			List<TargetObject> list2 = AllTargets.Where((TargetObject m) => !loadedVessels.ContainsKey(m.Guid)).ToList();
 			foreach (TargetObject item in list2)
 			{
 				AllTargets.Remove(item);
@@ -137,19 +133,23 @@ namespace ZeroGravity.UI
 				}
 			}
 
-			List<ArtificialBody> list = AllTargets.Select((TargetObject m) => m.ArtificialBody).ToList();
-			foreach (ArtificialBody item2 in _world.AllArtificialBodies.Where((ArtificialBody m) =>
-				         m is SpaceObjectVessel &&
-				         (m as SpaceObjectVessel).IsMainVessel && !(m as SpaceObjectVessel).IsWarpOnline &&
-				         (myPos - m.transform.position).magnitude <= CurrentRadarRange && !list.Contains(m)))
+			HashSet<long> targeted = AllTargets.Select((TargetObject m) => m.Guid).ToHashSet();
+			List<TargetObject> newTargets = loadedVessels.Keys.Where((long guid) => !targeted.Contains(guid))
+				.Select((long guid) => new TargetObject { Guid = guid }).ToList();
+			AllTargets.AddRange(newTargets);
+
+			foreach (TargetObject target in AllTargets)
 			{
-				TargetObject targetObject = new TargetObject
-				{
-					Guid = item2.Guid,
-					ArtificialBody = item2
-				};
-				AllTargets.Add(targetObject);
-				CreateOverlayTargets(targetObject);
+				SpaceObjectVessel vessel = loadedVessels[target.Guid];
+				target.Position = vessel.transform.position;
+				target.Velocity = vessel.Velocity;
+				target.Name = vessel is Asteroid asteroid ? asteroid.Name : vessel is Ship ship ? ship.CommandVesselName : "Unknown";
+				target.Icon = vessel is Asteroid ? SpriteManager.Instance.GetSprite(vessel.Type) : SpriteManager.Instance.GetSprite(vessel, true);
+			}
+
+			foreach (TargetObject newTarget in newTargets)
+			{
+				CreateOverlayTargets(newTarget);
 			}
 
 			if (!AllTargets.Contains(SelectedTarget))
@@ -176,7 +176,7 @@ namespace ZeroGravity.UI
 					targetOverlayUI.Name.text = targetOverlayUI.Target.Name;
 				}
 
-				Vector3 pos = targetOverlayUI.Target.ArtificialBody.transform.position;
+				Vector3 pos = targetOverlayUI.Target.Position;
 				Vector2 localPoint = Vector2.zero;
 				Vector3 arrowUp;
 				Vector3 positionOnOverlay = GetPositionOnOverlay(pos, out arrowUp);
@@ -242,7 +242,7 @@ namespace ZeroGravity.UI
 				}
 
 				targetOverlayUI.Distance.text = FormatHelper.DistanceFormat(
-					(targetOverlayUI.Target.ArtificialBody.transform.position - MyPlayer.Instance.transform.position).magnitude);
+					(targetOverlayUI.Target.Position - MyPlayer.Instance.transform.position).magnitude);
 			}
 		}
 
@@ -282,9 +282,9 @@ namespace ZeroGravity.UI
 					ParametersHolder.SetActive(value: true);
 				}
 
-				Vector3 vector = SelectedTarget.ArtificialBody.transform.position - MyPlayer.Instance.transform.position;
+				Vector3 vector = SelectedTarget.Position - MyPlayer.Instance.transform.position;
 				Vector3 vector2 =
-					SelectedTarget.ArtificialBody.Velocity - MyPlayer.Instance.Parent.Velocity -
+					SelectedTarget.Velocity - MyPlayer.Instance.Parent.Velocity -
 					MyPlayer.Instance.rigidBody.linearVelocity;
 				Vector3 vector4 = Vector3.ProjectOnPlane(vector2, vector.normalized);
 				float magnitude = vector.magnitude;
@@ -299,7 +299,7 @@ namespace ZeroGravity.UI
 
 		private void SetTarget(TargetObject target = null)
 		{
-			if (target != null && target.ArtificialBody != null)
+			if (target != null)
 			{
 				SelectedTarget = target;
 				TargetName.text = SelectedTarget.Name;
@@ -326,8 +326,15 @@ namespace ZeroGravity.UI
 			{
 				if (AllTargets.Count > 0)
 				{
+					bool selectedBodyFound = _world.TryGetSpaceObject(SelectedTarget.Guid, out ArtificialBody selectedBody);
+					Diagnostics.Assert(selectedBodyFound, $"helmet radar target {SelectedTarget.Guid} has no spawned body");
+					if (!selectedBodyFound)
+					{
+						return;
+					}
+
 					ParticleSystem.MainModule main = MyPlayer.Instance.FpsController.StarDustParticle.main;
-					main.customSimulationSpace = SelectedTarget.ArtificialBody.transform;
+					main.customSimulationSpace = selectedBody.transform;
 					MyPlayer.Instance.FpsController.StarDustParticle.gameObject.SetActive(value: true);
 					MyPlayer.Instance.FpsController.StarDustParticle.Play();
 				}
