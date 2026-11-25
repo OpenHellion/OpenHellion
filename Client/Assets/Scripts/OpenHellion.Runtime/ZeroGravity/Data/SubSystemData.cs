@@ -32,8 +32,6 @@ namespace ZeroGravity.Data
 
 		public bool AutoReactivate;
 
-		public float RadarSignature;
-
 		public SystemAuxData AuxData;
 	}
 }

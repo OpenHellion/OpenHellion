@@ -4,6 +4,7 @@ using System.Linq;
 using OpenHellion;
 using OpenHellion.IO;
 using OpenHellion.Map;
+using OpenHellion.Net.Message;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -109,6 +110,14 @@ namespace ZeroGravity.ShipComponents
 		private double stabilizeToTargetMaxVelocityDiff = 2.0;
 
 		private double stabilizeToTargetMaxPositionDiff = 100.0;
+
+		private const float MatchingLookupRange = 1000f;
+
+		private const float MatchingPositionMismatchTolerance = 1f;
+
+		private const float MatchingVelocityMismatchTolerance = 0.1f;
+
+		private long _matchingLookupCheckedGuid;
 
 		public GameObject CanMatchTarget;
 
@@ -286,7 +295,7 @@ namespace ZeroGravity.ShipComponents
 		private void CalculateScaleAndRotation()
 		{
 			Vector3 vector = SelectedTarget.Position - ParentShip.transform.position;
-			Vector3 vector2 = SelectedTarget.ArtificialBody != null ? SelectedTarget.ArtificialBody.Velocity - ParentShip.Velocity : Vector3.zero;
+			Vector3 vector2 = SelectedTarget.Velocity - ParentShip.Velocity;
 			Vector3 vector3 = ParentShip.transform.rotation.Inverse() * vector;
 			Vector3 vec = Vector3.ProjectOnPlane(vector2, vector.normalized);
 			distance = Mathf.Abs(vector3.magnitude);
@@ -351,21 +360,19 @@ namespace ZeroGravity.ShipComponents
 
 		public void UpdateRadarList()
 		{
-			Vector3 myPos = MyPlayer.Instance.Parent.transform.position;
 			Dictionary<long, MapItemData> known = _world.SolarSystem.KnownVessels;
-			foreach (TargetObject target in AllTargets)
+			float secondsSinceRadarContacts = Time.time - _world.RadarContactsReceivedTime;
+			Dictionary<long, Vector3> describedContactPositionsInRange = new Dictionary<long, Vector3>();
+			foreach (MovementMessage.RadarContact radarContact in _world.RadarContacts.Values)
 			{
-				_world.TryGetSpaceObject(target.Guid, out SpaceObjectVessel vessel);
-				target.ArtificialBody = vessel;
-				known.TryGetValue(target.Guid, out target.KnownVessel);
+				Vector3 position = radarContact.Position.ToVector3() + radarContact.Velocity.ToVector3() * secondsSinceRadarContacts - _world.AnchorOffset;
+				if (known.ContainsKey(radarContact.Guid) && (ParentShip.transform.position - position).magnitude <= RadarRange[currentRadarRange])
+				{
+					describedContactPositionsInRange[radarContact.Guid] = position;
+				}
 			}
 
-			List<TargetObject> list2 = AllTargets.Where((TargetObject m) =>
-					(m.ArtificialBody == null && m.KnownVessel == null) ||
-					m.ArtificialBody is SpaceObjectVessel { IsMainVessel: false } ||
-					m.Guid == ParentShip.MainVessel.Guid ||
-					m.Distance > RadarRange[currentRadarRange])
-				.ToList();
+			List<TargetObject> list2 = AllTargets.Where((TargetObject m) => !describedContactPositionsInRange.ContainsKey(m.Guid)).ToList();
 			foreach (TargetObject item in list2)
 			{
 				AllTargets.Remove(item);
@@ -408,28 +415,21 @@ namespace ZeroGravity.ShipComponents
 			}
 
 			HashSet<long> targeted = AllTargets.Select((TargetObject m) => m.Guid).ToHashSet();
-			foreach (long guid in _world.AllArtificialBodies.OfType<SpaceObjectVessel>()
-				         .Where((SpaceObjectVessel m) => m.IsMainVessel && !m.IsWarpOnline).Select((SpaceObjectVessel m) => m.Guid)
-				         .Concat(known.Keys).Distinct())
-			{
-				_world.TryGetSpaceObject(guid, out SpaceObjectVessel vessel);
-				known.TryGetValue(guid, out MapItemData knownVessel);
-				Vector3 position = vessel != null
-					? vessel.transform.position
-					: (knownVessel.Position - _world.OriginWorldPosition).ToVector3();
-				if (targeted.Contains(guid) || guid == ParentShip.MainVessel.Guid || vessel is { IsWarpOnline: true } or { IsMainVessel: false } ||
-				    (myPos - position).magnitude > RadarRange[currentRadarRange])
-				{
-					continue;
-				}
+			List<TargetObject> newTargets = describedContactPositionsInRange.Keys.Where((long guid) => !targeted.Contains(guid))
+				.Select((long guid) => new TargetObject { Guid = guid }).ToList();
+			AllTargets.AddRange(newTargets);
 
-				TargetObject targetObject = new TargetObject
-				{
-					Guid = guid,
-					ArtificialBody = vessel,
-					KnownVessel = knownVessel
-				};
-				AllTargets.Add(targetObject);
+			foreach (TargetObject target in AllTargets)
+			{
+				MapItemData knownVessel = known[target.Guid];
+				target.Position = describedContactPositionsInRange[target.Guid];
+				target.Velocity = _world.RadarContacts[target.Guid].Velocity.ToVector3();
+				target.Name = knownVessel.Name;
+				target.Icon = SpriteManager.Instance.GetSprite(knownVessel.Type);
+			}
+
+			foreach (TargetObject targetObject in newTargets)
+			{
 				CreateOverlayTargets(targetObject);
 				if (CurrentTargetList != null)
 				{
@@ -755,10 +755,10 @@ namespace ZeroGravity.ShipComponents
 
 		private void OffTargetVelocity()
 		{
-			if (SelectedTarget is { ArtificialBody: not null })
+			if (SelectedTarget != null)
 			{
 				Vector3 vector = ParentShip.transform.rotation.Inverse() *
-				                 (ParentShip.Velocity - SelectedTarget.ArtificialBody.Velocity);
+				                 (ParentShip.Velocity - SelectedTarget.Velocity);
 				Vector3 vector2 = Vector3.ProjectOnPlane(vector, Vector3.forward);
 				Vector3 vector3 = vector2;
 				if (vector3.x < 0f)
@@ -794,11 +794,35 @@ namespace ZeroGravity.ShipComponents
 
 		private void CheckTargetStabilization()
 		{
-			if (ParentShip.MainVessel.IsStabilized || SelectedTarget is not { ArtificialBody: not null } ||
-			    (SelectedTarget.ArtificialBody.Velocity - ParentShip.Velocity).magnitude >
+			SpaceObjectVessel selectedVessel = null;
+			if (SelectedTarget != null && (SelectedTarget.Position - ParentShip.transform.position).magnitude <= MatchingLookupRange)
+			{
+				bool selectedVesselFound = _world.TryGetSpaceObject(SelectedTarget.Guid, out selectedVessel);
+				if (_matchingLookupCheckedGuid != SelectedTarget.Guid)
+				{
+					_matchingLookupCheckedGuid = SelectedTarget.Guid;
+					Diagnostics.Assert(selectedVesselFound, $"pilot radar target {SelectedTarget.Guid} within {MatchingLookupRange} m has no spawned vessel");
+					if (selectedVesselFound)
+					{
+						float positionMismatch = (SelectedTarget.Position - selectedVessel.transform.position).magnitude;
+						float velocityMismatch = (SelectedTarget.Velocity - selectedVessel.Velocity).magnitude;
+						Diagnostics.Assert(positionMismatch <= MatchingPositionMismatchTolerance,
+							$"pilot radar target {SelectedTarget.Guid} is {positionMismatch:F2} m from its spawned vessel");
+						Diagnostics.Assert(velocityMismatch <= MatchingVelocityMismatchTolerance,
+							$"pilot radar target {SelectedTarget.Guid} velocity differs {velocityMismatch:F2} m/s from its spawned vessel");
+					}
+				}
+			}
+			else
+			{
+				_matchingLookupCheckedGuid = 0;
+			}
+
+			if (ParentShip.MainVessel.IsStabilized || selectedVessel == null ||
+			    (SelectedTarget.Velocity - ParentShip.Velocity).magnitude >
 			    stabilizeToTargetMaxVelocityDiff ||
-			    (SelectedTarget.ArtificialBody.transform.position - ParentShip.transform.position).magnitude -
-			    SelectedTarget.ArtificialBody.Radius > stabilizeToTargetMaxPositionDiff)
+			    (SelectedTarget.Position - ParentShip.transform.position).magnitude -
+			    selectedVessel.Radius > stabilizeToTargetMaxPositionDiff)
 			{
 				CanMatchTarget.SetActive(value: false);
 			}
@@ -825,13 +849,13 @@ namespace ZeroGravity.ShipComponents
 
 		public void StartTargetStabilization()
 		{
-			if (SelectedTarget is not { ArtificialBody: not null })
+			if (SelectedTarget == null)
 			{
 				return;
 			}
 
 			SpaceObjectVessel mainVessel = ParentShip.MainVessel;
-			long? stabilizationTarget = SelectedTarget.ArtificialBody.Guid;
+			long? stabilizationTarget = SelectedTarget.Guid;
 			mainVessel.ChangeStats(null, null, null, null, null, null, null, null, null, null, null,
 				stabilizationTarget);
 		}

@@ -1153,16 +1153,12 @@ namespace ZeroGravity.Objects
 					if (value.IsNotEpsilonZero())
 					{
 						if (ShipControlMode == ShipControlMode.Piloting &&
-							World.InWorldPanels.Pilot.SelectedTarget is { ArtificialBody: not null } &&
+							World.InWorldPanels.Pilot.SelectedTarget is { } selectedTarget &&
 							Mathf.Abs(Vector3.Dot(_shipThrust.normalized, spaceObjectVessel.transform.forward)) > 0.9f &&
 							spaceObjectVessel.OffSpeedHelper)
 						{
-							Vector3 positionChange =
-								World.InWorldPanels.Pilot.SelectedTarget.ArtificialBody.transform.position -
-								 spaceObjectVessel.transform.position;
-							Vector3 velocityChange =
-								World.InWorldPanels.Pilot.SelectedTarget.ArtificialBody.Velocity -
-								 spaceObjectVessel.Velocity;
+							Vector3 positionChange = selectedTarget.Position - spaceObjectVessel.transform.position;
+							Vector3 velocityChange = selectedTarget.Velocity - spaceObjectVessel.Velocity;
 							Vector3 vector3 = Vector3.ProjectOnPlane(velocityChange, positionChange.normalized);
 							float num = Vector3.Angle(positionChange, spaceObjectVessel.transform.forward);
 							if (num <= 3f)
@@ -2541,12 +2537,6 @@ namespace ZeroGravity.Objects
 			else
 			{
 				GUI.Label(new Rect(250f, 15f, 200f, 30f), "NO PARENT");
-			}
-
-			if (Parent is SpaceObjectVessel)
-			{
-				GUI.Label(new Rect(750f, 15f, 1000f, 30f),
-					"Rad.sig.: " + (Parent as SpaceObjectVessel).MainVessel.RadarSignature);
 			}
 
 			GUI.color = Color.green;

@@ -15,9 +15,7 @@ namespace ZeroGravity.Objects
 
 		public float AsteroidGasBurstDmgMultiplier;
 
-		public float[] ScanningSensitivityModifierValues;
-
-		public float[] RadarSignatureModifierValues;
+		public double RadarSensitivityInSphereOfInfluence;
 
 		private Vector3 _targetPosition;
 
@@ -172,20 +170,6 @@ namespace ZeroGravity.Objects
 				PlanetsSpaceGameObject.transform.localPosition =
 					Vector3.Lerp(PlanetsSpaceGameObject.transform.localPosition, _targetPosition, deltaTime);
 			}
-		}
-
-		public float GetScanningSensitivityModifier(World world, ArtificialBody ab)
-		{
-			if (ScanningSensitivityModifierValues == null)
-			{
-				return 1f;
-			}
-
-			double magnitude = (world.LocalToWorldPosition(ab.transform.position) - Position).Magnitude;
-			double num = Orbit.GravityInfluenceRadius != double.PositiveInfinity
-				? Orbit.GravityInfluenceRadius
-				: world.ExposureRange;
-			return ScanningSensitivityModifierValues[(int)(MathHelper.Clamp(magnitude / num, 0.0, 1.0) * 99.0)];
 		}
 	}
 }

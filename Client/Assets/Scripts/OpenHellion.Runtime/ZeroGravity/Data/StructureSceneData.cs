@@ -14,9 +14,7 @@ namespace ZeroGravity.Data
 
 		public float Mass;
 
-		public float RadarSignature;
-
-		public float[] RadarSignatureHealthMultipliers;
+		public float RadarCrossSection;
 
 		public float HeatCollectionFactor;
 

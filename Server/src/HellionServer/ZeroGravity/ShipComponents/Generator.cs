@@ -138,7 +138,6 @@ public abstract class Generator : VesselComponent, IResourceProvider
 		SetAuxData(data.AuxData);
 		MaxOutput = _NominalOutput;
 		ParentVessel = vessel;
-		baseRadarSignature = data.RadarSignature;
 	}
 
 	protected override async Task SetStatusAsync(SystemStatus status)

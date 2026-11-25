@@ -7,6 +7,7 @@ using BulletSharp;
 using BulletSharp.Math;
 using OpenHellion;
 using OpenHellion.Net;
+using OpenHellion.Net.Message;
 using OpenHellion.State;
 using ZeroGravity.BulletPhysics;
 using ZeroGravity.Data;
@@ -29,6 +30,8 @@ public abstract class SpaceObjectVessel : ArtificialBody
 	public List<VesselPrimitiveColliderData> PrimitiveCollidersData = new List<VesselPrimitiveColliderData>();
 
 	public List<VesselMeshColliderData> MeshCollidersData = new List<VesselMeshColliderData>();
+
+	public float RadarCrossSection;
 
 	public RigidBody RigidBody;
 
@@ -72,8 +75,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 
 	public bool IsDebrisFragment { get; protected set; }
 
-	public virtual float RadarSignature { get; protected set; }
-
 	public bool IsDistressSignalActive { get; protected set; }
 
 	public bool IsAlwaysVisible { get; internal set; }
@@ -81,11 +82,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 	public long SpawnRuleId { get; internal set; }
 
 	public double CreationSolarSystemTime { get; protected set; }
-
-	public float GetCompoundRadarSignature()
-	{
-		return AllVessels.Sum((SpaceObjectVessel m) => m.RadarSignature);
-	}
 
 	public List<SpawnObjectsWithChance> SpawnChance = new List<SpawnObjectsWithChance>();
 
@@ -350,6 +346,74 @@ public abstract class SpaceObjectVessel : ArtificialBody
 	public SpaceObjectVessel(long guid, bool initializeOrbit, Vector3D position, Vector3D velocity, QuaternionD rotation)
 		: base(guid, initializeOrbit, position, velocity, rotation)
 	{
+	}
+
+	/// <summary>
+	/// 	How visible this structure alone is to radar, in square metres: its hull, louder when damaged or powered,
+	/// 	plus every running machine and fusion reactor.
+	/// </summary>
+	public double GetSignature()
+	{
+		double machineSignature = 0.0;
+		foreach (VesselComponent component in Systems)
+		{
+			if (component.Status != SystemStatus.OnLine || component == VesselBaseSystem)
+			{
+				continue;
+			}
+			if (component is SubSystem subSystem && subSystem.ResourceRequirements.TryGetValue(DistributionSystemType.Power, out ResourceRequirement power))
+			{
+				machineSignature += RadarDetection.GetMachineSignature(power.Nominal * subSystem.PowerInputFactor * (subSystem.FixedConsumption ? 1f : subSystem.OperationRate));
+			}
+			else if (component is Generator { Type: GeneratorType.Power } fusionReactor)
+			{
+				machineSignature += RadarDetection.GetMachineSignature(fusionReactor.NominalOutput);
+			}
+		}
+		double healthFraction = MaxHealth > 0f ? Health / MaxHealth : 1.0;
+		bool isPowered = VesselBaseSystem?.Status == SystemStatus.OnLine;
+		return RadarDetection.GetHullSignature(RadarCrossSection, healthFraction, isPowered, isRock: this is Asteroid) + machineSignature;
+	}
+
+	public double GetCompoundSignature()
+	{
+		double signature = MainVessel.GetSignature();
+		foreach (SpaceObjectVessel docked in MainVessel.AllDockedVessels)
+		{
+			signature += docked.GetSignature();
+		}
+		return signature;
+	}
+
+	public LastKnownVessel RememberForNavigationMap(double solarSystemTime)
+	{
+		OrbitParameters lastKnownOrbit = new();
+		lastKnownOrbit.CopyDataFrom(Orbit, solarSystemTime, exactCopy: true);
+		return new LastKnownVessel
+		{
+			SpawnRuleId = SpawnRuleId,
+			LastKnownOrbit = lastKnownOrbit,
+			LastKnownSignature = GetCompoundSignature()
+		};
+	}
+
+	public KnownVesselsMessage.KnownVessel DescribeForNavigationMap(OrbitParameters orbitToShow, double signatureToShow, bool isTracked)
+	{
+		OrbitData orbit = new();
+		orbitToShow.FillOrbitData(ref orbit, this);
+		return new KnownVesselsMessage.KnownVessel
+		{
+			Guid = Guid,
+			Type = this is Asteroid ? SpaceObjectType.Asteroid : SpaceObjectType.Ship,
+			Name = VesselName,
+			Registration = VesselRegistration,
+			SpawnRuleId = SpawnRuleId,
+			Orbit = orbit,
+			Signature = signatureToShow,
+			IsTracked = isTracked,
+			IsAlwaysVisible = IsAlwaysVisible,
+			IsDistressSignalActive = IsDistressSignalActive,
+		};
 	}
 
 	public void ResetDockedToVessel()
@@ -1628,7 +1692,6 @@ public abstract class SpaceObjectVessel : ArtificialBody
 			Guid = Guid,
 			VesselName = vesselName,
 			VesselRegistration = vesselRegistration,
-			RadarSignature = GetCompoundRadarSignature(),
 			IsAlwaysVisible = IsAlwaysVisible,
 			IsDistressSignalActive = IsDistressSignalActive
 		};

@@ -150,10 +150,9 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 
 	public List<ItemCompoundType> Blueprints = ObjectCopier.DeepCopy(StaticData.DefaultBlueprints);
 
-	// Vessels this player has discovered by scanning. Combined with always-visible/distress vessels
-	// to form the set the player is allowed to see on the navigation map.
-	// TODO persist.
-	public readonly HashSet<long> DiscoveredVessels = [];
+	public readonly Dictionary<long, LastKnownVessel> LastKnownVessels = [];
+
+	public readonly Dictionary<long, UnidentifiedRadarEcho> UnidentifiedRadarEchoes = [];
 
 	public bool Initialize = true;
 
@@ -1276,6 +1275,19 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		}
 		data.Quests = Quests.Select((Quest m) => m.GetDetails()).ToList();
 		data.Blueprints = Blueprints;
+		data.LastKnownVessels = [];
+		foreach ((long vesselGuid, LastKnownVessel lastKnownVessel) in LastKnownVessels)
+		{
+			OrbitData lastKnownOrbit = new();
+			lastKnownVessel.LastKnownOrbit.FillOrbitData(ref lastKnownOrbit);
+			data.LastKnownVessels.Add(new PersistenceObjectDataPlayer.LastKnownVesselData
+			{
+				VesselGuid = vesselGuid,
+				SpawnRuleId = lastKnownVessel.SpawnRuleId,
+				LastKnownOrbit = lastKnownOrbit,
+				LastKnownSignature = lastKnownVessel.LastKnownSignature
+			});
+		}
 		return data;
 	}
 
@@ -1377,6 +1389,17 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 		{
 			Blueprints = data.Blueprints;
 		}
+		foreach (PersistenceObjectDataPlayer.LastKnownVesselData savedVessel in data.LastKnownVessels ?? [])
+		{
+			OrbitParameters lastKnownOrbit = new();
+			lastKnownOrbit.ParseNetworkData(savedVessel.LastKnownOrbit);
+			LastKnownVessels[savedVessel.VesselGuid] = new LastKnownVessel
+			{
+				SpawnRuleId = savedVessel.SpawnRuleId,
+				LastKnownOrbit = lastKnownOrbit,
+				LastKnownSignature = savedVessel.LastKnownSignature
+			};
+		}
 		Server.Instance.Add(this);
 	}
 
@@ -1418,30 +1441,49 @@ public class Player : SpaceObjectTransferable, IPersistantObject, IAirConsumer
 			return;
 		}
 
-		SubSystemRadar radar = (Parent as SpaceObjectVessel)?.MainVessel.MainDistributionManager?.GetSubSystems()
-			.OfType<SubSystemRadar>().FirstOrDefault();
+		SubSystemRadar radar = SubSystemRadar.FindUsable(Parent);
 		if (radar == null || request.ScanDirection == null)
 		{
-			Debug.State($"player {Guid} active scan ignored: parent {Parent?.Guid} {Parent?.GetType().Name} radar {radar != null} direction {request.ScanDirection != null}");
+			Debug.State($"player {Guid} active scan ignored: parent {Parent?.Guid} {Parent?.GetType().Name} radar {radar != null} direction {request.ScanDirection != null} warping {(Parent as SpaceObjectVessel)?.MainVessel.IsWarping} base {(Parent as SpaceObjectVessel)?.MainVessel.VesselBaseSystem?.Status}");
 			return;
 		}
 
 		await radar.GoOnLine();
 		Vector3D direction = request.ScanDirection.ToVector3D();
-		List<long> hits = radar.ActiveScan(direction, request.ScanAngle);
-		foreach (long guid in hits)
+		Vector3D origin = radar.ParentVessel.Position;
+		double sensitivityMultiplier = radar.GetSensitivityMultiplier();
+		List<SpaceObjectVessel> detected = [];
+		List<SpaceObjectVessel> fuzzy = [];
+		radar.ActiveScan(direction, request.ScanAngle, sensitivityMultiplier, detected, fuzzy);
+		double now = Server.SolarSystemTime;
+		foreach (SpaceObjectVessel vessel in detected)
 		{
-			DiscoveredVessels.Add(guid);
+			LastKnownVessels[vessel.Guid] = vessel.RememberForNavigationMap(now);
+			UnidentifiedRadarEchoes.Remove(vessel.Guid);
 		}
 
-		Debug.State($"player {Guid} active scan from {radar.ParentVessel.Guid} status {radar.Status} passive {radar.PassiveScanSensitivity} active {radar.ActiveScanSensitivity}" +
-			$" direction {direction} angle {request.ScanAngle} hits [{string.Join(", ", hits)}] nearest in cone: " +
-			string.Join("; ", Server.Instance.AllVessels
-				.Where(m => m.IsMainVessel && m != radar.ParentVessel.MainVessel && Vector3D.Angle(direction, (m.Position - radar.ParentVessel.Position).Normalized) <= request.ScanAngle / 2f)
-				.OrderBy(m => (m.Position - radar.ParentVessel.Position).Magnitude).Take(10)
-				.Select(m => $"{m.Guid} {(m.Position - radar.ParentVessel.Position).Magnitude / 1000.0:F0} km signature {m.GetCompoundRadarSignature():F0}")));
+		double coneHalfAngleTangent = System.Math.Tan(request.ScanAngle / 2.0 * (System.Math.PI / 180.0));
+		foreach (SpaceObjectVessel vessel in fuzzy)
+		{
+			if (LastKnownVessels.ContainsKey(vessel.Guid))
+			{
+				continue;
+			}
+			double sphereRadius = (vessel.Position - origin).Magnitude * coneHalfAngleTangent * radar.UnidentifiedSphereSize;
+			Random offsetRandom = new((int)(Guid ^ vessel.Guid ^ ((Guid ^ vessel.Guid) >> 32)));
+			Vector3D offsetDirection = new Vector3D(offsetRandom.NextDouble() * 2.0 - 1.0, offsetRandom.NextDouble() * 2.0 - 1.0, offsetRandom.NextDouble() * 2.0 - 1.0).Normalized;
+			UnidentifiedRadarEchoes[vessel.Guid] = new UnidentifiedRadarEcho
+			{
+				SphereCentre = vessel.Position + offsetDirection * sphereRadius * offsetRandom.NextDouble(),
+				SphereRadius = sphereRadius,
+				CreatedSolarSystemTime = now
+			};
+		}
 
-		await Server.Instance.SolarSystem.SendKnownVesselsToPlayer(this);
+		Debug.State($"player {Guid} active scan from {radar.ParentVessel.Guid} {radar.Kilowatts:F0} kW sensitivity {sensitivityMultiplier:F2}" +
+			$" direction {direction} angle {request.ScanAngle} detected [{string.Join(", ", detected.Select(m => m.Guid))}] fuzzy [{string.Join(", ", fuzzy.Select(m => m.Guid))}]");
+
+		await Server.Instance.SolarSystem.UpdateAndSendNavigationMaps([this]);
 	}
 
 	public Task TakeDamage(HurtType hurtType, float amount, string source = null)

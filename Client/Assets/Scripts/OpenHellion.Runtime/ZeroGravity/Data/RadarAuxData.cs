@@ -2,15 +2,11 @@ namespace ZeroGravity.Data
 {
 	public class RadarAuxData : SystemAuxData
 	{
-		public double ActiveScanSensitivity;
-
-		public double ActiveScanFuzzySensitivity;
-
 		public float ActiveScanDuration;
 
-		public double PassiveScanSensitivity;
+		public double PassiveRangePerSquareMetre;
 
-		public double WarpDetectionSensitivity;
+		public double UnidentifiedSphereSize;
 
 		public override SystemAuxDataType AuxDataType
 		{

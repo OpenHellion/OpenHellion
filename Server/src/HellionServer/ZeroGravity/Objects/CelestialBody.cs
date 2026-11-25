@@ -14,6 +14,8 @@ public class CelestialBody
 
 	public double Radius;
 
+	public double RadarSensitivityInSphereOfInfluence;
+
 	public float AsteroidGasBurstTimeMin;
 
 	public float AsteroidGasBurstTimeMax;

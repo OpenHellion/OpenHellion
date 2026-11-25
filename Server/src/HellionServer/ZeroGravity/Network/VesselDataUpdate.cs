@@ -11,8 +11,6 @@ public class VesselDataUpdate
 
 	public string VesselName;
 
-	public double? RadarSignature;
-
 	public bool? IsDistressSignalActive;
 
 	public bool? IsAlwaysVisible;

@@ -44,10 +44,6 @@ namespace ZeroGravity.UI
 		[FormerlySerializedAs("_worldState")] [SerializeField] private World _world;
 		private Camera _uiCamera;
 
-		public int CurrentRadarRange => (int)(10000f * (MyPlayer.Instance.CurrentHelmet == null
-			? 1f
-			: MyPlayer.Instance.CurrentHelmet.TierMultiplier));
-
 		private void Awake()
 		{
 			Canvas canvas = OverlayTargets.GetComponentInParent<Canvas>(includeInactive: true).rootCanvas;
@@ -118,10 +114,12 @@ namespace ZeroGravity.UI
 
 		public void UpdateRadarList()
 		{
-			Vector3 myPos = MyPlayer.Instance.Parent.transform.position + MyPlayer.Instance.transform.position;
-			List<TargetObject> list2 = AllTargets.Where((TargetObject m) =>
-				m.ArtificialBody == null || m.ArtificialBody is not SpaceObjectVessel ||
-				!(m.ArtificialBody as SpaceObjectVessel).IsMainVessel || m.Distance > CurrentRadarRange).ToList();
+			Dictionary<long, ArtificialBody> loadedTargetBodies = _world.AllArtificialBodies
+				.Where((ArtificialBody m) => m != MyPlayer.Instance.Parent &&
+				                             (m is SpaceObjectVessel { IsMainVessel: true, IsWarpOnline: false } ||
+				                              m is Pivot { Type: SpaceObjectType.PlayerPivot or SpaceObjectType.DynamicObjectPivot }))
+				.ToDictionary((ArtificialBody m) => m.Guid);
+			List<TargetObject> list2 = AllTargets.Where((TargetObject m) => !loadedTargetBodies.ContainsKey(m.Guid)).ToList();
 			foreach (TargetObject item in list2)
 			{
 				AllTargets.Remove(item);
@@ -137,19 +135,48 @@ namespace ZeroGravity.UI
 				}
 			}
 
-			List<ArtificialBody> list = AllTargets.Select((TargetObject m) => m.ArtificialBody).ToList();
-			foreach (ArtificialBody item2 in _world.AllArtificialBodies.Where((ArtificialBody m) =>
-				         m is SpaceObjectVessel &&
-				         (m as SpaceObjectVessel).IsMainVessel && !(m as SpaceObjectVessel).IsWarpOnline &&
-				         (myPos - m.transform.position).magnitude <= CurrentRadarRange && !list.Contains(m)))
+			HashSet<long> targeted = AllTargets.Select((TargetObject m) => m.Guid).ToHashSet();
+			List<TargetObject> newTargets = loadedTargetBodies.Keys.Where((long guid) => !targeted.Contains(guid))
+				.Select((long guid) => new TargetObject { Guid = guid }).ToList();
+			AllTargets.AddRange(newTargets);
+
+			foreach (TargetObject target in AllTargets)
 			{
-				TargetObject targetObject = new TargetObject
+				ArtificialBody body = loadedTargetBodies[target.Guid];
+				switch (body)
 				{
-					Guid = item2.Guid,
-					ArtificialBody = item2
-				};
-				AllTargets.Add(targetObject);
-				CreateOverlayTargets(targetObject);
+					case Asteroid asteroid:
+						target.Position = asteroid.transform.position;
+						target.Velocity = asteroid.Velocity;
+						target.Name = asteroid.Name;
+						target.Icon = SpriteManager.Instance.GetSprite(asteroid.Type);
+						break;
+					case SpaceObjectVessel vessel:
+						target.Position = vessel.transform.position;
+						target.Velocity = vessel.Velocity;
+						target.Name = vessel.CommandVesselName;
+						target.Icon = SpriteManager.Instance.GetSprite(vessel, true);
+						break;
+					case Pivot { Type: SpaceObjectType.PlayerPivot } playerPivot:
+						OtherPlayer otherPlayer = playerPivot.GetComponentInChildren<OtherPlayer>();
+						target.Position = otherPlayer != null ? otherPlayer.transform.position : playerPivot.transform.position;
+						target.Velocity = playerPivot.Velocity;
+						target.Name = otherPlayer != null ? otherPlayer.PlayerName : Localization.UnknownObject;
+						target.Icon = SpriteManager.Instance.GetSprite(playerPivot.Type);
+						break;
+					case Pivot itemPivot:
+						DynamicObject droppedObject = itemPivot.GetComponentInChildren<DynamicObject>();
+						target.Position = droppedObject != null ? droppedObject.transform.position : itemPivot.transform.position;
+						target.Velocity = itemPivot.Velocity + (droppedObject != null ? droppedObject.Velocity : Vector3.zero);
+						target.Name = droppedObject != null && droppedObject.Item != null ? droppedObject.Item.Name : Localization.UnknownObject;
+						target.Icon = SpriteManager.Instance.GetSprite(itemPivot.Type);
+						break;
+				}
+			}
+
+			foreach (TargetObject newTarget in newTargets)
+			{
+				CreateOverlayTargets(newTarget);
 			}
 
 			if (!AllTargets.Contains(SelectedTarget))
@@ -176,7 +203,7 @@ namespace ZeroGravity.UI
 					targetOverlayUI.Name.text = targetOverlayUI.Target.Name;
 				}
 
-				Vector3 pos = targetOverlayUI.Target.ArtificialBody.transform.position;
+				Vector3 pos = targetOverlayUI.Target.Position;
 				Vector2 localPoint = Vector2.zero;
 				Vector3 arrowUp;
 				Vector3 positionOnOverlay = GetPositionOnOverlay(pos, out arrowUp);
@@ -242,7 +269,7 @@ namespace ZeroGravity.UI
 				}
 
 				targetOverlayUI.Distance.text = FormatHelper.DistanceFormat(
-					(targetOverlayUI.Target.ArtificialBody.transform.position - MyPlayer.Instance.transform.position).magnitude);
+					(targetOverlayUI.Target.Position - MyPlayer.Instance.transform.position).magnitude);
 			}
 		}
 
@@ -282,9 +309,9 @@ namespace ZeroGravity.UI
 					ParametersHolder.SetActive(value: true);
 				}
 
-				Vector3 vector = SelectedTarget.ArtificialBody.transform.position - MyPlayer.Instance.transform.position;
+				Vector3 vector = SelectedTarget.Position - MyPlayer.Instance.transform.position;
 				Vector3 vector2 =
-					SelectedTarget.ArtificialBody.Velocity - MyPlayer.Instance.Parent.Velocity -
+					SelectedTarget.Velocity - MyPlayer.Instance.Parent.Velocity -
 					MyPlayer.Instance.rigidBody.linearVelocity;
 				Vector3 vector4 = Vector3.ProjectOnPlane(vector2, vector.normalized);
 				float magnitude = vector.magnitude;
@@ -299,7 +326,7 @@ namespace ZeroGravity.UI
 
 		private void SetTarget(TargetObject target = null)
 		{
-			if (target != null && target.ArtificialBody != null)
+			if (target != null)
 			{
 				SelectedTarget = target;
 				TargetName.text = SelectedTarget.Name;
@@ -307,35 +334,10 @@ namespace ZeroGravity.UI
 				{
 					ParametersHolder.SetActive(value: true);
 				}
-
-				if (IsActive)
-				{
-					ToggleStarDust(value: true);
-				}
 			}
 			else
 			{
 				ParametersHolder.Activate(value: false);
-				ToggleStarDust(value: false);
-			}
-		}
-
-		private void ToggleStarDust(bool value)
-		{
-			if (value && SelectedTarget != null)
-			{
-				if (AllTargets.Count > 0)
-				{
-					ParticleSystem.MainModule main = MyPlayer.Instance.FpsController.StarDustParticle.main;
-					main.customSimulationSpace = SelectedTarget.ArtificialBody.transform;
-					MyPlayer.Instance.FpsController.StarDustParticle.gameObject.SetActive(value: true);
-					MyPlayer.Instance.FpsController.StarDustParticle.Play();
-				}
-			}
-			else
-			{
-				MyPlayer.Instance.FpsController.StarDustParticle.gameObject.SetActive(value: false);
-				MyPlayer.Instance.FpsController.StarDustParticle.Stop();
 			}
 		}
 
@@ -343,7 +345,6 @@ namespace ZeroGravity.UI
 		{
 			IsActive = val;
 			Root.SetActive(IsActive);
-			ToggleStarDust(IsActive);
 		}
 	}
 }

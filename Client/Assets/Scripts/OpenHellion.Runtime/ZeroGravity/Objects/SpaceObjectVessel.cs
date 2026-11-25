@@ -215,25 +215,6 @@ namespace ZeroGravity.Objects
 		public float ExposureDamage =>
 			World.GetVesselExposureDamage(World.LocalToWorldPosition(MainVessel.transform.position).Magnitude);
 
-		private double _radarSignatureInternal;
-
-		public override double RadarSignature
-		{
-			get
-			{
-				if (!IsMainVessel)
-				{
-					return MainVessel.RadarSignature;
-				}
-
-				return _radarSignatureInternal;
-			}
-			set
-			{
-				_radarSignatureInternal = value;
-			}
-		}
-
 		protected override bool ShouldSetLocalTransform => !IsDocked && base.ShouldSetLocalTransform;
 
 		protected override bool ShouldUpdateTransform => !IsDocked;

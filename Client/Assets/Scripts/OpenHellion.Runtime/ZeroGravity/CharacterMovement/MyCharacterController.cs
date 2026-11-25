@@ -78,6 +78,10 @@ namespace ZeroGravity.CharacterMovement
 
 		public ParticleSystem StarDustParticle;
 
+		private const float StarDustAccelerationThreshold = 0.5f;
+
+		private Vector3 _starDustPreviousVelocity;
+
 		[FormerlySerializedAs("normalSpeeds")] [SerializeField] private MovementSpeed _normalSpeeds;
 
 		[FormerlySerializedAs("runSpeeds")] [SerializeField] private MovementSpeed _runSpeeds;
@@ -460,6 +464,23 @@ namespace ZeroGravity.CharacterMovement
 
 			_canGrabWall = Physics.CheckSphere(_centerOfMass.position, 0.8f, _collisionLayerMask,
 				QueryTriggerInteraction.Ignore);
+
+			Vector3 velocity = _myPlayer.Parent.Velocity + RigidBody.linearVelocity;
+			float acceleration = (velocity - _starDustPreviousVelocity).magnitude / Time.fixedDeltaTime;
+			_starDustPreviousVelocity = velocity;
+			bool isAccelerating = _myPlayer.Parent is Pivot &&
+			                      acceleration > StarDustAccelerationThreshold;
+			if (isAccelerating && !StarDustParticle.isEmitting)
+			{
+				ParticleSystem.MainModule starDustMain = StarDustParticle.main;
+				starDustMain.simulationSpace = ParticleSystemSimulationSpace.World;
+				StarDustParticle.gameObject.SetActive(true);
+				StarDustParticle.Play();
+			}
+			else if (!isAccelerating && StarDustParticle.isEmitting)
+			{
+				StarDustParticle.Stop();
+			}
 		}
 
 		private void CheckLegDistanceFromFloor()

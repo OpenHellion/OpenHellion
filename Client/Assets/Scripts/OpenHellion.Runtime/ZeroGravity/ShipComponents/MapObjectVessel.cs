@@ -15,9 +15,9 @@ namespace ZeroGravity.ShipComponents
 			}
 		}
 
-		public virtual double RadarSignature
+		public virtual double Signature
 		{
-			get { return (MainObject as MapItemData)?.RadarSignature ?? 0.0; }
+			get { return (MainObject as MapItemData)?.Signature ?? 0.0; }
 		}
 
 		public override void UpdateVisibility()

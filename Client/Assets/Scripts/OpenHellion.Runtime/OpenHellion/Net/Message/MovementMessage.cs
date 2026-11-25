@@ -77,6 +77,16 @@ namespace OpenHellion.Net.Message
 			public sbyte[] JetpackDirection;
 		}
 
+		[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+		public struct RadarContact
+		{
+			public long Guid;
+
+			public float[] Position;
+
+			public float[] Velocity;
+		}
+
 		public long AnchorGuid;
 
 		public long ParentGuid;
@@ -100,5 +110,7 @@ namespace OpenHellion.Net.Message
 		public List<TransformInfo> DynamicObjectsMovement;
 
 		public List<TransformInfo> CorpsesMovement;
+
+		public RadarContact[] RadarContacts;
 	}
 }

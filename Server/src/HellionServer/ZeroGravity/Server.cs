@@ -2393,10 +2393,7 @@ public sealed class Server
 		if (_knownVesselsTimer >= KnownVesselsSendInterval)
 		{
 			_knownVesselsTimer = 0.0;
-			foreach (Player player in AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive))
-			{
-				await SolarSystem.SendKnownVesselsToPlayer(player);
-			}
+			await SolarSystem.UpdateAndSendNavigationMaps(AllPlayers.Where((Player m) => m.EnvironmentReady && m.IsAlive));
 		}
 
 		if (!VesselsDataUpdate.IsEmpty)

@@ -89,12 +89,6 @@ namespace ZeroGravity.LevelDesign
 
 		[Tooltip("Scene mass in tons")] public float Mass;
 
-		[Tooltip("Object radar signature")] public float RadarSignature = 100f;
-
-		[Tooltip("Health based radar signature multiplier")]
-		public AnimationCurve RadarSignatureHealthMultiplier =
-			new AnimationCurve(new Keyframe(0f, 2f), new Keyframe(1f, 1f));
-
 		public float HeatCollectionFactor = 10000f;
 
 		public float HeatDissipationFactor = 20f;

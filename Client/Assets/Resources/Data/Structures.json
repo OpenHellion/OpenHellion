@@ -5,19 +5,7 @@
     "SceneName": "AltCorp_CorridorModule",
     "GameName": "AltCorp_CorridorModule",
     "Mass": 55228.582,
-    "RadarSignature": 25.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 50.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -281,7 +269,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -311,7 +298,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 10.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -962,19 +948,7 @@
     "SceneName": "AltCorp_CorridorIntersectionModule",
     "GameName": "AltCorp_CorridorIntersectionModule",
     "Mass": 32275.23,
-    "RadarSignature": 25.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 70.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -1463,7 +1437,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -1493,7 +1466,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 10.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -2358,19 +2330,7 @@
     "SceneName": "AltCorp_Corridor45TurnModule",
     "GameName": "AltCorp_Corridor45TurnModule",
     "Mass": 32784.7734,
-    "RadarSignature": 25.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 50.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -2694,7 +2654,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -2724,7 +2683,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 10.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -3309,19 +3267,7 @@
     "SceneName": "AltCorp_Shuttle_SARA",
     "GameName": "AltCorp_Shuttle_SARA",
     "Mass": 1698122.38,
-    "RadarSignature": 400.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 870.0,
     "HeatCollectionFactor": 100000.0,
     "HeatDissipationFactor": 200.0,
     "StructureConnections": [],
@@ -11283,7 +11229,6 @@
         "PowerUpTime": 10.0,
         "CoolDownTime": 10.0,
         "AutoReactivate": false,
-        "RadarSignature": 0.0,
         "AuxData": {
           "BaseTowingCapacity": 1700.0,
           "WarpsData": [
@@ -11355,7 +11300,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 30.0,
@@ -11393,7 +11337,6 @@
         "PowerUpTime": 10.0,
         "CoolDownTime": 15.0,
         "AutoReactivate": true,
-        "RadarSignature": 200.0,
         "AuxData": {
           "Acceleration": 200.0,
           "ReverseAcceleration": 200.0,
@@ -11424,7 +11367,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 200.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -11451,7 +11393,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": null
       },
       {
@@ -11461,7 +11402,7 @@
         "ResourceRequirements": [
           {
             "ResourceType": 1,
-            "Nominal": 0.0,
+            "Nominal": 1000.0,
             "Standby": 0.0
           }
         ],
@@ -11476,13 +11417,10 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 250.0,
         "AuxData": {
-          "ActiveScanSensitivity": 900.0,
-          "ActiveScanFuzzySensitivity": 2700.0,
           "ActiveScanDuration": 3.0,
-          "PassiveScanSensitivity": 10.0,
-          "WarpDetectionSensitivity": 150.0,
+          "PassiveRangePerSquareMetre": 4600.0,
+          "UnidentifiedSphereSize": 0.33,
           "AuxDataType": 16
         }
       }
@@ -11506,7 +11444,6 @@
           1035
         ],
         "ResourceContainers": [],
-        "RadarSignature": 35.0,
         "AuxData": {
           "Efficiency": 1.0,
           "AuxDataType": 11
@@ -11530,7 +11467,6 @@
           1036
         ],
         "ResourceContainers": [],
-        "RadarSignature": 35.0,
         "AuxData": {
           "Efficiency": 1.0,
           "AuxDataType": 11
@@ -11560,7 +11496,6 @@
           65
         ],
         "ResourceContainers": [],
-        "RadarSignature": 0.0,
         "AuxData": {
           "NominalCapacity": 200000.0,
           "Capacity": 0.0,
@@ -11595,7 +11530,6 @@
         "ResourceContainers": [
           5
         ],
-        "RadarSignature": 150.0,
         "AuxData": {
           "ResponseTime": 0.0,
           "AuxDataType": 10
@@ -11634,7 +11568,6 @@
         "ResourceContainers": [
           1003
         ],
-        "RadarSignature": 0.0,
         "AuxData": {
           "ScrubberCartridgeConsumption": 0.1,
           "AuxDataType": 12
@@ -11678,7 +11611,6 @@
           1003,
           1004
         ],
-        "RadarSignature": 0.0,
         "AuxData": null
       }
     ],
@@ -13270,19 +13202,7 @@
     "SceneName": "ALtCorp_PowerSupply_Module",
     "GameName": "ALtCorp_PowerSupply_Module",
     "Mass": 1142899.75,
-    "RadarSignature": 325.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 705.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -16641,7 +16561,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -16671,7 +16590,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 200.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -16706,7 +16624,6 @@
           1048
         ],
         "ResourceContainers": [],
-        "RadarSignature": 0.0,
         "AuxData": {
           "NominalCapacity": 150000.0,
           "Capacity": 0.0,
@@ -16743,7 +16660,6 @@
         "ResourceContainers": [
           1386
         ],
-        "RadarSignature": 150.0,
         "AuxData": {
           "ResponseTime": 0.0,
           "AuxDataType": 10
@@ -17913,19 +17829,7 @@
     "SceneName": "AltCorp_LifeSupportModule",
     "GameName": "AltCorp_LifeSupportModule",
     "Mass": 671741.4,
-    "RadarSignature": 220.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 480.0,
     "HeatCollectionFactor": 100000.0,
     "HeatDissipationFactor": 200.0,
     "StructureConnections": [],
@@ -23000,7 +22904,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -23030,7 +22933,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 200.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -23078,7 +22980,6 @@
         "ResourceContainers": [
           241
         ],
-        "RadarSignature": 100.0,
         "AuxData": {
           "ScrubberCartridgeConsumption": 0.1,
           "AuxDataType": 12
@@ -23128,7 +23029,6 @@
           241,
           242
         ],
-        "RadarSignature": 0.0,
         "AuxData": null
       }
     ],
@@ -24464,19 +24364,7 @@
     "SceneName": "AltCorp_Cargo_Module",
     "GameName": "AltCorp_Cargo_Module",
     "Mass": 1292254.0,
-    "RadarSignature": 300.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 650.0,
     "HeatCollectionFactor": 100000.0,
     "HeatDissipationFactor": 200.0,
     "StructureConnections": [],
@@ -30780,7 +30668,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -30810,7 +30697,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 200.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -30839,7 +30725,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": false,
-        "RadarSignature": 450.0,
         "AuxData": {
           "Capacity": 1000.0,
           "ProcessingTime": 20.0,
@@ -32792,19 +32677,7 @@
     "SceneName": "AltCorp_CorridorVertical",
     "GameName": "AltCorp_CorridorVertical",
     "Mass": 77141.71,
-    "RadarSignature": 35.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 100.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -33059,7 +32932,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -33089,7 +32961,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 15.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -33669,19 +33540,7 @@
     "SceneName": "AltCorp_Command_Module",
     "GameName": "AltCorp_Command_Module",
     "Mass": 619721.2,
-    "RadarSignature": 250.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 400.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -36558,7 +36417,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -36588,7 +36446,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 150.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -36602,7 +36459,7 @@
         "ResourceRequirements": [
           {
             "ResourceType": 1,
-            "Nominal": 0.0,
+            "Nominal": 1000.0,
             "Standby": 0.0
           }
         ],
@@ -36615,13 +36472,10 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 250.0,
         "AuxData": {
-          "ActiveScanSensitivity": 900.0,
-          "ActiveScanFuzzySensitivity": 2700.0,
           "ActiveScanDuration": 3.0,
-          "PassiveScanSensitivity": 15.0,
-          "WarpDetectionSensitivity": 220.0,
+          "PassiveRangePerSquareMetre": 6900.0,
+          "UnidentifiedSphereSize": 0.33,
           "AuxDataType": 16
         }
       }
@@ -38421,19 +38275,7 @@
     "SceneName": "AltCorp_Corridor45TurnRightModule",
     "GameName": "AltCorp_Corridor45TurnRightModule",
     "Mass": 29956.5879,
-    "RadarSignature": 25.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 50.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -38697,7 +38539,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -38727,7 +38568,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 10.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -39340,19 +39180,7 @@
     "SceneName": "AltCorp_StartingModule",
     "GameName": "AltCorp_StartingModule",
     "Mass": 429607.469,
-    "RadarSignature": 130.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 285.0,
     "HeatCollectionFactor": 100000.0,
     "HeatDissipationFactor": 200.0,
     "StructureConnections": [],
@@ -44112,7 +43940,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -44142,7 +43969,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": false,
-        "RadarSignature": 150.0,
         "AuxData": {
           "Capacity": 100.0,
           "ProcessingTime": 30.0,
@@ -44312,7 +44138,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 100.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -44339,7 +44164,6 @@
           1035
         ],
         "ResourceContainers": [],
-        "RadarSignature": 35.0,
         "AuxData": {
           "Efficiency": 1.25,
           "AuxDataType": 11
@@ -44369,7 +44193,6 @@
           1363
         ],
         "ResourceContainers": [],
-        "RadarSignature": 0.0,
         "AuxData": {
           "NominalCapacity": 75000.0,
           "Capacity": 40000.0,
@@ -44409,7 +44232,6 @@
         "ResourceContainers": [
           807
         ],
-        "RadarSignature": 0.0,
         "AuxData": {
           "ScrubberCartridgeConsumption": 0.1,
           "AuxDataType": 12
@@ -44453,7 +44275,6 @@
           807,
           808
         ],
-        "RadarSignature": 0.0,
         "AuxData": null
       }
     ],
@@ -45997,19 +45818,7 @@
     "SceneName": "AltCorp_Airlock_Module",
     "GameName": "AltCorp_Airlock_Module",
     "Mass": 62759.0039,
-    "RadarSignature": 25.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 65.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -48354,7 +48163,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -48384,7 +48192,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 15.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -49088,19 +48895,7 @@
     "SceneName": "Generic_Debris_Module_JuncRoom001",
     "GameName": "Generic_Debris_Module_JuncRoom001",
     "Mass": 182489.938,
-    "RadarSignature": 365.0,
-    "RadarSignatureHealthMultipliers": [
-      2.0,
-      1.96570647,
-      1.87379968,
-      1.74074078,
-      1.58299041,
-      1.41700959,
-      1.25925922,
-      1.1262002,
-      1.03429365,
-      1.0
-    ],
+    "RadarCrossSection": 795.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -50530,7 +50325,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -50765,19 +50559,7 @@
     "SceneName": "Generic_Debris_Module_JuncRoom002",
     "GameName": "Generic_Debris_Module_JuncRoom002",
     "Mass": 145426.5,
-    "RadarSignature": 290.0,
-    "RadarSignatureHealthMultipliers": [
-      2.0,
-      1.96570647,
-      1.87379968,
-      1.74074078,
-      1.58299041,
-      1.41700959,
-      1.25925922,
-      1.1262002,
-      1.03429365,
-      1.0
-    ],
+    "RadarCrossSection": 630.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -51377,7 +51159,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -51669,19 +51450,7 @@
     "SceneName": "Generic_Debris_Module_Corridor001",
     "GameName": "Generic_Debris_Module_Corridor001",
     "Mass": 24345.78,
-    "RadarSignature": 100.0,
-    "RadarSignatureHealthMultipliers": [
-      1.49999845,
-      1.48325443,
-      1.43751729,
-      1.37105179,
-      1.29212666,
-      1.20901024,
-      1.12997091,
-      1.06327713,
-      1.01719737,
-      1.0
-    ],
+    "RadarCrossSection": 215.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -54036,7 +53805,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -54263,19 +54031,7 @@
     "SceneName": "Generic_Debris_Module_Corridor002",
     "GameName": "Generic_Debris_Module_Corridor002",
     "Mass": 49209.1,
-    "RadarSignature": 150.0,
-    "RadarSignatureHealthMultipliers": [
-      2.0,
-      1.96570647,
-      1.87379968,
-      1.74074078,
-      1.58299041,
-      1.41700959,
-      1.25925922,
-      1.1262002,
-      1.03429365,
-      1.0
-    ],
+    "RadarCrossSection": 325.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -55046,7 +54802,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -55281,19 +55036,7 @@
     "SceneName": "AltCorp_DockableContainer",
     "GameName": "AltCorp_DockableContainer",
     "Mass": 84421.5859,
-    "RadarSignature": 35.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 75.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -55396,7 +55139,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -55424,7 +55166,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -55772,19 +55513,7 @@
     "SceneName": "Generic_Debris_Outpost001",
     "GameName": "Generic_Debris_Outpost001",
     "Mass": 1314368.5,
-    "RadarSignature": 2000.0,
-    "RadarSignatureHealthMultipliers": [
-      2.0,
-      1.96570647,
-      1.87379968,
-      1.74074078,
-      1.58299041,
-      1.41700959,
-      1.25925922,
-      1.1262002,
-      1.03429365,
-      1.0
-    ],
+    "RadarCrossSection": 4350.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -58461,7 +58190,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -60376,19 +60104,7 @@
     "SceneName": "AltCorp_CrewQuarters_Module",
     "GameName": "AltCorp_CrewQuarters_Module",
     "Mass": 150124.0,
-    "RadarSignature": 50.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 145.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -64349,7 +64065,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -64379,7 +64094,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 45.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -65012,19 +64726,7 @@
     "SceneName": "Generic_Debris_Spawn1",
     "GameName": "Generic_Debris_Spawn1",
     "Mass": 33813.28,
-    "RadarSignature": 33.813282,
-    "RadarSignatureHealthMultipliers": [
-      2.0,
-      1.96570647,
-      1.87379968,
-      1.74074078,
-      1.58299041,
-      1.41700959,
-      1.25925922,
-      1.1262002,
-      1.03429365,
-      1.0
-    ],
+    "RadarCrossSection": 75.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -65052,7 +64754,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -65086,19 +64787,7 @@
     "SceneName": "Generic_Debris_Spawn2",
     "GameName": "Generic_Debris_Spawn2",
     "Mass": 68857.45,
-    "RadarSignature": 68.85745,
-    "RadarSignatureHealthMultipliers": [
-      2.0,
-      1.96570647,
-      1.87379968,
-      1.74074078,
-      1.58299041,
-      1.41700959,
-      1.25925922,
-      1.1262002,
-      1.03429365,
-      1.0
-    ],
+    "RadarCrossSection": 150.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -65126,7 +64815,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -65160,19 +64848,7 @@
     "SceneName": "Generic_Debris_Spawn3",
     "GameName": "Generic_Debris_Spawn3",
     "Mass": 120510.945,
-    "RadarSignature": 120.510948,
-    "RadarSignatureHealthMultipliers": [
-      2.0,
-      1.96570647,
-      1.87379968,
-      1.74074078,
-      1.58299041,
-      1.41700959,
-      1.25925922,
-      1.1262002,
-      1.03429365,
-      1.0
-    ],
+    "RadarCrossSection": 260.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -65200,7 +64876,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -65234,19 +64909,7 @@
     "SceneName": "AltCorp_SolarPowerModule",
     "GameName": "AltCorp_SolarPowerModule",
     "Mass": 52435.0,
-    "RadarSignature": 20.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 50.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -66295,7 +65958,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -66325,7 +65987,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 15.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -66359,7 +66020,6 @@
           1048
         ],
         "ResourceContainers": [],
-        "RadarSignature": 0.0,
         "AuxData": {
           "NominalCapacity": 100000.0,
           "Capacity": 0.0,
@@ -66384,7 +66044,6 @@
           1038
         ],
         "ResourceContainers": [],
-        "RadarSignature": 10.0,
         "AuxData": {
           "Efficiency": 1.25,
           "AuxDataType": 11
@@ -66408,7 +66067,6 @@
           1035
         ],
         "ResourceContainers": [],
-        "RadarSignature": 10.0,
         "AuxData": {
           "Efficiency": 1.25,
           "AuxDataType": 11
@@ -66432,7 +66090,6 @@
           1036
         ],
         "ResourceContainers": [],
-        "RadarSignature": 10.0,
         "AuxData": {
           "Efficiency": 1.25,
           "AuxDataType": 11
@@ -66456,7 +66113,6 @@
           1037
         ],
         "ResourceContainers": [],
-        "RadarSignature": 10.0,
         "AuxData": {
           "Efficiency": 1.25,
           "AuxDataType": 11
@@ -67217,19 +66873,7 @@
     "SceneName": "AltCorp_Shuttle_CECA",
     "GameName": "AltCorp_Shuttle_CECA",
     "Mass": 468207.875,
-    "RadarSignature": 200.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 340.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -73271,13 +72915,10 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 10.0,
         "AutoReactivate": false,
-        "RadarSignature": 250.0,
         "AuxData": {
-          "ActiveScanSensitivity": 900.0,
-          "ActiveScanFuzzySensitivity": 2700.0,
           "ActiveScanDuration": 3.0,
-          "PassiveScanSensitivity": 9.0,
-          "WarpDetectionSensitivity": 150.0,
+          "PassiveRangePerSquareMetre": 4140.0,
+          "UnidentifiedSphereSize": 0.2,
           "AuxDataType": 16
         }
       },
@@ -73303,7 +72944,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 150.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -73334,7 +72974,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 15.0,
           "RotationAcceleration": 45.0,
@@ -73365,7 +73004,6 @@
         "PowerUpTime": 10.0,
         "CoolDownTime": 10.0,
         "AutoReactivate": false,
-        "RadarSignature": 0.0,
         "AuxData": {
           "BaseTowingCapacity": 500.0,
           "WarpsData": [
@@ -73433,7 +73071,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": null
       }
     ],
@@ -73456,7 +73093,6 @@
           1275
         ],
         "ResourceContainers": [],
-        "RadarSignature": 35.0,
         "AuxData": {
           "Efficiency": 1.0,
           "AuxDataType": 11
@@ -73495,7 +73131,6 @@
         "ResourceContainers": [
           1003
         ],
-        "RadarSignature": 0.0,
         "AuxData": {
           "ScrubberCartridgeConsumption": 0.1,
           "AuxDataType": 12
@@ -73527,7 +73162,6 @@
           65
         ],
         "ResourceContainers": [],
-        "RadarSignature": 0.0,
         "AuxData": {
           "NominalCapacity": 200000.0,
           "Capacity": 200000.0,
@@ -74330,19 +73964,7 @@
     "SceneName": "AltCorp_FabricatorModule",
     "GameName": "AltCorp_FabricatorModule",
     "Mass": 209896.5,
-    "RadarSignature": 80.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 170.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -78082,7 +77704,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -78112,7 +77733,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 50.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -78139,7 +77759,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 100.0,
         "AuxData": {
           "TimePerResourceUnit": 0.2,
           "AllowedItemTypes": [],
@@ -78838,19 +78457,7 @@
     "SceneName": "AltCorp_PatchModule",
     "GameName": "AltCorp_Bulkhead",
     "Mass": 84421.5859,
-    "RadarSignature": 15.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 35.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -78953,7 +78560,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -78981,7 +78587,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -79190,19 +78795,7 @@
     "SceneName": "SOE_Location002",
     "GameName": "SOE_Location002",
     "Mass": 643460.563,
-    "RadarSignature": 480.0,
-    "RadarSignatureHealthMultipliers": [
-      2.0,
-      1.96570647,
-      1.87379968,
-      1.74074078,
-      1.58299041,
-      1.41700959,
-      1.25925922,
-      1.1262002,
-      1.03429365,
-      1.0
-    ],
+    "RadarCrossSection": 1045.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -81740,7 +81333,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -81775,7 +81367,6 @@
           65
         ],
         "ResourceContainers": [],
-        "RadarSignature": 0.0,
         "AuxData": {
           "NominalCapacity": 150000.0,
           "Capacity": 0.0,
@@ -81798,7 +81389,6 @@
         "SpawnSettings": [],
         "MachineryPartSlots": [],
         "ResourceContainers": [],
-        "RadarSignature": 10.0,
         "AuxData": {
           "Efficiency": 1.25,
           "AuxDataType": 11
@@ -82172,19 +81762,7 @@
     "SceneName": "AltCorp_Secure_Module",
     "GameName": "SkylineDefenseSystems_Fortified_Module",
     "Mass": 1061221.0,
-    "RadarSignature": 150.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 410.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -90029,7 +89607,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 150.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -91443,19 +91020,7 @@
     "SceneName": "AltCorp_Destroyed_Shuttle_CECA",
     "GameName": "AltCorp_Shuttle_CECA",
     "Mass": 936415.75,
-    "RadarSignature": 350.0,
-    "RadarSignatureHealthMultipliers": [
-      2.00588417,
-      1.97300386,
-      1.8814317,
-      1.74785018,
-      1.5889709,
-      1.42150486,
-      1.2621634,
-      1.127658,
-      1.03469992,
-      1.0
-    ],
+    "RadarCrossSection": 760.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -93765,7 +93330,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 6.0,
           "RotationAcceleration": 20.0,
@@ -93793,7 +93357,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -94147,19 +93710,7 @@
     "SceneName": "AltCorp_CorridorIntersection_MKII",
     "GameName": "AltCorp_CorridorIntersectionModuleMKII",
     "Mass": 70250.0,
-    "RadarSignature": 20.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 45.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -97410,7 +96961,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 15.0,
           "RotationAcceleration": 45.0,
@@ -97440,7 +96990,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 10.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,
@@ -98281,19 +97830,7 @@
     "SceneName": "AlrCorp_Corridor_MKII",
     "GameName": "AltCorp_CorridorModuleMKII",
     "Mass": 87500.0,
-    "RadarSignature": 20.0,
-    "RadarSignatureHealthMultipliers": [
-      4.0,
-      3.89711928,
-      3.62139916,
-      3.222222,
-      2.74897122,
-      2.25102854,
-      1.77777767,
-      1.37860084,
-      1.10288072,
-      1.0
-    ],
+    "RadarCrossSection": 45.0,
     "HeatCollectionFactor": 10000.0,
     "HeatDissipationFactor": 20.0,
     "StructureConnections": [],
@@ -102509,7 +102046,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 0.0,
         "AuxData": {
           "Acceleration": 15.0,
           "RotationAcceleration": 45.0,
@@ -102539,7 +102075,6 @@
         "PowerUpTime": 0.0,
         "CoolDownTime": 0.0,
         "AutoReactivate": true,
-        "RadarSignature": 10.0,
         "AuxData": {
           "DecayDamageMultiplier": 0.1,
           "DebrisFieldDamageMultiplier": 0.5,

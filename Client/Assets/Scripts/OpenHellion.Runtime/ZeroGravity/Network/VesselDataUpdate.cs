@@ -11,8 +11,6 @@ namespace ZeroGravity.Network
 
 		public string VesselName;
 
-		public double? RadarSignature;
-
 		public bool? IsDistressSignalActive;
 
 		public bool? IsAlwaysVisible;

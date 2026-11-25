@@ -1,6 +1,6 @@
 using OpenHellion;
+using OpenHellion.State;
 using UnityEngine;
-using UnityEngine.Serialization;
 using ZeroGravity.Data;
 using ZeroGravity.LevelDesign;
 using ZeroGravity.Math;
@@ -11,6 +11,8 @@ namespace ZeroGravity.ShipComponents
 {
 	public class SubSystemRadar : SubSystem
 	{
+		public const double ScanningConeReferenceSignature = 110.0;
+
 		[SerializeField] private ResourceRequirement[] _ResourceRequirements = new ResourceRequirement[1]
 		{
 			new ResourceRequirement
@@ -19,17 +21,10 @@ namespace ZeroGravity.ShipComponents
 			}
 		};
 
-		[Title("Sensivity")] public double ActiveScanSensitivity = 3600.0;
-
-		public double ActiveScanFuzzySensitivity = 7200.0;
-
 		public float ActiveScanDuration = 3f;
 
-		[FormerlySerializedAs("passiveScanSensitivity")]
-		public double PassiveScanSensitivity = 20.0;
-
-		[FormerlySerializedAs("warpDetectionSensitivity")]
-		public double WarpDetectionSensitivity = 1000.0;
+		[Tooltip("Metres of passive range per square metre of signature")]
+		public double PassiveRangePerSquareMetre = 4140.0;
 
 		[System.NonSerialized] public bool ActiveScanPending;
 
@@ -52,27 +47,40 @@ namespace ZeroGravity.ShipComponents
 			}
 		}
 
+		public double Kilowatts => _ResourceRequirements[0].Nominal;
+
 		public double GetSensitivityMultiplier()
 		{
-			double num = SignalAmplification * GetCelestialSensitivityModifier();
+			Vector3D position = World.LocalToWorldPosition(ParentVessel.transform.position);
+			double planetZoneSensitivity = 1.0;
+			foreach (CelestialBody body in World.SolarSystem.GetCelestialBodies())
+			{
+				if ((position - body.Position).SqrMagnitude < body.Orbit.GravityInfluenceRadiusSquared)
+				{
+					planetZoneSensitivity *= body.RadarSensitivityInSphereOfInfluence;
+				}
+			}
+
+			double debrisFieldSensitivity = 1.0;
 			foreach (DebrisField debrisField in World.DebrisFields)
 			{
 				if (debrisField.CheckObject(ParentVessel))
 				{
-					num *= debrisField.ScanningSensitivityMultiplier;
+					debrisFieldSensitivity *= debrisField.ScanningSensitivityMultiplier;
 				}
 			}
 
-			return num;
+			return RadarDetection.GetSensitivityMultiplier(SignalAmplification, World.GetVesselExposureDamage(position.Magnitude),
+				planetZoneSensitivity, debrisFieldSensitivity);
 		}
 
 		public override SystemAuxData GetAuxData()
 		{
-			RadarAuxData radarAuxData = new RadarAuxData
+			return new RadarAuxData
 			{
-				ActiveScanDuration = ActiveScanDuration
+				ActiveScanDuration = ActiveScanDuration,
+				PassiveRangePerSquareMetre = PassiveRangePerSquareMetre
 			};
-			return radarAuxData;
 		}
 
 		public override void SetDetails(SubSystemDetails details, bool instant = false)
@@ -91,20 +99,6 @@ namespace ZeroGravity.ShipComponents
 			}
 
 			base.SetDetails(details, instant);
-		}
-
-		public double GetCelestialSensitivityModifier()
-		{
-			double num = 1.0;
-			Vector3D vesselWorldPosition = World.LocalToWorldPosition(ParentVessel.transform.position);
-			for (CelestialBody celestialBody = World.SolarSystem.GetParentCelestialBody(vesselWorldPosition);
-			     celestialBody != null;
-			     celestialBody = celestialBody.ParentCelesitalBody)
-			{
-				num *= celestialBody.GetScanningSensitivityModifier(World, ParentVessel);
-			}
-
-			return num;
 		}
 
 		public override void MachineryPartAttached(SceneMachineryPartSlot slot)

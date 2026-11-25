@@ -25,8 +25,6 @@ namespace ZeroGravity.ShipComponents
 
 		public UnityEvent OnCooldownEvent;
 
-		public float RadarSignature;
-
 		[SerializeField] private SystemStatus _Status = SystemStatus.Offline;
 
 		public SystemSecondaryStatus SecondaryStatus;

@@ -414,51 +414,118 @@ public class SolarSystem
 		});
 	}
 
-	public async Task SendKnownVesselsToPlayer(Player player)
+	/// <summary>
+	/// 	Updates each player's navigation map contacts from what their radar hears, then sends them every vessel they
+	/// 	know of: live vessels they can see or always know, last known snapshots and unidentified spheres.
+	/// </summary>
+	public async Task UpdateAndSendNavigationMaps(IEnumerable<Player> players)
 	{
-		SpaceObjectVessel current = (player.Parent as SpaceObjectVessel)?.MainVessel;
-		SubSystemRadar radar = current?.MainDistributionManager?.GetSubSystems().OfType<SubSystemRadar>().FirstOrDefault();
-		long home = player.AuthorizedSpawnPoint?.Ship.MainVessel.Guid ?? 0L;
-		long[] questStations = [.. player.Quests.SelectMany((Quest m) => m.QuestTriggers)
-			.Where((QuestTrigger m) => m.Status == QuestStatus.Active)
-			.Select((QuestTrigger m) => m.GetDetails().StationMainVesselGUID)];
-		List<KnownVesselsMessage.KnownVessel> known = [];
-		foreach (SpaceObjectVessel vessel in Server.Instance.AllVessels)
+		double now = Server.SolarSystemTime;
+
+		foreach (Player player in players)
 		{
-			if (!vessel.IsMainVessel || vessel.IsDebrisFragment)
+			Dictionary<long, KnownVesselsMessage.KnownVessel> knownVessels = [];
+			HashSet<long> personallyKnownVesselGuids = [];
+			if (player.Parent is SpaceObjectVessel parentVessel)
 			{
-				continue;
+				personallyKnownVesselGuids.Add(parentVessel.MainVessel.Guid);
+			}
+			if (player.AuthorizedSpawnPoint?.Ship.MainVessel is { } home)
+			{
+				personallyKnownVesselGuids.Add(home.Guid);
+			}
+			foreach (QuestTrigger trigger in player.Quests.SelectMany((Quest m) => m.QuestTriggers).Where((QuestTrigger m) => m.Status == QuestStatus.Active))
+			{
+				if (Server.Instance.TryGetSpaceObject(trigger.GetDetails().StationMainVesselGUID, out SpaceObject questObject) && questObject is SpaceObjectVessel questVessel)
+				{
+					personallyKnownVesselGuids.Add(questVessel.MainVessel.Guid);
+				}
 			}
 
-			float signature = vessel.GetCompoundRadarSignature();
-			if (!(vessel.IsAlwaysVisible || vessel.IsDistressSignalActive || vessel == current || vessel.Guid == home
-				|| questStations.Contains(vessel.Guid) || player.DiscoveredVessels.Contains(vessel.Guid)
-				|| vessel.AllVessels.Any((SpaceObjectVessel m) => m.AuthorizedPersonel.Any((AuthorizedPerson n) => n.PlayerId == player.PlayerId))
-				|| (radar != null && (vessel.Position - current.Position).Magnitude <= radar.PassiveScanSensitivity * 1000.0 * signature)))
+			SubSystemRadar radar = SubSystemRadar.FindUsable(player.Parent);
+			double sensitivityMultiplier = radar?.GetSensitivityMultiplier() ?? 0.0;
+			foreach (SpaceObjectVessel vessel in Server.Instance.AllVessels)
 			{
-				continue;
+				if (!vessel.IsMainVessel)
+				{
+					continue;
+				}
+
+				if (personallyKnownVesselGuids.Contains(vessel.Guid) || (!vessel.IsDebrisFragment && (vessel.IsAlwaysVisible || vessel.IsDistressSignalActive
+					|| vessel.AllVessels.Any((SpaceObjectVessel module) => module.AuthorizedPersonel.Any((AuthorizedPerson person) => person.PlayerId == player.PlayerId)))))
+				{
+					knownVessels[vessel.Guid] = vessel.DescribeForNavigationMap(vessel.Orbit, vessel.GetCompoundSignature(), isTracked: true);
+				}
+				else if (radar != null && !vessel.IsDebrisFragment && radar.DetectsPassively(vessel, sensitivityMultiplier))
+				{
+					LastKnownVessel heardVessel = vessel.RememberForNavigationMap(now);
+					knownVessels[vessel.Guid] = vessel.DescribeForNavigationMap(heardVessel.LastKnownOrbit, heardVessel.LastKnownSignature, isTracked: true);
+					player.LastKnownVessels[vessel.Guid] = heardVessel;
+					player.UnidentifiedRadarEchoes.Remove(vessel.Guid);
+				}
 			}
 
-			OrbitData orbit = new();
-			vessel.Orbit.FillOrbitData(ref orbit, vessel);
-			known.Add(new KnownVesselsMessage.KnownVessel
+			foreach ((long vesselGuid, LastKnownVessel lastKnownVessel) in player.LastKnownVessels.ToList())
 			{
-				Guid = vessel.Guid,
-				Type = vessel is Asteroid ? SpaceObjectType.Asteroid : SpaceObjectType.Ship,
-				Name = vessel.VesselName,
-				Registration = vessel.VesselRegistration,
-				SpawnRuleId = vessel.SpawnRuleId,
-				Orbit = orbit,
-				RadarSignature = signature,
-				IsAlwaysVisible = vessel.IsAlwaysVisible,
-				IsDistressSignalActive = vessel.IsDistressSignalActive,
+				if (knownVessels.ContainsKey(vesselGuid))
+				{
+					continue;
+				}
+
+				SpaceObjectVessel vessel = Server.Instance.GetVessel(vesselGuid);
+				if (vessel == null && lastKnownVessel.SpawnRuleId != 0)
+				{
+					vessel = Server.Instance.AllVessels.FirstOrDefault((SpaceObjectVessel m) => m.IsMainVessel && m.SpawnRuleId == lastKnownVessel.SpawnRuleId);
+				}
+				if (vessel == null || vessel.Guid != vesselGuid)
+				{
+					player.LastKnownVessels.Remove(vesselGuid);
+					if (vessel == null || knownVessels.ContainsKey(vessel.Guid) || !player.LastKnownVessels.TryAdd(vessel.Guid, lastKnownVessel))
+					{
+						continue;
+					}
+				}
+
+				lastKnownVessel.LastKnownOrbit.UpdateOrbit(now);
+				if (radar != null)
+				{
+					double lastKnownRange = radar.GetPassiveRange(lastKnownVessel.LastKnownSignature, sensitivityMultiplier);
+					if ((lastKnownVessel.LastKnownOrbit.Position - radar.ParentVessel.Position).SqrMagnitude <= lastKnownRange * lastKnownRange)
+					{
+						player.LastKnownVessels.Remove(vessel.Guid);
+						continue;
+					}
+				}
+				knownVessels[vessel.Guid] = vessel.DescribeForNavigationMap(lastKnownVessel.LastKnownOrbit, lastKnownVessel.LastKnownSignature, isTracked: false);
+			}
+
+			List<KnownVesselsMessage.UnidentifiedContact> unidentifiedContacts = [];
+			foreach ((long vesselGuid, UnidentifiedRadarEcho echo) in player.UnidentifiedRadarEchoes.ToList())
+			{
+				double remainingLifetime = echo.CreatedSolarSystemTime + UnidentifiedRadarEcho.LifetimeSeconds - now;
+				if (remainingLifetime <= 0.0)
+				{
+					player.UnidentifiedRadarEchoes.Remove(vesselGuid);
+					continue;
+				}
+				if (knownVessels.ContainsKey(vesselGuid))
+				{
+					continue;
+				}
+				unidentifiedContacts.Add(new KnownVesselsMessage.UnidentifiedContact
+				{
+					Centre = echo.SphereCentre.ToArray(),
+					Radius = echo.SphereRadius,
+					RemainingLifetimeSeconds = (float)remainingLifetime
+				});
+			}
+
+			await NetworkController.SendAsync(player.Guid, new KnownVesselsMessage
+			{
+				Vessels = [.. knownVessels.Values],
+				UnidentifiedContacts = [.. unidentifiedContacts]
 			});
 		}
-
-		await NetworkController.SendAsync(player.Guid, new KnownVesselsMessage
-		{
-			Vessels = [.. known]
-		});
 	}
 
 	public async Task SendMovementMessageToPlayer(Player player)
@@ -492,6 +559,28 @@ public class SolarSystem
 			movementMessage.PlayerPosition = player.LocalPosition.ToFloatArray();
 			movementMessage.PlayerRotation = player.LocalRotation.ToFloatArray();
 			movementMessage.PlayerVelocity = player.LocalVelocity.ToFloatArray();
+		}
+
+		SubSystemRadar radar = player.IsDrivingShip ? SubSystemRadar.FindUsable(player.Parent) : null;
+		if (radar != null)
+		{
+			double sensitivityMultiplier = radar.GetSensitivityMultiplier();
+			List<MovementMessage.RadarContact> radarContacts = [];
+			foreach (SpaceObjectVessel vessel in Server.Instance.AllVessels)
+			{
+				if (!vessel.IsMainVessel || vessel.IsDebrisFragment || vessel.IsWarping || vessel == radar.ParentVessel.MainVessel
+					|| !radar.DetectsPassively(vessel, sensitivityMultiplier))
+				{
+					continue;
+				}
+				radarContacts.Add(new MovementMessage.RadarContact
+				{
+					Guid = vessel.Guid,
+					Position = (vessel.Position - anchor.Position).ToFloatArray(),
+					Velocity = (vessel.Velocity - anchor.Velocity).ToFloatArray()
+				});
+			}
+			movementMessage.RadarContacts = [.. radarContacts];
 		}
 
 		foreach (ArtificialBody artificialBody in bodiesInRange)
@@ -617,6 +706,7 @@ public class SolarSystem
 			newBody.AsteroidGasBurstTimeMin = cbd.AsteroidGasBurstTimeMin;
 			newBody.AsteroidGasBurstTimeMax = cbd.AsteroidGasBurstTimeMax;
 			newBody.AsteroidResources = cbd.AsteroidResources.ToList();
+			newBody.RadarSensitivityInSphereOfInfluence = cbd.RadarSensitivityInSphereOfInfluence;
 			_celestialBodies.Add(newBody);
 		}
 	}

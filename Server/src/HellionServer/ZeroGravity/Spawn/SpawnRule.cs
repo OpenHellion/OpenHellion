@@ -162,7 +162,7 @@ public class SpawnRule
 			bool positionClear = true;
 			for (int i = 1; i < spawnedVessels.Count; i++)
 			{
-				if (spawnedVessels[i].Orbit.RelativePosition.DistanceSquared(pos) < System.Math.Pow(ves.Radius + first.RadarSignature + SpawnManager.Settings.RandomLocationClusterItemCheckDistance, 2.0))
+				if (spawnedVessels[i].Orbit.RelativePosition.DistanceSquared(pos) < System.Math.Pow(ves.Radius + spawnedVessels[i].Radius + SpawnManager.Settings.RandomLocationClusterItemCheckDistance, 2.0))
 				{
 					positionClear = false;
 					break;

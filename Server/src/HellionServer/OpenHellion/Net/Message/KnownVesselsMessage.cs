@@ -41,12 +41,26 @@ public class KnownVesselsMessage : NetworkData
 
 		public OrbitData Orbit;
 
-		public double RadarSignature;
+		public double Signature;
+
+		public bool IsTracked;
 
 		public bool IsAlwaysVisible;
 
 		public bool IsDistressSignalActive;
 	}
 
+	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+	public struct UnidentifiedContact
+	{
+		public double[] Centre;
+
+		public double Radius;
+
+		public float RemainingLifetimeSeconds;
+	}
+
 	public KnownVessel[] Vessels;
+
+	public UnidentifiedContact[] UnidentifiedContacts;
 }

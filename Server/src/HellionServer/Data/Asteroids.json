@@ -5,7 +5,7 @@
     "SceneName": "Asteroid01",
     "GameName": "Asteroid_A002",
     "Radius": 288.153,
-    "RadarSignature": 20000.0,
+    "RadarCrossSection": 155000.0,
     "MiningPoints": [
       {
         "InSceneID": 44,
@@ -773,7 +773,7 @@
     "SceneName": "Asteroid02",
     "GameName": "Asteroid_A003",
     "Radius": 189.693,
-    "RadarSignature": 9000.0,
+    "RadarCrossSection": 66000.0,
     "MiningPoints": [
       {
         "InSceneID": 49,
@@ -1460,7 +1460,7 @@
     "SceneName": "Asteroid03",
     "GameName": "Asteroid_A005",
     "Radius": 284.05954,
-    "RadarSignature": 25000.0,
+    "RadarCrossSection": 145000.0,
     "MiningPoints": [
       {
         "InSceneID": 35,
@@ -2147,7 +2147,7 @@
     "SceneName": "Asteroid04",
     "GameName": "Asteroid_A006",
     "Radius": 224.400925,
-    "RadarSignature": 12500.0,
+    "RadarCrossSection": 91000.0,
     "MiningPoints": [
       {
         "InSceneID": 47,
@@ -2834,7 +2834,7 @@
     "SceneName": "Asteroid05",
     "GameName": "Asteroid_A008",
     "Radius": 396.927551,
-    "RadarSignature": 30000.0,
+    "RadarCrossSection": 340000.0,
     "MiningPoints": [
       {
         "InSceneID": 2,
@@ -4115,7 +4115,7 @@
     "SceneName": "Asteroid06",
     "GameName": "Asteroid_A009",
     "Radius": 149.69101,
-    "RadarSignature": 6250.0,
+    "RadarCrossSection": 51000.0,
     "MiningPoints": [
       {
         "InSceneID": 3,
@@ -4676,7 +4676,7 @@
     "SceneName": "Asteroid07",
     "GameName": "Asteroid_A011",
     "Radius": 57.45203,
-    "RadarSignature": 2000.0,
+    "RadarCrossSection": 6600.0,
     "MiningPoints": [
       {
         "InSceneID": 20,
@@ -4949,7 +4949,7 @@
     "SceneName": "Asteroid08",
     "GameName": "Asteroid_A017",
     "Radius": 431.4959,
-    "RadarSignature": 50000.0,
+    "RadarCrossSection": 380000.0,
     "MiningPoints": [
       {
         "InSceneID": 2,

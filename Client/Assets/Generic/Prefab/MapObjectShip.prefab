@@ -868,7 +868,6 @@ MonoBehaviour:
   NewObjectVisibility: {fileID: 1918266498028616}
   NewObjectVisibilityDuration: 120
   ScanningCone: {fileID: 1900323575037677}
-  ReferentRadarSignature: 500
   ScanningEffectCone: {fileID: 1094305194504462}
   ScanningEffectConeScaleMultiplier: 1
   Pitch: {fileID: 1016325820853197}

@@ -72,7 +72,8 @@ namespace ZeroGravity.Objects
 
 		private void KnownVesselsMessageListener(NetworkData data)
 		{
-			KnownVesselsMessage.KnownVessel[] vessels = ((KnownVesselsMessage)data).Vessels ?? Array.Empty<KnownVesselsMessage.KnownVessel>();
+			KnownVesselsMessage message = (KnownVesselsMessage)data;
+			KnownVesselsMessage.KnownVessel[] vessels = message.Vessels ?? Array.Empty<KnownVesselsMessage.KnownVessel>();
 			foreach (long guid in KnownVessels.Keys.Where((long m) => vessels.All((KnownVesselsMessage.KnownVessel n) => n.Guid != m)).ToList())
 			{
 				KnownVessels.Remove(guid);
@@ -89,6 +90,7 @@ namespace ZeroGravity.Objects
 			}
 
 			_map.ApplyKnownVessels(KnownVessels);
+			_map.ApplyUnidentifiedContacts(message.UnidentifiedContacts ?? Array.Empty<KnownVesselsMessage.UnidentifiedContact>());
 		}
 
 		public void SendCommand(StateUpdateRequest.CommandType type, long subject, long target = 0, short slot = 0,
@@ -304,8 +306,7 @@ namespace ZeroGravity.Objects
 				}
 
 				celestialBody.AsteroidGasBurstDmgMultiplier = data.AsteroidGasBurstDmgMultiplier;
-				celestialBody.ScanningSensitivityModifierValues = data.ScanningSensitivityModifierValues;
-				celestialBody.RadarSignatureModifierValues = data.RadarSignatureModifierValues;
+				celestialBody.RadarSensitivityInSphereOfInfluence = data.RadarSensitivityInSphereOfInfluence;
 				AddCelestialBody(celestialBody);
 			}
 

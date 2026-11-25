@@ -71,6 +71,10 @@ namespace OpenHellion
 
 		public long AnchorGuid { get; private set; }
 
+		public readonly Dictionary<long, MovementMessage.RadarContact> RadarContacts = new Dictionary<long, MovementMessage.RadarContact>();
+
+		public float RadarContactsReceivedTime { get; private set; }
+
 		/// <summary>
 		/// 	The vessel the local player is flying, which is predicted locally instead of being driven by
 		/// 	the movement stream. Zero when nobody here is piloting.
@@ -659,6 +663,13 @@ namespace OpenHellion
 					movementMessage.PlayerVelocity?.ToVector3(),
 					movementMessage.PlayerAnimationData);
 
+				RadarContacts.Clear();
+				RadarContactsReceivedTime = Time.time;
+				foreach (MovementMessage.RadarContact radarContact in movementMessage.RadarContacts ?? Array.Empty<MovementMessage.RadarContact>())
+				{
+					RadarContacts[radarContact.Guid] = radarContact;
+				}
+
 				if (movementMessage.ArtificialBodiesMovement != null)
 				{
 					foreach (MovementMessage.TransformInfo bodyTransform in movementMessage.ArtificialBodiesMovement)
@@ -978,7 +989,7 @@ namespace OpenHellion
 					try
 					{
 						await Ship.Create(this, shipData.Guid, shipData.Position.ToVector3(), shipData.Rotation.ToQuaternion(), shipData.VesselRegistration, shipData.VesselName,
-							shipData.Tag,shipData.SceneId, shipData.CollidersCenterOffset, shipData.IsDebrisFragment, shipData.RadarSignature, shipData.IsDistressSignalActive,
+							shipData.Tag,shipData.SceneId, shipData.CollidersCenterOffset, shipData.IsDebrisFragment, shipData.IsDistressSignalActive,
 							shipData.IsAlwaysVisible, shipData.DockingControlsDisabled, shipData.SecurityPanelsLocked, shipData.VesselObjects, shipData.DockedVessels,
 							shipData.Guid == mainObjectGuid || (shipData.DockedVessels != null && shipData.DockedVessels.Any(m => m.Guid == mainObjectGuid)));
 						Diagnostics.Log($"mass spawn: ship '{shipData.VesselRegistration}' ({shipData.Guid}) scene {shipData.SceneId} with {shipData.DockedVessels?.Length ?? 0} docked created");
@@ -1191,11 +1202,6 @@ namespace OpenHellion
 					if (item.VesselRegistration is not null)
 					{
 						spaceObjectVessel.VesselRegistration = item.VesselRegistration;
-					}
-
-					if (item.RadarSignature.HasValue)
-					{
-						spaceObjectVessel.RadarSignature = item.RadarSignature.Value;
 					}
 
 					if (item.IsAlwaysVisible.HasValue)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenHellion.Map;
+using OpenHellion.State;
 using UnityEngine;
 using ZeroGravity.Math;
 using ZeroGravity.Objects;
@@ -11,8 +12,6 @@ namespace ZeroGravity.ShipComponents
 	public class MapObjectShip : MapObjectVessel
 	{
 		public GameObject ScanningCone;
-
-		public float ReferentRadarSignature = 50f;
 
 		public GameObject ScanningEffectCone;
 
@@ -92,14 +91,8 @@ namespace ZeroGravity.ShipComponents
 					ScanningConeAngle = 1f;
 				}
 
-				double num = MyRadar.SignalAmplification * MyRadar.GetCelestialSensitivityModifier();
-				if (MyPlayer.Instance.InDebrisField != null)
-				{
-					num *= MyPlayer.Instance.InDebrisField.ScanningSensitivityMultiplier;
-				}
-
-				float num2 = (float)(MyRadar.ActiveScanFuzzySensitivity * 1000.0 /
-					ScanningConeAngle * ReferentRadarSignature * num);
+				float num2 = (float)RadarDetection.GetFuzzyRange(MyRadar.Kilowatts, ScanningConeAngle,
+					SubSystemRadar.ScanningConeReferenceSignature, MyRadar.GetSensitivityMultiplier());
 				float num3 = (float)(2.0 * System.Math.Tan(ScanningConeAngle * (System.Math.PI / 180.0) / 2.0));
 				ScanningCone.transform.localScale =
 					new Vector3(num3 * num2, num3 * num2, num2) * (float)ObjectScale;

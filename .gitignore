@@ -160,3 +160,7 @@ CLAUDE.md
 **log_backup.txt
 *.log
 *.save
+
+# Built by Server/src/OpenHellion.State (dotnet build Server/)
+Client/Assets/Plugins/OpenHellion.State/
+Client/Assets/Plugins/OpenHellion.State.meta

@@ -65,8 +65,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 
 	private ManeuverCourse AutoActivateCourse;
 
-	private float[] RadarSignatureHealthMultipliers;
-
 	private string RescueShipTag = "";
 
 	private GameScenes.SceneId _rescueShipSceneID = GameScenes.SceneId.AltCorp_Shuttle_CECA;
@@ -78,20 +76,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 	private TimeSpan _lastShipCollisionMessageTime = Server.Instance.RunTime;
 
 	public override SpaceObjectType ObjectType => SpaceObjectType.Ship;
-
-	public override float RadarSignature
-	{
-		get
-		{
-			return MathHelper.Clamp(base.RadarSignature * RadarSignatureHealthMultipliers[RadarSignatureHealthMultiplierIndex] + Systems.Sum((VesselComponent m) => m.RadarSignature), 0f, float.MaxValue);
-		}
-		protected set
-		{
-			base.RadarSignature = value;
-		}
-	}
-
-	public int RadarSignatureHealthMultiplierIndex => (int)System.Math.Floor(Health / MaxHealth * 9f);
 
 	public float TimeToLive => (float)(Health / (ExposureDamage * Server.VesselDecayRateMultiplier));
 
@@ -757,7 +741,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 			SceneId = SceneId,
 			CollidersCenterOffset = CollidersCenterOffset,
 			IsDebrisFragment = IsDebrisFragment,
-			RadarSignature = RadarSignature,
 			IsDistressSignalActive = IsDistressSignalActive,
 			IsAlwaysVisible = IsAlwaysVisible,
 			DockingControlsDisabled = DockingControlsDisabled,
@@ -790,7 +773,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 					CollidersCenterOffset = sh.CollidersCenterOffset,
 					IsDebrisFragment = sh.IsDebrisFragment,
 					CreationSolarSystemTime = sh.CreationSolarSystemTime,
-					RadarSignature = sh.RadarSignature,
 					IsDistressSignalActive = sh.IsDistressSignalActive,
 					IsAlwaysVisible = sh.IsAlwaysVisible,
 					VesselObjects = sh.GetVesselObjects(),
@@ -809,8 +791,6 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		{
 			return;
 		}
-		RadarSignatureHealthMultipliers = ObjectCopier.Copy(data.RadarSignatureHealthMultipliers);
-		RadarSignature = data.RadarSignature;
 		HasSecuritySystem = data.HasSecuritySystem;
 		MaxHealth = data.MaxHealth;
 		BaseArmor = data.BaseArmor;
@@ -1144,6 +1124,7 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 		Mass += sceneData.Mass > 0f ? sceneData.Mass : 1f;
 		HeatCollectionFactor = sceneData.HeatCollectionFactor;
 		HeatDissipationFactor = sceneData.HeatDissipationFactor;
+		RadarCrossSection = sceneData.RadarCrossSection;
 		if (sceneData.Colliders == null)
 		{
 			return;
@@ -2012,13 +1993,8 @@ public class Ship : SpaceObjectVessel, IPersistantObject
 			}
 			LastVesselDamageType = damageType;
 		}
-		int prevRadarSignatureHealthMultiplierIndex = RadarSignatureHealthMultiplierIndex;
 		float prevHealth = _Health;
 		_Health = MathHelper.Clamp(Health + value, 0f, MaxHealth);
-		if (damageType != 0 && Health > 0f && prevRadarSignatureHealthMultiplierIndex != RadarSignatureHealthMultiplierIndex)
-		{
-			MainVessel.UpdateVesselData();
-		}
 		if (value < 0f && RepairPoints.Count > 0)
 		{
 			float damage = System.Math.Abs(value);

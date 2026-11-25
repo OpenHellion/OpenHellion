@@ -75,7 +75,6 @@ public abstract class SubSystem : VesselComponent
 		shouldAutoReactivate = Status != SystemStatus.OffLine && AutoReactivate;
 		OperationRate = data.OperationRate;
 		AutoTuneOperationRate = data.AutoTuneOperationRate;
-		baseRadarSignature = data.RadarSignature;
 		SetAuxData(data.AuxData);
 	}
 

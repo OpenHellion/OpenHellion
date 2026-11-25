@@ -14,9 +14,7 @@ public class StructureSceneData : ISceneData
 
 	public float Mass;
 
-	public float RadarSignature;
-
-	public float[] RadarSignatureHealthMultipliers;
+	public float RadarCrossSection;
 
 	public float HeatCollectionFactor;
 
